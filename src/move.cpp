@@ -7,12 +7,21 @@
 #include <string>
 #include <unordered_map>
 
-Move::Move(Board &b, unsigned int f, unsigned int t)
+Move::Move(Board *b, unsigned int f, unsigned int t)
 	: board(b) {
 	from = f;
 	to	 = t;
 
-	flags = genFlags(board);
+	flags = genFlags(*board);
+}
+
+Move::Move(Board *b, unsigned int f, unsigned int t, unsigned int pP)
+	: board(b) {
+	from	   = f;
+	to		   = t;
+	promoPiece = pP;
+
+	flags = genFlags(*board);
 }
 
 unsigned int Move::genFlags(Board board) {
@@ -63,54 +72,58 @@ unsigned int Move::getFlags() {
 	return flags;
 }
 
+void Move::setPromoPiece(unsigned int piece) {
+	promoPiece = piece;
+}
+
 void Move::execute() {
 	// removes piece from the destination square if theres one there
 	for (int i = 0; i < 12; i++)
-		board.pieces[i] &= ~(0 | 1UL << to);
+		(*board).pieces[i] &= ~(0 | 1UL << to);
 	// moves the piece from its current square to the destination square
 	for (int i = 0; i < 12; i++)
-		if ((board.pieces[i] >> from) & 1)
-			board.pieces[i] ^= (1UL << to) + (1UL << from);
+		if (((*board).pieces[i] >> from) & 1)
+			(*board).pieces[i] ^= (1UL << to) + (1UL << from);
 
 	updateGameData();
 }
 
 void Move::updateGameData() {
-	board.hmClock++;
-	if (board.sideToMove == BLACK)
-		board.fmClock++;
+	(*board).hmClock++;
+	if ((*board).sideToMove == BLACK)
+		(*board).fmClock++;
 	if (flags & PAWN_MOVE || flags & CAPTURE)
-		board.hmClock = 0;
+		(*board).hmClock = 0;
 
 	// updates en passant square if dbl pawn push
 	if (flags & DBL_PAWN)
-		board.enPassantSquare = 1UL << (board.sideToMove == WHITE ? to - 8 : to + 8);
+		(*board).enPassantSquare = 1UL << ((*board).sideToMove == WHITE ? to - 8 : to + 8);
 
 	updateCastlingRights();
 
 	// switching side to move
-	board.sideToMove = board.sideToMove ? WHITE : BLACK;
+	(*board).sideToMove = (*board).sideToMove == WHITE ? BLACK : WHITE;
 }
 
 void Move::updateCastlingRights() {
 	// if either side castles remove all their castling rights
-	if (board.sideToMove == WHITE) {
-		if (flags & KS_CASTLE || flags & QS_CASTLE) board.castlingRights &= 3;
-	} else if (flags & KS_CASTLE || flags & QS_CASTLE) board.castlingRights &= ~3;
+	if ((*board).sideToMove == WHITE) {
+		if (flags & KS_CASTLE || flags & QS_CASTLE) (*board).castlingRights &= 3;
+	} else if (flags & KS_CASTLE || flags & QS_CASTLE) (*board).castlingRights &= ~3;
 
 	// if the kings move remove all their castling rights
-	if ((*board.W_KING >> to) & 1 && ((board.castlingRights >> 3) & 1 || (board.castlingRights >> 2) & 1))
-		board.castlingRights &= 3;
-	if ((*board.B_KING >> to) & 1 && ((board.castlingRights >> 1) & 1 || (board.castlingRights) & 1))
-		board.castlingRights &= ~3;
+	if ((*(*board).W_KING >> to) & 1 && (((*board).castlingRights >> 3) & 1 || ((*board).castlingRights >> 2) & 1))
+		(*board).castlingRights &= 3;
+	if ((*(*board).B_KING >> to) & 1 && (((*board).castlingRights >> 1) & 1 || ((*board).castlingRights) & 1))
+		(*board).castlingRights &= ~3;
 
 	// if the rooks move remove castling rights for that side
-	if ((*board.W_ROOK >> to) & 1 && from == 7)
-		board.castlingRights &= ~(1 << 3);
-	if ((*board.W_ROOK >> to) & 1 && from == 0)
-		board.castlingRights &= ~(1 << 2);
-	if ((*board.B_ROOK >> to) & 1 && from == 63)
-		board.castlingRights &= ~(1 << 1);
-	if ((*board.W_ROOK >> to) & 1 && from == 56)
-		board.castlingRights &= ~1;
+	if ((*(*board).W_ROOK >> to) & 1 && from == 7)
+		(*board).castlingRights &= ~(1 << 3);
+	if ((*(*board).W_ROOK >> to) & 1 && from == 0)
+		(*board).castlingRights &= ~(1 << 2);
+	if ((*(*board).B_ROOK >> to) & 1 && from == 63)
+		(*board).castlingRights &= ~(1 << 1);
+	if ((*(*board).W_ROOK >> to) & 1 && from == 56)
+		(*board).castlingRights &= ~1;
 }

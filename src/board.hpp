@@ -44,7 +44,7 @@ public:
 
 	/**
 	* @brief square where en passant may be taken. for example, after 1. e4 the enPassantSquare
-	* would be 20 (algebraic e3) because if there were a pawn on f4, fxe3 would be possible
+	* would be (1 << 20) (algebraic e3) because if there were a pawn on f4, fxe3 would be possible
 	*/
 	bitboard enPassantSquare = 0;
 
@@ -89,5 +89,10 @@ public:
 	* @brief returns bitboard of all black pieces
 	*/
 	bitboard blackPieces();
+
+	/**
+	* @brief resets board to initial position
+	*/
+	void reset();
 };
 #endif

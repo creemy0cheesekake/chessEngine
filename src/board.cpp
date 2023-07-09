@@ -105,6 +105,35 @@ void Board::setToFen(std::string fen) {
 		else if (*ptr >= '1' and *ptr <= '9') writeIndex += *ptr - 48;
 		else pieces[charToIndex[*ptr]] |= (1UL << writeIndex++);
 	} while (*ptr++);
+	sideToMove = *(++ptr) == 'w' ? WHITE : BLACK;
+	ptr += 2;
+	castlingRights = 0;
+	while (*ptr != ' ') {
+		switch (*ptr) {
+			case 'K':
+				castlingRights |= 1 << 3;
+				break;
+			case 'Q':
+				castlingRights |= 1 << 2;
+				break;
+			case 'k':
+				castlingRights |= 1 << 1;
+				break;
+			case 'q':
+				castlingRights |= 1;
+				break;
+		}
+		ptr++;
+	}
+	if (*(++ptr) != '-') {
+		enPassantSquare = *ptr++ - 97;
+		enPassantSquare += 8 * (*ptr - 49);
+		enPassantSquare = 1UL << enPassantSquare;
+	}
+	ptr += 2;
+	hmClock = *ptr - 48;
+	ptr += 2;
+	fmClock = *ptr - 48;
 }
 
 bitboard Board::whitePieces() {
@@ -113,4 +142,19 @@ bitboard Board::whitePieces() {
 
 bitboard Board::blackPieces() {
 	return *B_PAWN | *B_KNIGHT | *B_BISHOP | *B_ROOK | *B_QUEEN;
+}
+
+void Board::reset() {
+	*W_KING	  = 0x10;
+	*W_QUEEN  = 0x8;
+	*W_ROOK	  = 0x81;
+	*W_BISHOP = 0x24;
+	*W_KNIGHT = 0x42;
+	*W_PAWN	  = 0xff00;
+	*B_KING	  = 0x1000000000000000;
+	*B_QUEEN  = 0x800000000000000;
+	*B_ROOK	  = 0x8100000000000000;
+	*B_BISHOP = 0x2400000000000000;
+	*B_KNIGHT = 0x4200000000000000;
+	*B_PAWN	  = 0xff000000000000;
 }

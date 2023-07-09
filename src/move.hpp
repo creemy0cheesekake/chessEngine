@@ -4,6 +4,7 @@
 #include <string>
 #include "board.hpp"
 #include "consts.hpp"
+#include "util.cpp"
 
 class Move {
 private:
@@ -23,9 +24,9 @@ private:
 	unsigned int flags;
 
 	/**
-	* @brief board on which move will be executed
+	* @brief promotion piece: 1-Q, 2-R, 3-B, 4-K
 	*/
-	Board &board;
+	unsigned int promoPiece = 0;
 
 	/**
 	* @brief infers flags from move and board position
@@ -44,6 +45,10 @@ private:
 	void updateCastlingRights();
 
 public:
+	/**
+	* @brief board on which move will be executed
+	*/
+	Board *board;
 	// default constructor shouldnt be called
 	Move() = delete;
 	/**
@@ -52,7 +57,15 @@ public:
 	* @param UInt -- starting square in little endian rank file 
 	* @param UInt -- ending square in little endian rank file 
 	*/
-	Move(Board &, unsigned int, unsigned int);
+	Move(Board *, unsigned int, unsigned int);
+	/**
+	* @brief move constructor. infers the flags from the move
+	* @param Board -- board on which to execute the move
+	* @param UInt -- starting square in little endian rank file 
+	* @param UInt -- ending square in little endian rank file 
+	* @param UInt -- promotion piece: 1-Q, 2-R, 3-B, 4-K
+	*/
+	Move(Board *, unsigned int, unsigned int, unsigned int);
 
 	/**
 	* @brief move flags
@@ -82,6 +95,11 @@ public:
 	* @brief returns flags of move
 	*/
 	unsigned int getFlags();
+
+	/**
+	* @brief sets promotion piece
+	*/
+	void setPromoPiece(unsigned int);
 
 	/**
 	* @brief execute move

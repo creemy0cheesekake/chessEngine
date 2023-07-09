@@ -6,13 +6,14 @@
 #include "board.hpp"
 #include "consts.hpp"
 #include "move.hpp"
+#include "util.cpp"
 
 class MoveGen {
 private:
 	/**
-	* @brief vector of legal moves
+	* @brief board to gen moves
 	*/
-	std::vector<Move> moves;
+	Board *board;
 
 	/**
 	* @brief checks whether or not a king is in check when its not their turn to move
@@ -23,14 +24,19 @@ private:
 public:
 	/**
 	* @brief movegen constructor
-	* @param Board -- board position or which moves will be generated
+	* @param Board -- board position for which moves will be generated
 	*/
-	MoveGen(Board);
+	MoveGen(Board *);
 
 	/**
-	* @brief returns vector of legal moves
+	* @brief vector of legal moves
 	*/
-	std::vector<Move> getMoves();
+	std::vector<Move> moves;
+
+	/**
+	* @brief returns vector of all legal moves
+	*/
+	std::vector<Move> genMoves();
 
 	/**
 	* @brief generates legal pawn moves
