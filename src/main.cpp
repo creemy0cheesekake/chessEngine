@@ -4,15 +4,8 @@
 #include "move_gen.cpp"
 
 int main() {
-	// Board b = Board();
-	// std::cout << b.stringBoard() << std::endl;
-	// Move arr[] = {Move(&b, 12, 28), Move(&b, 52, 36), Move(&b, 5, 26), Move(&b, 57, 42), Move(&b, 3, 39), Move(&b, 62, 45), Move(&b, 39, 53)};
-	// for (Move m : arr) {
-	// 	m.execute();
-	// 	std::cout << b.stringBoard() << std::endl;
-	// }
-
 	Board b = Board();
+	// Move m = Move(&b, 11, 27); std::cout << m.notation() << std::endl; m.execute(); m = Move(&b, 51, 35); std::cout << m.notation() << std::endl; m.execute(); m = Move(&b, 10, 26); std::cout << m.notation() << std::endl; m.execute(); m = Move(&b, 35, 26); std::cout << m.notation() << std::endl; m.execute(); m = Move(&b, 12, 28); std::cout << m.notation() << std::endl; m.execute(); m = Move(&b, 52, 36); std::cout << m.notation() << std::endl; m.execute(); m = Move(&b, 6, 21); std::cout << m.notation() << std::endl; m.execute(); m = Move(&b, 36, 27); std::cout << m.notation() << std::endl; m.execute(); m = Move(&b, 5, 26); std::cout << m.notation() << std::endl; m.execute(); m = Move(&b, 57, 42); std::cout << m.notation() << std::endl; m.execute(); m = Move(&b, 4, 6); std::cout << m.notation() << std::endl; m.execute(); std::cout << b.stringBoard() << std::endl;
 	b.setToFen("rnbqkbnr/ppp1p1pp/8/3pPp2/8/8/PPPP1PPP/RNBQKBNR w KQkq f6 0 3");
 	std::cout << b.stringBoard() << std::endl;
 	std::cout << "/////////////////////" << std::endl;

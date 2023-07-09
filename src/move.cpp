@@ -76,14 +76,74 @@ void Move::setPromoPiece(unsigned int piece) {
 	promoPiece = piece;
 }
 
+std::string Move::notation() {
+	if (flags & KS_CASTLE) return "0-0";
+	if (flags & QS_CASTLE) return "0-0-0";
+	std::unordered_map<int, char> indexToChar = {
+		{0, 'K'},
+		{1, 'Q'},
+		{2, 'R'},
+		{3, 'B'},
+		{4, 'N'},
+	};
+	std::string notation = "";
+	for (int i = 0; i < 12; i++) {
+		int charIndex = -1;
+		if (((*board).pieces[i] >> from) & 1) {
+			charIndex = i % 6;
+			if (charIndex < 5) notation += indexToChar[charIndex];
+			break;
+		}
+	}
+	notation += from % 8 + 97;
+	notation += from / 8 + 49;
+	notation += flags & CAPTURE ? "x" : "-";
+	notation += to % 8 + 97;
+	notation += to / 8 + 49;
+	if (flags & PROMOTION) {
+		notation += "=";
+		std::unordered_map<int, char> numToPromoPiece = {
+			{1, 'Q'},
+			{2, 'R'},
+			{3, 'B'},
+			{4, 'N'},
+		};
+		notation += numToPromoPiece[promoPiece];
+	}
+	return notation;
+}
+
 void Move::execute() {
-	// removes piece from the destination square if theres one there
-	for (int i = 0; i < 12; i++)
-		(*board).pieces[i] &= ~(0 | 1UL << to);
-	// moves the piece from its current square to the destination square
-	for (int i = 0; i < 12; i++)
-		if (((*board).pieces[i] >> from) & 1)
-			(*board).pieces[i] ^= (1UL << to) + (1UL << from);
+	if (flags & KS_CASTLE) {
+		if ((*board).sideToMove == WHITE) {
+			*(*board).W_KING ^= (1UL << 6) + (1UL << 4);
+			*(*board).W_ROOK ^= (1UL << 7) + (1UL << 5);
+		} else {
+			*(*board).B_KING ^= (1UL << 62) + (1UL << 60);
+			*(*board).B_ROOK ^= (1UL << 63) + (1UL << 61);
+		}
+	} else if (flags & QS_CASTLE) {
+		if ((*board).sideToMove == WHITE) {
+			*(*board).W_KING ^= (1UL << 4) + (1UL << 2);
+			*(*board).W_ROOK ^= (1UL << 3) + 1;
+		} else {
+			*(*board).B_KING ^= (1UL << 60) + (1UL << 58);
+			*(*board).B_ROOK ^= (1UL << 59) + (1UL << 56);
+		}
+	} else {
+		// removes piece from the destination square if theres one there
+		if (flags & EN_PASSANT) {
+			for (int i = 0; i < 12; i++)
+				(*board).pieces[i] &= ~(0 | 1UL << (to + (8 * ((*board).sideToMove == WHITE ? -1 : 1))));
+		} else {
+			for (int i = 0; i < 12; i++)
+				(*board).pieces[i] &= ~(0 | 1UL << to);
+		}
+		// moves the piece from its current square to the destination square
+		for (int i = 0; i < 12; i++)
+			if (((*board).pieces[i] >> from) & 1)
+				(*board).pieces[i] ^= (1UL << to) + (1UL << from);
+	}
 
 	updateGameData();
 }

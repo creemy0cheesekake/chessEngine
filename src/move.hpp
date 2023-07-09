@@ -24,7 +24,7 @@ private:
 	unsigned int flags;
 
 	/**
-	* @brief promotion piece: 1-Q, 2-R, 3-B, 4-K
+	* @brief promotion piece: 1-Q, 2-R, 3-B, 4-N
 	*/
 	unsigned int promoPiece = 0;
 
@@ -63,7 +63,7 @@ public:
 	* @param Board -- board on which to execute the move
 	* @param UInt -- starting square in little endian rank file 
 	* @param UInt -- ending square in little endian rank file 
-	* @param UInt -- promotion piece: 1-Q, 2-R, 3-B, 4-K
+	* @param UInt -- promotion piece: 1-Q, 2-R, 3-B, 4-N
 	*/
 	Move(Board *, unsigned int, unsigned int, unsigned int);
 
@@ -100,6 +100,11 @@ public:
 	* @brief sets promotion piece
 	*/
 	void setPromoPiece(unsigned int);
+
+	/**
+	* @brief return move notation in long algebraic form
+	*/
+	std::string notation();
 
 	/**
 	* @brief execute move
