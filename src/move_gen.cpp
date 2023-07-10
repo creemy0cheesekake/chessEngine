@@ -13,7 +13,8 @@ MoveGen::MoveGen(Board *b)
 
 std::vector<Move> MoveGen::genPawnMoves() {
 	std::vector<Move> moves;
-	bitboard pawns = *((*board).sideToMove == WHITE ? (*board).W_PAWN : (*board).B_PAWN);
+	bitboard pawns	   = *((*board).sideToMove == WHITE ? (*board).W_PAWN : (*board).B_PAWN);
+	bitboard allPieces = (*board).whitePieces() | (*board).blackPieces();
 	if ((*board).sideToMove == WHITE) {
 		for (int i = 8; i < 64; i++) {
 			bool pawnOnSquare = (pawns >> i) & 1;
@@ -34,7 +35,7 @@ std::vector<Move> MoveGen::genPawnMoves() {
 			}
 
 			// if the pawn starts on its home square and theres no piece on the square 2 squares in front of the pawn
-			if (inRange(i, 8, 15) && !((((*board).whitePieces() | (*board).blackPieces()) >> (i + 16)) & 1))
+			if (inRange(i, 8, 15) && !(((allPieces >> (i + 8)) & 1) || ((allPieces >> (i + 16)) & 1)))
 				moves.push_back(Move(board, i, i + 16));
 
 			// if theres a capturable piece to the right
@@ -69,9 +70,9 @@ std::vector<Move> MoveGen::genPawnMoves() {
 				else
 					moves.push_back(m);
 			}
-			if (((*board).enPassantSquare >> (i + 7)) & 1)
+			if (((*board).enPassantSquare >> (i + 7)) & 1 && i % 8)
 				moves.push_back(Move(board, i, i + 7));
-			if (((*board).enPassantSquare >> (i + 9)) & 1)
+			if (((*board).enPassantSquare >> (i + 9)) & 1 && (i + 1) % 8)
 				moves.push_back(Move(board, i, i + 9));
 		}
 	} else {
@@ -94,7 +95,7 @@ std::vector<Move> MoveGen::genPawnMoves() {
 			}
 
 			// if the pawn starts on its home square and theres no piece on the square 2 squares in front of the pawn
-			if (inRange(i, 48, 55) && !((((*board).whitePieces() | (*board).blackPieces()) >> (i - 16)) & 1))
+			if (inRange(i, 48, 55) && !(((allPieces >> (i - 8)) & 1) || ((allPieces >> (i - 16)) & 1)))
 				moves.push_back(Move(board, i, i - 16));
 
 			// if theres a capturable piece to the right
@@ -129,9 +130,9 @@ std::vector<Move> MoveGen::genPawnMoves() {
 				else
 					moves.push_back(m);
 			}
-			if (((*board).enPassantSquare >> (i - 9)) & 1)
+			if (((*board).enPassantSquare >> (i - 9)) & 1 && i % 8)
 				moves.push_back(Move(board, i, i - 9));
-			if (((*board).enPassantSquare >> (i - 7)) & 1)
+			if (((*board).enPassantSquare >> (i - 7)) & 1 && (i + 1) % 8)
 				moves.push_back(Move(board, i, i - 7));
 		}
 	}
