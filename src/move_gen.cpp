@@ -138,3 +138,30 @@ std::vector<Move> MoveGen::genPawnMoves() {
 	}
 	return moves;
 }
+
+std::vector<Move> MoveGen::genKnightMoves() {
+	std::vector<Move> moves;
+	bitboard knights	= *((*board).sideToMove == WHITE ? (*board).W_KNIGHT : (*board).B_KNIGHT);
+	bitboard yourPieces = (*board).sideToMove == WHITE ? (*board).whitePieces() : (*board).blackPieces();
+	for (int i = 0; i < 64; i++) {
+		if (!((knights >> i) & 1)) continue;
+
+		int rank		   = i / 8;
+		int moveOffsets1[] = {15, 17};
+		for (int offset : moveOffsets1) {
+			if (inRange(i + offset, 0, 63) && ((i + offset) / 8) - rank == 2 && ~(yourPieces >> (i + offset)) & 1)
+				moves.push_back(Move(board, i, i + offset));
+			if (inRange(i - offset, 0, 63) && ((i - offset) / 8) - rank == -2 && ~(yourPieces >> (i - offset)) & 1)
+				moves.push_back(Move(board, i, i - offset));
+		}
+
+		int moveOffsets2[] = {6, 10};
+		for (int offset : moveOffsets2) {
+			if (inRange(i + offset, 0, 63) && ((i + offset) / 8) - rank == 1 && ~(yourPieces >> (i + offset)) & 1)
+				moves.push_back(Move(board, i, i + offset));
+			if (inRange(i - offset, 0, 63) && ((i - offset) / 8) - rank == -1 && ~(yourPieces >> (i - offset)) & 1)
+				moves.push_back(Move(board, i, i - offset));
+		}
+	}
+	return moves;
+}
