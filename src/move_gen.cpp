@@ -165,3 +165,25 @@ std::vector<Move> MoveGen::genKnightMoves() {
 	}
 	return moves;
 }
+
+std::vector<Move> MoveGen::genKingMoves() {
+	std::vector<Move> moves;
+	// index of king
+	int king			= std::__countr_zero((*board).sideToMove == WHITE ? *(*board).W_KING : *(*board).B_KING);
+	int rank			= king / 8;
+	bitboard yourPieces = (*board).sideToMove == WHITE ? (*board).whitePieces() : (*board).blackPieces();
+
+	int moveOffsets1[] = {7, 8, 9};
+	for (int offset : moveOffsets1) {
+		if (inRange(king + offset, 0, 63) && ((king + offset) / 8) - rank == 1 && ~(yourPieces >> (king + offset)) & 1)
+			moves.push_back(Move(board, king, king + offset));
+		if (inRange(king - offset, 0, 63) && ((king - offset) / 8) - rank == -1 && ~(yourPieces >> (king - offset)) & 1)
+			moves.push_back(Move(board, king, king - offset));
+	}
+
+	int moveOffsets2[] = {-1, 1};
+	for (int offset : moveOffsets2)
+		if (inRange(king + offset, 0, 63) && ((king + offset) / 8) - rank == 0 && ~(yourPieces >> (king + offset)) & 1)
+			moves.push_back(Move(board, king, king + offset));
+	return moves;
+}

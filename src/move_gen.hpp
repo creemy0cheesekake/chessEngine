@@ -49,6 +49,11 @@ public:
 	std::vector<Move> genKnightMoves();
 
 	/**
+	* @brief generates legal king moves
+	*/
+	std::vector<Move> genKingMoves();
+
+	/**
 	* @brief generates legal bishop moves
 	*/
 	std::vector<Move> genBishopMoves();
