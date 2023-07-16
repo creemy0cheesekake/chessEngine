@@ -223,8 +223,9 @@ std::vector<Move> MoveGen::genBishopMoves() {
 
 		bitboard bishopRays = (NErays | NWrays | SWrays | SErays) ^ bishop;
 
-		do moves.push_back(Move(board, bitscan(bishop), bitscan(LS1B(bishopRays))));
-		while (bishopRays ^= LS1B(bishopRays));
+		if (bishopRays)
+			do moves.push_back(Move(board, bitscan(bishop), bitscan(LS1B(bishopRays))));
+			while (bishopRays ^= LS1B(bishopRays));
 	} while (bishops ^= LS1B(bishops));
 
 	return moves;
