@@ -194,10 +194,8 @@ std::vector<Move> MoveGen::genBishopMoves() {
 	bitboard yourPieces	 = ((*board).sideToMove == WHITE ? (*board).whitePieces() : (*board).blackPieces()) ^ bishops;
 	bitboard theirPieces = (*board).sideToMove == BLACK ? (*board).whitePieces() : (*board).blackPieces();
 
-	for (int i = 0; i < 64; i++) {
-		if (!((bishops >> i) & 1)) continue;
-
-		bitboard NErays = 1UL << i, NWrays = 1UL << i, SWrays = 1UL << i, SErays = 1UL << i;
+	while (bishops) {
+		bitboard NErays = LS1B(bishops), NWrays = LS1B(bishops), SWrays = LS1B(bishops), SErays = LS1B(bishops);
 		do {
 			if (yourPieces & MS1B(NErays << 9)) break;
 			NErays |= NErays << 9;
@@ -222,8 +220,9 @@ std::vector<Move> MoveGen::genBishopMoves() {
 			if (theirPieces & LS1B(SErays)) break;
 		} while (!(SErays & 0x80808080808080ff));
 
-		bitboard bishopRays = (NErays | NWrays | SWrays | SErays) ^ 1UL << i;
+		bitboard bishopRays = (NErays | NWrays | SWrays | SErays) ^ LS1B(bishops);
 		std::cout << bboard(bishopRays) << std::endl;
+		bishops ^= LS1B(bishops);
 	}
 
 	return moves;
