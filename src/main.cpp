@@ -5,7 +5,7 @@
 
 int main() {
 	Board b = Board();
-	b.setToFen("8/1k2K3/8/8/8/2B5/8/8 w - - 4 3");
+	b.setToFen("8/1k2K3/8/4r3/1N6/2B5/8/4N3 w - - 4 3");
 	std::cout << b.stringBoard() << std::endl;
 	std::cout << "\n///////////" << std::endl;
 	MoveGen(&b).genBishopMoves();

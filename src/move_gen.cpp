@@ -191,7 +191,7 @@ std::vector<Move> MoveGen::genKingMoves() {
 std::vector<Move> MoveGen::genBishopMoves() {
 	std::vector<Move> moves;
 	bitboard bishops	 = *((*board).sideToMove == WHITE ? (*board).W_BISHOP : (*board).B_BISHOP);
-	bitboard yourPieces	 = (*board).sideToMove == WHITE ? (*board).whitePieces() : (*board).blackPieces();
+	bitboard yourPieces	 = ((*board).sideToMove == WHITE ? (*board).whitePieces() : (*board).blackPieces()) ^ bishops;
 	bitboard theirPieces = (*board).sideToMove == BLACK ? (*board).whitePieces() : (*board).blackPieces();
 
 	for (int i = 0; i < 64; i++) {
@@ -199,29 +199,28 @@ std::vector<Move> MoveGen::genBishopMoves() {
 
 		bitboard NErays = 1UL << i, NWrays = 1UL << i, SWrays = 1UL << i, SErays = 1UL << i;
 		do {
-			int newPos = (63 - std::__countl_zero(NErays << 9));
-			if ((yourPieces >> newPos) & 1) break;
+			if (yourPieces & MS1B(NErays << 9)) break;
 			NErays |= NErays << 9;
-			if ((theirPieces >> newPos) & 1) break;
-		} while ((63 - std::__countl_zero(NErays)) / 8 < 7 && (63 - std::__countl_zero(NErays)) % 8 < 7);
+			if (theirPieces & MS1B(NErays)) break;
+		} while (!(NErays & 0xff80808080808080));
+
 		do {
-			int newPos = (63 - std::__countl_zero(NWrays << 7));
-			if ((yourPieces >> newPos) & 1) break;
+			if (yourPieces & MS1B(NWrays << 7)) break;
 			NWrays |= NWrays << 7;
-			if ((theirPieces >> newPos) & 1) break;
-		} while ((63 - std::__countl_zero(NWrays)) / 8 < 7 && (63 - std::__countl_zero(NWrays)) % 8 > 0);
+			if (yourPieces & MS1B(NWrays)) break;
+		} while (!(NWrays & 0xff01010101010101));
+
 		do {
-			int newPos = std::__countr_zero(SWrays >> 9);
-			if ((yourPieces >> newPos) & 1) break;
+			if (yourPieces & LS1B(SWrays >> 9)) break;
 			SWrays |= SWrays >> 9;
-			if ((theirPieces >> newPos) & 1) break;
-		} while (std::__countr_zero(SWrays) / 8 > 0 && std::__countr_zero(SWrays) % 8 > 0);
+			if (theirPieces & LS1B(SWrays)) break;
+		} while (!(SWrays & 0x1010101010101ff));
+
 		do {
-			int newPos = std::__countr_zero(SErays >> 7);
-			if ((yourPieces >> newPos) & 1) break;
+			if (yourPieces & LS1B(SErays >> 7)) break;
 			SErays |= SErays >> 7;
-			if ((theirPieces >> newPos) & 1) break;
-		} while (std::__countr_zero(SErays) / 8 > 0 && std::__countr_zero(SErays) % 8 < 7);
+			if (theirPieces & LS1B(SErays)) break;
+		} while (!(SErays & 0x80808080808080ff));
 
 		bitboard bishopRays = (NErays | NWrays | SWrays | SErays) ^ 1UL << i;
 		std::cout << bboard(bishopRays) << std::endl;

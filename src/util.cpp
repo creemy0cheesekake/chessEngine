@@ -27,4 +27,18 @@ std::string bboard(bitboard b) {
 	return board;
 }
 
+bitboard MS1B(bitboard x) {
+	x |= x >> 32;
+	x |= x >> 16;
+	x |= x >> 8;
+	x |= x >> 4;
+	x |= x >> 2;
+	x |= x >> 1;
+	return (x >> 1) + 1;
+}
+
+bitboard LS1B(bitboard x) {
+	return x & -x;
+}
+
 #endif
