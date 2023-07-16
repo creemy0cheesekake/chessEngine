@@ -9,10 +9,13 @@ int main() {
 	b.setToFen(fen);
 	std::cout << b.stringBoard() << std::endl;
 	std::cout << "\n///////////" << std::endl;
-	for (Move i : MoveGen(&b).genBishopMoves()) {
+	int x = 0;
+	for (Move i : MoveGen(&b).genRookMoves()) {
 		std::cout << i.getFrom() << " " << i.getTo() << " " << i.getFlags() << " " << std::endl;
 		i.execute();
 		std::cout << b.stringBoard() << std::endl;
 		b.setToFen(fen);
+		x++;
 	}
+	std::cout << x << std::endl;
 }

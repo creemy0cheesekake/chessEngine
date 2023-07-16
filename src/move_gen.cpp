@@ -191,7 +191,7 @@ std::vector<Move> MoveGen::genKingMoves() {
 std::vector<Move> MoveGen::genBishopMoves() {
 	std::vector<Move> moves;
 	bitboard bishops	 = *((*board).sideToMove == WHITE ? (*board).W_BISHOP : (*board).B_BISHOP);
-	bitboard yourPieces	 = ((*board).sideToMove == WHITE ? (*board).whitePieces() : (*board).blackPieces()) ^ bishops;
+	bitboard yourPieces	 = (*board).sideToMove == WHITE ? (*board).whitePieces() : (*board).blackPieces();
 	bitboard theirPieces = (*board).sideToMove == BLACK ? (*board).whitePieces() : (*board).blackPieces();
 
 	do {
@@ -227,6 +227,49 @@ std::vector<Move> MoveGen::genBishopMoves() {
 			do moves.push_back(Move(board, bitscan(bishop), bitscan(LS1B(bishopRays))));
 			while (bishopRays ^= LS1B(bishopRays));
 	} while (bishops ^= LS1B(bishops));
+
+	return moves;
+}
+
+std::vector<Move> MoveGen::genRookMoves() {
+	std::vector<Move> moves;
+	bitboard rooks		 = *((*board).sideToMove == WHITE ? (*board).W_ROOK : (*board).B_ROOK);
+	bitboard yourPieces	 = (*board).sideToMove == WHITE ? (*board).whitePieces() : (*board).blackPieces();
+	bitboard theirPieces = (*board).sideToMove == BLACK ? (*board).whitePieces() : (*board).blackPieces();
+
+	do {
+		bitboard rook  = LS1B(rooks);
+		bitboard Nrays = rook, Erays = rook, Wrays = rook, Srays = rook;
+		while (!(Nrays & 0xff00000000000000)) {
+			if (yourPieces & MS1B(Nrays << 8)) break;
+			Nrays |= Nrays << 8;
+			if (theirPieces & MS1B(Nrays)) break;
+		}
+
+		while (!(Erays & 0x8080808080808080)) {
+			if (yourPieces & MS1B(Erays << 1)) break;
+			Erays |= Erays << 1;
+			if (theirPieces & MS1B(Erays)) break;
+		}
+
+		while (!(Wrays & 0x101010101010101)) {
+			if (yourPieces & LS1B(Wrays >> 1)) break;
+			Wrays |= Wrays >> 1;
+			if (theirPieces & LS1B(Wrays)) break;
+		}
+
+		while (!(Srays & 0xff)) {
+			if (yourPieces & LS1B(Srays >> 8)) break;
+			Srays |= Srays >> 8;
+			if (theirPieces & LS1B(Srays)) break;
+		}
+
+		bitboard rays = (Nrays | Erays | Wrays | Srays) ^ rook;
+
+		if (rays)
+			do moves.push_back(Move(board, bitscan(rook), bitscan(LS1B(rays))));
+			while (rays ^= LS1B(rays));
+	} while (rooks ^= LS1B(rooks));
 
 	return moves;
 }
