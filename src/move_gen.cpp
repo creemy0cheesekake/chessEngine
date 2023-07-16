@@ -169,7 +169,7 @@ std::vector<Move> MoveGen::genKnightMoves() {
 std::vector<Move> MoveGen::genKingMoves() {
 	std::vector<Move> moves;
 	// index of king
-	int king			= std::__countr_zero((*board).sideToMove == WHITE ? *(*board).W_KING : *(*board).B_KING);
+	int king			= bitscan((*board).sideToMove == WHITE ? *(*board).W_KING : *(*board).B_KING);
 	int rank			= king / 8;
 	bitboard yourPieces = (*board).sideToMove == WHITE ? (*board).whitePieces() : (*board).blackPieces();
 
@@ -194,36 +194,38 @@ std::vector<Move> MoveGen::genBishopMoves() {
 	bitboard yourPieces	 = ((*board).sideToMove == WHITE ? (*board).whitePieces() : (*board).blackPieces()) ^ bishops;
 	bitboard theirPieces = (*board).sideToMove == BLACK ? (*board).whitePieces() : (*board).blackPieces();
 
-	while (bishops) {
-		bitboard NErays = LS1B(bishops), NWrays = LS1B(bishops), SWrays = LS1B(bishops), SErays = LS1B(bishops);
-		do {
+	do {
+		bitboard bishop = LS1B(bishops);
+		bitboard NErays = bishop, NWrays = bishop, SWrays = bishop, SErays = bishop;
+		while (!(NErays & 0xff80808080808080)) {
 			if (yourPieces & MS1B(NErays << 9)) break;
 			NErays |= NErays << 9;
 			if (theirPieces & MS1B(NErays)) break;
-		} while (!(NErays & 0xff80808080808080));
+		}
 
-		do {
+		while (!(NWrays & 0xff01010101010101)) {
 			if (yourPieces & MS1B(NWrays << 7)) break;
 			NWrays |= NWrays << 7;
-			if (yourPieces & MS1B(NWrays)) break;
-		} while (!(NWrays & 0xff01010101010101));
+			if (theirPieces & MS1B(NWrays)) break;
+		}
 
-		do {
+		while (!(SWrays & 0x1010101010101ff)) {
 			if (yourPieces & LS1B(SWrays >> 9)) break;
 			SWrays |= SWrays >> 9;
 			if (theirPieces & LS1B(SWrays)) break;
-		} while (!(SWrays & 0x1010101010101ff));
+		}
 
-		do {
+		while (!(SErays & 0x80808080808080ff)) {
 			if (yourPieces & LS1B(SErays >> 7)) break;
 			SErays |= SErays >> 7;
 			if (theirPieces & LS1B(SErays)) break;
-		} while (!(SErays & 0x80808080808080ff));
+		}
 
-		bitboard bishopRays = (NErays | NWrays | SWrays | SErays) ^ LS1B(bishops);
-		std::cout << bboard(bishopRays) << std::endl;
-		bishops ^= LS1B(bishops);
-	}
+		bitboard bishopRays = (NErays | NWrays | SWrays | SErays) ^ bishop;
+
+		do moves.push_back(Move(board, bitscan(bishop), bitscan(LS1B(bishopRays))));
+		while (bishopRays ^= LS1B(bishopRays));
+	} while (bishops ^= LS1B(bishops));
 
 	return moves;
 }

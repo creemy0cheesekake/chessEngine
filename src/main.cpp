@@ -4,16 +4,15 @@
 #include "move_gen.cpp"
 
 int main() {
-	Board b = Board();
-	b.setToFen("8/1k2K3/8/4r3/1N6/2B5/8/4N3 w - - 4 3");
+	Board b			= Board();
+	std::string fen = "r1bqrnk1/pp2bpp1/2p2n1p/3p4/3P3B/2NBP3/PPQ1NPPP/R4RK1 w - - 4 12";
+	b.setToFen(fen);
 	std::cout << b.stringBoard() << std::endl;
 	std::cout << "\n///////////" << std::endl;
-	MoveGen(&b).genBishopMoves();
-	// for (Move i : MoveGen(&b).genKingMoves()) {
-	// 	std::cout << i.getFrom() << " " << i.getTo() << " " << i.getFlags() << " " << std::endl;
-	// 	i.execute();
-	// 	std::cout << bin(*b.W_KING) << std::endl;
-	// 	std::cout << b.stringBoard() << std::endl;
-	// 	b.setToFen("8/1k6/8/4K3/8/2B5/8/8 w - - 0 1");
-	// }
+	for (Move i : MoveGen(&b).genBishopMoves()) {
+		std::cout << i.getFrom() << " " << i.getTo() << " " << i.getFlags() << " " << std::endl;
+		i.execute();
+		std::cout << b.stringBoard() << std::endl;
+		b.setToFen(fen);
+	}
 }
