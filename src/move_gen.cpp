@@ -221,11 +221,11 @@ std::vector<Move> MoveGen::genBishopMoves() {
 			if (theirPieces & LS1B(SErays)) break;
 		}
 
-		bitboard bishopRays = (NErays | NWrays | SWrays | SErays) ^ bishop;
+		bitboard rays = (NErays | NWrays | SWrays | SErays) ^ bishop;
 
-		if (bishopRays)
-			do moves.push_back(Move(board, bitscan(bishop), bitscan(LS1B(bishopRays))));
-			while (bishopRays ^= LS1B(bishopRays));
+		if (rays)
+			do moves.push_back(Move(board, bitscan(bishop), bitscan(LS1B(rays))));
+			while (rays ^= LS1B(rays));
 	} while (bishops ^= LS1B(bishops));
 
 	return moves;
@@ -270,6 +270,73 @@ std::vector<Move> MoveGen::genRookMoves() {
 			do moves.push_back(Move(board, bitscan(rook), bitscan(LS1B(rays))));
 			while (rays ^= LS1B(rays));
 	} while (rooks ^= LS1B(rooks));
+
+	return moves;
+}
+
+std::vector<Move> MoveGen::genQueenMoves() {
+	std::vector<Move> moves;
+	bitboard queens		 = *((*board).sideToMove == WHITE ? (*board).W_QUEEN : (*board).B_QUEEN);
+	bitboard yourPieces	 = (*board).sideToMove == WHITE ? (*board).whitePieces() : (*board).blackPieces();
+	bitboard theirPieces = (*board).sideToMove == BLACK ? (*board).whitePieces() : (*board).blackPieces();
+
+	do {
+		bitboard queen = LS1B(queens);
+		bitboard Nrays = queen, Erays = queen, Wrays = queen, Srays = queen, NErays = queen, NWrays = queen, SWrays = queen, SErays = queen;
+		while (!(Nrays & 0xff00000000000000)) {
+			if (yourPieces & MS1B(Nrays << 8)) break;
+			Nrays |= Nrays << 8;
+			if (theirPieces & MS1B(Nrays)) break;
+		}
+
+		while (!(Erays & 0x8080808080808080)) {
+			if (yourPieces & MS1B(Erays << 1)) break;
+			Erays |= Erays << 1;
+			if (theirPieces & MS1B(Erays)) break;
+		}
+
+		while (!(Wrays & 0x101010101010101)) {
+			if (yourPieces & LS1B(Wrays >> 1)) break;
+			Wrays |= Wrays >> 1;
+			if (theirPieces & LS1B(Wrays)) break;
+		}
+
+		while (!(Srays & 0xff)) {
+			if (yourPieces & LS1B(Srays >> 8)) break;
+			Srays |= Srays >> 8;
+			if (theirPieces & LS1B(Srays)) break;
+		}
+
+		while (!(NErays & 0xff80808080808080)) {
+			if (yourPieces & MS1B(NErays << 9)) break;
+			NErays |= NErays << 9;
+			if (theirPieces & MS1B(NErays)) break;
+		}
+
+		while (!(NWrays & 0xff01010101010101)) {
+			if (yourPieces & MS1B(NWrays << 7)) break;
+			NWrays |= NWrays << 7;
+			if (theirPieces & MS1B(NWrays)) break;
+		}
+
+		while (!(SWrays & 0x1010101010101ff)) {
+			if (yourPieces & LS1B(SWrays >> 9)) break;
+			SWrays |= SWrays >> 9;
+			if (theirPieces & LS1B(SWrays)) break;
+		}
+
+		while (!(SErays & 0x80808080808080ff)) {
+			if (yourPieces & LS1B(SErays >> 7)) break;
+			SErays |= SErays >> 7;
+			if (theirPieces & LS1B(SErays)) break;
+		}
+
+		bitboard rays = (Nrays | Erays | Wrays | Srays | NErays | NWrays | SWrays | SErays) ^ queen;
+
+		if (rays)
+			do moves.push_back(Move(board, bitscan(queen), bitscan(LS1B(rays))));
+			while (rays ^= LS1B(rays));
+	} while (queens ^= LS1B(queens));
 
 	return moves;
 }
