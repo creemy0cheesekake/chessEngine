@@ -190,6 +190,7 @@ std::vector<Move> MoveGen::genKingMoves() {
 
 std::vector<Move> genSlidingPieces(bitboard pieces, Board *board, bool straight, bool diagonal) {
 	std::vector<Move> moves;
+	if (!pieces) return moves;
 	bitboard yourPieces	 = (*board).sideToMove == WHITE ? (*board).whitePieces() : (*board).blackPieces();
 	bitboard theirPieces = (*board).sideToMove == BLACK ? (*board).whitePieces() : (*board).blackPieces();
 
@@ -275,4 +276,10 @@ std::vector<Move> MoveGen::genRookMoves() {
 std::vector<Move> MoveGen::genQueenMoves() {
 	bitboard queens = *((*board).sideToMove == WHITE ? (*board).W_QUEEN : (*board).B_QUEEN);
 	return genSlidingPieces(queens, board, true, true);
+}
+
+std::vector<Move> MoveGen::genMoves() {
+	std::vector<Move> allMoves[] = {genPawnMoves(), genKnightMoves(), genKingMoves(), genBishopMoves(), genRookMoves(), genQueenMoves()};
+	for (auto v : allMoves) moves.insert(moves.end(), v.begin(), v.end());
+	return moves;
 }

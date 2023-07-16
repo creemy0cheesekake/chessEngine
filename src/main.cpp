@@ -10,7 +10,7 @@ int main() {
 	std::cout << b.stringBoard() << std::endl;
 	std::cout << "\n///////////" << std::endl;
 	int x = 0;
-	for (Move i : MoveGen(&b).genQueenMoves()) {
+	for (Move i : MoveGen(&b).genMoves()) {
 		std::cout << i.getFrom() << " " << i.getTo() << " " << i.getFlags() << " " << std::endl;
 		i.execute();
 		std::cout << b.stringBoard() << std::endl;
