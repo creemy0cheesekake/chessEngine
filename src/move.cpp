@@ -134,10 +134,10 @@ Board Move::execute() {
 		// removes piece from the destination square if theres one there
 		if (flags & EN_PASSANT) {
 			for (int i = 0; i < 12; i++)
-				board.pieces[i] &= ~(0 | 1UL << (to + (8 * (board.sideToMove == WHITE ? -1 : 1))));
+				board.pieces[i] &= ~(1UL << (to + (board.sideToMove == WHITE ? -8 : 8)));
 		} else {
 			for (int i = 0; i < 12; i++)
-				board.pieces[i] &= ~(0 | 1UL << to);
+				board.pieces[i] &= ~(1UL << to);
 		}
 		// moves the piece from its current square to the destination square
 		for (int i = 0; i < 12; i++)
