@@ -15,12 +15,6 @@ private:
 	*/
 	Board board;
 
-	/**
-	* @brief checks whether or not a king is in check when its not their turn to move
-	* @param Board -- board for which the check will be performed
-	*/
-	bool inIllegalCheck(Board);
-
 public:
 	/**
 	* @brief movegen constructor

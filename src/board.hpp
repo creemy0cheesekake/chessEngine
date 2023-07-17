@@ -64,6 +64,12 @@ public:
 	Board();
 
 	/**
+	* @brief copy constructors, so the pointers are correct when passing a copy
+	*/
+	Board(const Board &a);
+	Board &operator=(const Board &a);
+
+	/**
 	* @brief return a visual representation of the board position using ascii art with a1 in the bottom left and h8 in the top right
 	*/
 	std::string stringBoard();
@@ -94,5 +100,10 @@ public:
 	* @brief resets board to initial position
 	*/
 	void reset();
+
+	/**
+	* @brief checks whether or not a king is in check when its not their turn to move
+	*/
+	bool inIllegalCheck();
 };
 #endif

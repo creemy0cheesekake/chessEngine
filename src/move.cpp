@@ -114,77 +114,81 @@ std::string Move::notation() {
 }
 
 Board Move::execute() {
+	Board b = board;
 	if (flags & KS_CASTLE) {
-		if (board.sideToMove == WHITE) {
-			*board.W_KING ^= (1UL << 6) + (1UL << 4);
-			*board.W_ROOK ^= (1UL << 7) + (1UL << 5);
+		if (b.sideToMove == WHITE) {
+			*b.W_KING ^= (1UL << 6) + (1UL << 4);
+			*b.W_ROOK ^= (1UL << 7) + (1UL << 5);
 		} else {
-			*board.B_KING ^= (1UL << 62) + (1UL << 60);
-			*board.B_ROOK ^= (1UL << 63) + (1UL << 61);
+			*b.B_KING ^= (1UL << 62) + (1UL << 60);
+			*b.B_ROOK ^= (1UL << 63) + (1UL << 61);
 		}
 	} else if (flags & QS_CASTLE) {
-		if (board.sideToMove == WHITE) {
-			*board.W_KING ^= (1UL << 4) + (1UL << 2);
-			*board.W_ROOK ^= (1UL << 3) + 1;
+		if (b.sideToMove == WHITE) {
+			*b.W_KING ^= (1UL << 4) + (1UL << 2);
+			*b.W_ROOK ^= (1UL << 3) + 1;
 		} else {
-			*board.B_KING ^= (1UL << 60) + (1UL << 58);
-			*board.B_ROOK ^= (1UL << 59) + (1UL << 56);
+			*b.B_KING ^= (1UL << 60) + (1UL << 58);
+			*b.B_ROOK ^= (1UL << 59) + (1UL << 56);
 		}
 	} else {
 		// removes piece from the destination square if theres one there
 		if (flags & EN_PASSANT) {
 			for (int i = 0; i < 12; i++)
-				board.pieces[i] &= ~(1UL << (to + (board.sideToMove == WHITE ? -8 : 8)));
+				b.pieces[i] &= ~(1UL << (to + (b.sideToMove == WHITE ? -8 : 8)));
 		} else {
 			for (int i = 0; i < 12; i++)
-				board.pieces[i] &= ~(1UL << to);
+				b.pieces[i] &= ~(1UL << to);
 		}
 		// moves the piece from its current square to the destination square
 		for (int i = 0; i < 12; i++)
-			if ((board.pieces[i] >> from) & 1)
-				board.pieces[i] ^= (1UL << to) + (1UL << from);
+			if ((b.pieces[i] >> from) & 1)
+				b.pieces[i] ^= (1UL << to) + (1UL << from);
 	}
 
-	updateGameData();
-	return board;
+	b = updateGameData(b);
+	return b;
 }
 
-void Move::updateGameData() {
-	board.hmClock++;
-	if (board.sideToMove == BLACK)
-		board.fmClock++;
+Board Move::updateGameData(Board b) {
+	b.hmClock++;
+	if (b.sideToMove == BLACK)
+		b.fmClock++;
 	if (flags & PAWN_MOVE || flags & CAPTURE)
-		board.hmClock = 0;
+		b.hmClock = 0;
 
 	// updates en passant square if dbl pawn push
 	if (flags & DBL_PAWN)
-		board.enPassantSquare = 1UL << (board.sideToMove == WHITE ? to - 8 : to + 8);
+		b.enPassantSquare = 1UL << (b.sideToMove == WHITE ? to - 8 : to + 8);
 
-	updateCastlingRights();
+	b = updateCastlingRights(b);
 
 	// switching side to move
-	board.sideToMove = board.sideToMove == WHITE ? BLACK : WHITE;
+	b.sideToMove = b.sideToMove == WHITE ? BLACK : WHITE;
+	return b;
 }
 
-void Move::updateCastlingRights() {
+Board Move::updateCastlingRights(Board b) {
 	// if either side castles remove all their castling rights
-	if (board.sideToMove == WHITE) {
-		if (flags & KS_CASTLE || flags & QS_CASTLE) board.castlingRights &= 3;
-	} else if (flags & KS_CASTLE || flags & QS_CASTLE) board.castlingRights &= ~3;
+	if (b.sideToMove == WHITE) {
+		if (flags & KS_CASTLE || flags & QS_CASTLE) b.castlingRights &= 3;
+	} else if (flags & KS_CASTLE || flags & QS_CASTLE) b.castlingRights &= ~3;
 
 	// if the kings move remove all their castling rights
-	if ((*board.W_KING >> to) & 1 && ((board.castlingRights >> 3) & 1 || (board.castlingRights >> 2) & 1))
-		board.castlingRights &= 3;
-	if ((*board.B_KING >> to) & 1 && ((board.castlingRights >> 1) & 1 || (board.castlingRights) & 1))
-		board.castlingRights &= ~3;
+	if ((*b.W_KING >> to) & 1 && ((b.castlingRights >> 3) & 1 || (b.castlingRights >> 2) & 1))
+		b.castlingRights &= 3;
+	if ((*b.B_KING >> to) & 1 && ((b.castlingRights >> 1) & 1 || (b.castlingRights) & 1))
+		b.castlingRights &= ~3;
 
 	// if the rooks move remove castling rights for that side
-	if ((*board.W_ROOK >> to) & 1 && from == 7)
-		board.castlingRights &= ~(1 << 3);
-	if ((*board.W_ROOK >> to) & 1 && from == 0)
-		board.castlingRights &= ~(1 << 2);
-	if ((*board.B_ROOK >> to) & 1 && from == 63)
-		board.castlingRights &= ~(1 << 1);
-	if ((*board.W_ROOK >> to) & 1 && from == 56)
-		board.castlingRights &= ~1;
+	if ((*b.W_ROOK >> to) & 1 && from == 7)
+		b.castlingRights &= ~(1 << 3);
+	if ((*b.W_ROOK >> to) & 1 && from == 0)
+		b.castlingRights &= ~(1 << 2);
+	if ((*b.B_ROOK >> to) & 1 && from == 63)
+		b.castlingRights &= ~(1 << 1);
+	if ((*b.W_ROOK >> to) & 1 && from == 56)
+		b.castlingRights &= ~1;
+
+	return b;
 }

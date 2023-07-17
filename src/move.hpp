@@ -37,12 +37,12 @@ private:
 	/**
 	* @brief updates hmclock, fmclock, ep square, etc.
 	*/
-	void updateGameData();
+	Board updateGameData(Board);
 
 	/**
 	* @brief revokes castling rights if king or rook moves
 	*/
-	void updateCastlingRights();
+	Board updateCastlingRights(Board);
 
 public:
 	/**

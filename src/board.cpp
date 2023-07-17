@@ -1,8 +1,42 @@
 #include "board.hpp"
 #include "consts.hpp"
+#include "move.hpp"
+#include "move_gen.hpp"
 #include <iostream>
 
 Board::Board() {}
+
+Board::Board(const Board &b) {
+	std::copy(std::begin(b.pieces), std::end(b.pieces), std::begin(pieces));
+	W_KING	 = &pieces[0];
+	W_QUEEN	 = &pieces[1];
+	W_ROOK	 = &pieces[2];
+	W_BISHOP = &pieces[3];
+	W_KNIGHT = &pieces[4];
+	W_PAWN	 = &pieces[5];
+	B_KING	 = &pieces[6];
+	B_QUEEN	 = &pieces[7];
+	B_ROOK	 = &pieces[8];
+	B_BISHOP = &pieces[9];
+	B_KNIGHT = &pieces[10];
+	B_PAWN	 = &pieces[11];
+
+	sideToMove		= b.sideToMove;
+	castlingRights	= b.castlingRights;
+	enPassantSquare = b.enPassantSquare;
+	hmClock			= b.hmClock;
+	fmClock			= b.fmClock;
+}
+Board &Board::operator=(const Board &b) {
+	std::copy(std::begin(b.pieces), std::end(b.pieces), std::begin(pieces));
+
+	sideToMove		= b.sideToMove;
+	castlingRights	= b.castlingRights;
+	enPassantSquare = b.enPassantSquare;
+	hmClock			= b.hmClock;
+	fmClock			= b.fmClock;
+	return *this;
+}
 
 std::string Board::stringBoard() {
 	std::unordered_map<int, char> indexToChar = {
@@ -31,51 +65,6 @@ std::string Board::stringBoard() {
 			board = (board + pieceChar) + ' ';
 		}
 		board = board + '\n';
-	}
-	return board;
-}
-std::string Board::stringBoard(bool flipped) {
-	std::unordered_map<int, char> indexToChar = {
-		{0, 'K'},
-		{1, 'Q'},
-		{2, 'R'},
-		{3, 'B'},
-		{4, 'N'},
-		{5, 'P'},
-		{6, 'k'},
-		{7, 'q'},
-		{8, 'r'},
-		{9, 'b'},
-		{10, 'n'},
-		{11, 'p'},
-	};
-
-	std::string board = "";
-	if (flipped) {
-		for (int rank = 0; rank <= 7; rank++) {
-			for (int squareIndex = rank * 8 + 7; squareIndex >= rank * 8; squareIndex--) {
-				char pieceChar = '.';
-				for (int pieceIndex = 0; pieceIndex < 12; pieceIndex++)
-					// if pieces[pieceIndex] has a piece at squareIndex
-					if ((pieces[pieceIndex] >> squareIndex) & 1)
-						pieceChar = indexToChar[pieceIndex];
-				board = (board + pieceChar) + ' ';
-			}
-			board = board + '\n';
-		}
-
-	} else {
-		for (int rank = 7; rank >= 0; rank--) {
-			for (int squareIndex = rank * 8; squareIndex < (rank + 1) * 8; squareIndex++) {
-				char pieceChar = '.';
-				for (int pieceIndex = 0; pieceIndex < 12; pieceIndex++)
-					// if pieces[pieceIndex] has a piece at squareIndex
-					if ((pieces[pieceIndex] >> squareIndex) & 1)
-						pieceChar = indexToChar[pieceIndex];
-				board = (board + pieceChar) + ' ';
-			}
-			board = board + '\n';
-		}
 	}
 	return board;
 }
@@ -134,6 +123,18 @@ void Board::setToFen(std::string fen) {
 	hmClock = *ptr - 48;
 	ptr += 2;
 	fmClock = *ptr - 48;
+}
+
+bool Board::inIllegalCheck() {
+	for (Move m : MoveGen(*this).genPseudoLegalMoves()) {
+		// std::cout << m.notation() << std::endl;
+		Board b = m.execute();
+		// std::cout << b.stringBoard() << std::endl;
+		bitboard king = b.pieces[b.sideToMove == WHITE ? 0 : 6];
+		// std::cout << bboard(king) << std::endl;
+		if (!king) return true;
+	}
+	return false;
 }
 
 bitboard Board::whitePieces() {

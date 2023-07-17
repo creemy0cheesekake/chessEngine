@@ -286,5 +286,7 @@ std::vector<Move> MoveGen::genPseudoLegalMoves() {
 
 std::vector<Move> MoveGen::genMoves() {
 	std::vector<Move> moves;
+	for (Move m : genPseudoLegalMoves())
+		if (!m.execute().inIllegalCheck()) moves.push_back(m);
 	return moves;
 }
