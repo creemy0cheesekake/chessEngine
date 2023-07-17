@@ -48,7 +48,7 @@ public:
 	/**
 	* @brief board on which move will be executed
 	*/
-	Board *board;
+	Board board;
 	// default constructor shouldnt be called
 	Move() = delete;
 	/**
@@ -57,7 +57,7 @@ public:
 	* @param UInt -- starting square in little endian rank file 
 	* @param UInt -- ending square in little endian rank file 
 	*/
-	Move(Board *, unsigned int, unsigned int);
+	Move(Board, unsigned int, unsigned int);
 	/**
 	* @brief move constructor. infers the flags from the move
 	* @param Board -- board on which to execute the move
@@ -65,7 +65,7 @@ public:
 	* @param UInt -- ending square in little endian rank file 
 	* @param UInt -- promotion piece: 1-Q, 2-R, 3-B, 4-N
 	*/
-	Move(Board *, unsigned int, unsigned int, unsigned int);
+	Move(Board, unsigned int, unsigned int, unsigned int);
 
 	/**
 	* @brief move flags
@@ -109,6 +109,6 @@ public:
 	/**
 	* @brief execute move
 	*/
-	void execute();
+	Board execute();
 };
 #endif

@@ -6,22 +6,21 @@
 #include <string>
 #include <unordered_map>
 
-MoveGen::MoveGen(Board *b)
-	: board(b) {
-	moves = std::vector<Move>();
+MoveGen::MoveGen(Board b) {
+	board = b;
 }
 
 std::vector<Move> MoveGen::genPawnMoves() {
 	std::vector<Move> moves;
-	bitboard pawns	   = *((*board).sideToMove == WHITE ? (*board).W_PAWN : (*board).B_PAWN);
-	bitboard allPieces = (*board).whitePieces() | (*board).blackPieces();
-	if ((*board).sideToMove == WHITE) {
+	bitboard pawns	   = *(board.sideToMove == WHITE ? board.W_PAWN : board.B_PAWN);
+	bitboard allPieces = board.whitePieces() | board.blackPieces();
+	if (board.sideToMove == WHITE) {
 		for (int i = 8; i < 64; i++) {
 			bool pawnOnSquare = (pawns >> i) & 1;
 			if (!pawnOnSquare) continue;
 
 			// if theres no piece on the square directly in front of the pawn
-			if (!((((*board).whitePieces() | (*board).blackPieces()) >> (i + 8)) & 1)) {
+			if (!(((board.whitePieces() | board.blackPieces()) >> (i + 8)) & 1)) {
 				Move m = Move(board, i, i + 8);
 
 				// if target square is on last rank
@@ -39,7 +38,7 @@ std::vector<Move> MoveGen::genPawnMoves() {
 				moves.push_back(Move(board, i, i + 16));
 
 			// if theres a capturable piece to the right
-			if (((*board).blackPieces() >> (i + 9)) & 1) {
+			if ((board.blackPieces() >> (i + 9)) & 1) {
 				// if its an h pawn
 				if ((i + 1) % 8 == 0) continue;
 
@@ -55,7 +54,7 @@ std::vector<Move> MoveGen::genPawnMoves() {
 					moves.push_back(m);
 			}
 			// if theres a capturable piece to the left
-			if (((*board).blackPieces() >> (i + 7)) & 1) {
+			if ((board.blackPieces() >> (i + 7)) & 1) {
 				// if its an a pawn
 				if (i % 8 == 0) continue;
 
@@ -70,9 +69,9 @@ std::vector<Move> MoveGen::genPawnMoves() {
 				else
 					moves.push_back(m);
 			}
-			if (((*board).enPassantSquare >> (i + 7)) & 1 && i % 8)
+			if ((board.enPassantSquare >> (i + 7)) & 1 && i % 8)
 				moves.push_back(Move(board, i, i + 7));
-			if (((*board).enPassantSquare >> (i + 9)) & 1 && (i + 1) % 8)
+			if ((board.enPassantSquare >> (i + 9)) & 1 && (i + 1) % 8)
 				moves.push_back(Move(board, i, i + 9));
 		}
 	} else {
@@ -81,7 +80,7 @@ std::vector<Move> MoveGen::genPawnMoves() {
 			if (!pawnOnSquare) continue;
 
 			// if theres no piece on the square directly in front of the pawn
-			if (!((((*board).whitePieces() | (*board).blackPieces()) >> (i - 8)) & 1)) {
+			if (!(((board.whitePieces() | board.blackPieces()) >> (i - 8)) & 1)) {
 				Move m = Move(board, i, i - 8);
 
 				// if target square is on last rank
@@ -99,7 +98,7 @@ std::vector<Move> MoveGen::genPawnMoves() {
 				moves.push_back(Move(board, i, i - 16));
 
 			// if theres a capturable piece to the right
-			if (((*board).whitePieces() >> (i - 7)) & 1) {
+			if ((board.whitePieces() >> (i - 7)) & 1) {
 				// if its an h pawn
 				if ((i + 1) % 8 == 0) continue;
 
@@ -115,7 +114,7 @@ std::vector<Move> MoveGen::genPawnMoves() {
 					moves.push_back(m);
 			}
 			// if theres a capturable piece to the left
-			if (((*board).whitePieces() >> (i - 9)) & 1) {
+			if ((board.whitePieces() >> (i - 9)) & 1) {
 				// if its an a pawn
 				if (i % 8 == 0) continue;
 
@@ -130,9 +129,9 @@ std::vector<Move> MoveGen::genPawnMoves() {
 				else
 					moves.push_back(m);
 			}
-			if (((*board).enPassantSquare >> (i - 9)) & 1 && i % 8)
+			if ((board.enPassantSquare >> (i - 9)) & 1 && i % 8)
 				moves.push_back(Move(board, i, i - 9));
-			if (((*board).enPassantSquare >> (i - 7)) & 1 && (i + 1) % 8)
+			if ((board.enPassantSquare >> (i - 7)) & 1 && (i + 1) % 8)
 				moves.push_back(Move(board, i, i - 7));
 		}
 	}
@@ -141,8 +140,8 @@ std::vector<Move> MoveGen::genPawnMoves() {
 
 std::vector<Move> MoveGen::genKnightMoves() {
 	std::vector<Move> moves;
-	bitboard knights	= *((*board).sideToMove == WHITE ? (*board).W_KNIGHT : (*board).B_KNIGHT);
-	bitboard yourPieces = (*board).sideToMove == WHITE ? (*board).whitePieces() : (*board).blackPieces();
+	bitboard knights	= *(board.sideToMove == WHITE ? board.W_KNIGHT : board.B_KNIGHT);
+	bitboard yourPieces = board.sideToMove == WHITE ? board.whitePieces() : board.blackPieces();
 	for (int i = 0; i < 64; i++) {
 		if (!((knights >> i) & 1)) continue;
 
@@ -169,9 +168,9 @@ std::vector<Move> MoveGen::genKnightMoves() {
 std::vector<Move> MoveGen::genKingMoves() {
 	std::vector<Move> moves;
 	// index of king
-	int king			= bitscan((*board).sideToMove == WHITE ? *(*board).W_KING : *(*board).B_KING);
+	int king			= bitscan(board.sideToMove == WHITE ? *board.W_KING : *board.B_KING);
 	int rank			= king / 8;
-	bitboard yourPieces = (*board).sideToMove == WHITE ? (*board).whitePieces() : (*board).blackPieces();
+	bitboard yourPieces = board.sideToMove == WHITE ? board.whitePieces() : board.blackPieces();
 
 	int moveOffsets1[] = {7, 8, 9};
 	for (int offset : moveOffsets1) {
@@ -188,11 +187,11 @@ std::vector<Move> MoveGen::genKingMoves() {
 	return moves;
 }
 
-std::vector<Move> genSlidingPieces(bitboard pieces, Board *board, bool straight, bool diagonal) {
+std::vector<Move> genSlidingPieces(bitboard pieces, Board board, bool straight, bool diagonal) {
 	std::vector<Move> moves;
 	if (!pieces) return moves;
-	bitboard yourPieces	 = (*board).sideToMove == WHITE ? (*board).whitePieces() : (*board).blackPieces();
-	bitboard theirPieces = (*board).sideToMove == BLACK ? (*board).whitePieces() : (*board).blackPieces();
+	bitboard yourPieces	 = board.sideToMove == WHITE ? board.whitePieces() : board.blackPieces();
+	bitboard theirPieces = board.sideToMove == BLACK ? board.whitePieces() : board.blackPieces();
 
 	do {
 		bitboard piece		  = LS1B(pieces);
@@ -264,22 +263,28 @@ std::vector<Move> genSlidingPieces(bitboard pieces, Board *board, bool straight,
 }
 
 std::vector<Move> MoveGen::genBishopMoves() {
-	bitboard bishops = *((*board).sideToMove == WHITE ? (*board).W_BISHOP : (*board).B_BISHOP);
+	bitboard bishops = *(board.sideToMove == WHITE ? board.W_BISHOP : board.B_BISHOP);
 	return genSlidingPieces(bishops, board, false, true);
 }
 
 std::vector<Move> MoveGen::genRookMoves() {
-	bitboard rooks = *((*board).sideToMove == WHITE ? (*board).W_ROOK : (*board).B_ROOK);
+	bitboard rooks = *(board.sideToMove == WHITE ? board.W_ROOK : board.B_ROOK);
 	return genSlidingPieces(rooks, board, true, false);
 }
 
 std::vector<Move> MoveGen::genQueenMoves() {
-	bitboard queens = *((*board).sideToMove == WHITE ? (*board).W_QUEEN : (*board).B_QUEEN);
+	bitboard queens = *(board.sideToMove == WHITE ? board.W_QUEEN : board.B_QUEEN);
 	return genSlidingPieces(queens, board, true, true);
 }
 
-std::vector<Move> MoveGen::genMoves() {
+std::vector<Move> MoveGen::genPseudoLegalMoves() {
+	std::vector<Move> moves;
 	std::vector<Move> allMoves[] = {genPawnMoves(), genKnightMoves(), genKingMoves(), genBishopMoves(), genRookMoves(), genQueenMoves()};
 	for (auto v : allMoves) moves.insert(moves.end(), v.begin(), v.end());
+	return moves;
+}
+
+std::vector<Move> MoveGen::genMoves() {
+	std::vector<Move> moves;
 	return moves;
 }

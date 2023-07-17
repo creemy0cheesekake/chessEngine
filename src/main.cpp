@@ -5,16 +5,14 @@
 
 int main() {
 	Board b			= Board();
-	std::string fen = "r1bqrnk1/pp2bpp1/2p2n1p/3p4/3P3B/2NBP3/PPQ1NPPP/R4RK1 w - - 4 12";
+	std::string fen = "r1bqkbnr/ppp2ppp/2np4/1B2p3/4P3/5N2/PPPP1PPP/RNBQ1RK1 b kq - 1 4";
 	b.setToFen(fen);
 	std::cout << b.stringBoard() << std::endl;
 	std::cout << "\n///////////" << std::endl;
 	int x = 0;
-	for (Move i : MoveGen(&b).genMoves()) {
+	for (Move i : MoveGen(b).genPseudoLegalMoves()) {
 		std::cout << i.getFrom() << " " << i.getTo() << " " << i.getFlags() << " " << std::endl;
-		i.execute();
-		std::cout << b.stringBoard() << std::endl;
-		b.setToFen(fen);
+		std::cout << i.execute().stringBoard() << std::endl;
 		x++;
 	}
 	std::cout << x << std::endl;

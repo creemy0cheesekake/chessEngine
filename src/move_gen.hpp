@@ -13,7 +13,7 @@ private:
 	/**
 	* @brief board to gen moves
 	*/
-	Board *board;
+	Board board;
 
 	/**
 	* @brief checks whether or not a king is in check when its not their turn to move
@@ -26,17 +26,17 @@ public:
 	* @brief movegen constructor
 	* @param Board -- board position for which moves will be generated
 	*/
-	MoveGen(Board *);
-
-	/**
-	* @brief vector of legal moves
-	*/
-	std::vector<Move> moves;
+	MoveGen(Board);
 
 	/**
 	* @brief returns vector of all legal moves
 	*/
 	std::vector<Move> genMoves();
+
+	/**
+	* @brief returns vector of all pseudo legal moves - including moves which cause the king to be put into check
+	*/
+	std::vector<Move> genPseudoLegalMoves();
 
 	/**
 	* @brief generates legal pawn moves
