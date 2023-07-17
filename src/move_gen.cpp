@@ -99,7 +99,7 @@ std::vector<Move> MoveGen::genPawnMoves() {
 				moves.push_back(Move(board, i, i - 16));
 
 			// if theres a capturable piece to the right
-			if (((*board).blackPieces() >> (i - 7)) & 1) {
+			if (((*board).whitePieces() >> (i - 7)) & 1) {
 				// if its an h pawn
 				if ((i + 1) % 8 == 0) continue;
 
@@ -115,7 +115,7 @@ std::vector<Move> MoveGen::genPawnMoves() {
 					moves.push_back(m);
 			}
 			// if theres a capturable piece to the left
-			if (((*board).blackPieces() >> (i - 9)) & 1) {
+			if (((*board).whitePieces() >> (i - 9)) & 1) {
 				// if its an a pawn
 				if (i % 8 == 0) continue;
 
