@@ -16,19 +16,18 @@ bool test(Board b, int depth, int ans) {
 	return (num == ans);
 }
 
-bool debug(Board b, int depth, int ans) {
+int debug(Board b, int depth) {
 	int total = 0;
 	for (Move m : MoveGen(b).genMoves()) {
 		int num = moveGenTest(m.execute(), depth - 1);
 		total += num;
 		std::cout << m.UCInotation() << ": " << num << std::endl;
 	}
-	std::cout << total << std::endl;
-	return (total == ans);
+	return total;
 }
 
 int main() {
 	Board b = Board();
 	b.setToFen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
-	std::cout << test(b, 3, 97862) << std::endl;
+	std::cout << test(b, 3, 97'862) << std::endl;
 }

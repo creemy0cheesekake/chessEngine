@@ -12,129 +12,27 @@ MoveGen::MoveGen(Board b) {
 
 std::vector<Move> MoveGen::genPawnMoves() {
 	std::vector<Move> moves;
-	bitboard pawns	   = *(board.sideToMove == WHITE ? board.W_PAWN : board.B_PAWN);
-	bitboard allPieces = board.whitePieces() | board.blackPieces();
-	if (board.sideToMove == WHITE) {
-		for (int i = 8; i < 64; i++) {
-			bool pawnOnSquare = (pawns >> i) & 1;
-			if (!pawnOnSquare) continue;
-
-			// if theres no piece on the square directly in front of the pawn
-			if (!(((board.whitePieces() | board.blackPieces()) >> (i + 8)) & 1)) {
-				Move m = Move(board, i, i + 8);
-
-				// if target square is on last rank
-				if ((i + 8) >= 56)
-					for (int i = 1; i <= 4; i++) {
-						m.setPromoPiece(i);
-						moves.push_back(m);
-					}
+	bitboard pawns		 = *(board.sideToMove == WHITE ? board.W_PAWN : board.B_PAWN);
+	bitboard allPieces	 = board.whitePieces() | board.blackPieces();
+	bitboard theirPieces = board.sideToMove == WHITE ? board.blackPieces() : board.whitePieces();
+	do {
+		bitboard pawn = LS1B(pawns);
+		bitboard Xs	  = (pawn & ~aFile ? pawn << 7 : 0) | (pawn & ~hFile ? pawn << 9 : 0);
+		if (board.sideToMove == BLACK) Xs >>= 16;
+		Xs &= theirPieces | board.enPassantSquare;
+		bitboard push	 = (board.sideToMove == WHITE ? pawn << 8 : pawn >> 8) & ~(allPieces ^ pawn);
+		bitboard dblPush = pawn & (secondRank | seventhRank) ? (board.sideToMove == WHITE ? push << 8 : push >> 8) & ~(allPieces ^ pawn) : 0;
+		bitboard mask	 = Xs | push | dblPush;
+		if (mask)
+			do
+				if (LS1B(mask) & (firstRank | eightRank))
+					for (int i = 1; i <= 4; i++)
+						moves.push_back(Move(board, bitscan(pawn), bitscan(LS1B(mask)), i));
 				else
-					moves.push_back(m);
-			}
+					moves.push_back(Move(board, bitscan(pawn), bitscan(LS1B(mask))));
+			while (mask ^= LS1B(mask));
+	} while (pawns ^= LS1B(pawns));
 
-			// if the pawn starts on its home square and theres no piece on the square 2 squares in front of the pawn
-			if (inRange(i, 8, 15) && !(((allPieces >> (i + 8)) & 1) || ((allPieces >> (i + 16)) & 1)))
-				moves.push_back(Move(board, i, i + 16));
-
-			// if theres a capturable piece to the right
-			if ((board.blackPieces() >> (i + 9)) & 1) {
-				// if its not an h pawn
-				if ((i + 1) % 8 != 0) {
-					Move m = Move(board, i, i + 9);
-
-					// if target square is on last rank
-					if ((i + 9) >= 56)
-						for (int i = 1; i <= 4; i++) {
-							m.setPromoPiece(i);
-							moves.push_back(m);
-						}
-					else
-						moves.push_back(m);
-				}
-			}
-			// if theres a capturable piece to the left
-			if ((board.blackPieces() >> (i + 7)) & 1) {
-				// if its not an a pawn
-				if (i % 8 != 0) {
-					Move m = Move(board, i, i + 7);
-
-					// if target square is on last rank
-					if ((i + 7) >= 56)
-						for (int i = 1; i <= 4; i++) {
-							m.setPromoPiece(i);
-							moves.push_back(m);
-						}
-					else
-						moves.push_back(m);
-				}
-			}
-			if ((board.enPassantSquare >> (i + 7)) & 1 && i % 8)
-				moves.push_back(Move(board, i, i + 7));
-			if ((board.enPassantSquare >> (i + 9)) & 1 && (i + 1) % 8)
-				moves.push_back(Move(board, i, i + 9));
-		}
-	} else {
-		for (int i = 0; i < 56; i++) {
-			bool pawnOnSquare = (pawns >> i) & 1;
-			if (!pawnOnSquare) continue;
-
-			// if theres no piece on the square directly in front of the pawn
-			if (!(((board.whitePieces() | board.blackPieces()) >> (i - 8)) & 1)) {
-				Move m = Move(board, i, i - 8);
-
-				// if target square is on last rank
-				if ((i - 8) < 8)
-					for (int i = 1; i <= 4; i++) {
-						m.setPromoPiece(i);
-						moves.push_back(m);
-					}
-				else
-					moves.push_back(m);
-			}
-
-			// if the pawn starts on its home square and theres no piece on the square 2 squares in front of the pawn
-			if (inRange(i, 48, 55) && !(((allPieces >> (i - 8)) & 1) || ((allPieces >> (i - 16)) & 1)))
-				moves.push_back(Move(board, i, i - 16));
-
-			// if theres a capturable piece to the right
-			if ((board.whitePieces() >> (i - 7)) & 1) {
-				// if its not an h pawn
-				if ((i + 1) % 8 != 0) {
-					Move m = Move(board, i, i - 7);
-
-					// if target square is on last rank
-					if ((i - 7) < 8)
-						for (int i = 1; i <= 4; i++) {
-							m.setPromoPiece(i);
-							moves.push_back(m);
-						}
-					else
-						moves.push_back(m);
-				}
-			}
-			// if theres a capturable piece to the left
-			if ((board.whitePieces() >> (i - 9)) & 1) {
-				// if its not an a pawn
-				if (i % 8 != 0) {
-					Move m = Move(board, i, i - 9);
-
-					// if target square is on last rank
-					if ((i - 9) < 8)
-						for (int i = 1; i <= 4; i++) {
-							m.setPromoPiece(i);
-							moves.push_back(m);
-						}
-					else
-						moves.push_back(m);
-				}
-			}
-			if ((board.enPassantSquare >> (i - 9)) & 1 && i % 8)
-				moves.push_back(Move(board, i, i - 9));
-			if ((board.enPassantSquare >> (i - 7)) & 1 && (i + 1) % 8)
-				moves.push_back(Move(board, i, i - 7));
-		}
-	}
 	return moves;
 }
 
@@ -265,25 +163,25 @@ std::vector<Move> genSlidingPieces(bitboard pieces, Board board, bool straight, 
 		bitboard diagonalRays = 0;
 		if (straight) {
 			bitboard Nrays = piece, Erays = piece, Wrays = piece, Srays = piece;
-			while (!(Nrays & 0xff00000000000000)) {
+			while (!(Nrays & eightRank)) {
 				if (yourPieces & MS1B(Nrays << 8)) break;
 				Nrays |= Nrays << 8;
 				if (theirPieces & MS1B(Nrays)) break;
 			}
 
-			while (!(Erays & 0x8080808080808080)) {
+			while (!(Erays & hFile)) {
 				if (yourPieces & MS1B(Erays << 1)) break;
 				Erays |= Erays << 1;
 				if (theirPieces & MS1B(Erays)) break;
 			}
 
-			while (!(Wrays & 0x101010101010101)) {
+			while (!(Wrays & aFile)) {
 				if (yourPieces & LS1B(Wrays >> 1)) break;
 				Wrays |= Wrays >> 1;
 				if (theirPieces & LS1B(Wrays)) break;
 			}
 
-			while (!(Srays & 0xff)) {
+			while (!(Srays & firstRank)) {
 				if (yourPieces & LS1B(Srays >> 8)) break;
 				Srays |= Srays >> 8;
 				if (theirPieces & LS1B(Srays)) break;
@@ -292,25 +190,25 @@ std::vector<Move> genSlidingPieces(bitboard pieces, Board board, bool straight, 
 		}
 		if (diagonal) {
 			bitboard NErays = piece, NWrays = piece, SWrays = piece, SErays = piece;
-			while (!(NErays & 0xff80808080808080)) {
+			while (!(NErays & (eightRank | hFile))) {
 				if (yourPieces & MS1B(NErays << 9)) break;
 				NErays |= NErays << 9;
 				if (theirPieces & MS1B(NErays)) break;
 			}
 
-			while (!(NWrays & 0xff01010101010101)) {
+			while (!(NWrays & (eightRank | aFile))) {
 				if (yourPieces & MS1B(NWrays << 7)) break;
 				NWrays |= NWrays << 7;
 				if (theirPieces & MS1B(NWrays)) break;
 			}
 
-			while (!(SWrays & 0x1010101010101ff)) {
+			while (!(SWrays & (firstRank | aFile))) {
 				if (yourPieces & LS1B(SWrays >> 9)) break;
 				SWrays |= SWrays >> 9;
 				if (theirPieces & LS1B(SWrays)) break;
 			}
 
-			while (!(SErays & 0x80808080808080ff)) {
+			while (!(SErays & (firstRank | hFile))) {
 				if (yourPieces & LS1B(SErays >> 7)) break;
 				SErays |= SErays >> 7;
 				if (theirPieces & LS1B(SErays)) break;
