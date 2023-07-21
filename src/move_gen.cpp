@@ -114,22 +114,21 @@ bool MoveGen::inCheck() {
 
 std::vector<Move> MoveGen::genKingMoves() {
 	std::vector<Move> moves;
-	int king			= bitscan(board.sideToMove == WHITE ? *board.W_KING : *board.B_KING);
-	int rank			= king / 8;
 	bitboard yourPieces = board.sideToMove == WHITE ? board.whitePieces() : board.blackPieces();
-
-	int moveOffsets1[] = {7, 8, 9};
-	for (int offset : moveOffsets1) {
-		if (inRange(king + offset, 0, 63) && ((king + offset) / 8) - rank == 1 && ~(yourPieces >> (king + offset)) & 1)
-			moves.push_back(Move(board, king, king + offset));
-		if (inRange(king - offset, 0, 63) && ((king - offset) / 8) - rank == -1 && ~(yourPieces >> (king - offset)) & 1)
-			moves.push_back(Move(board, king, king - offset));
-	}
-
-	if (inRange(king + 1, 0, 63) && ((king + 1) / 8) - rank == 0 && ~(yourPieces >> (king + 1)) & 1)
-		moves.push_back(Move(board, king, king + 1));
-	if (inRange(king - 1, 0, 63) && ((king - 1) / 8) - rank == 0 && ~(yourPieces >> (king - 1)) & 1)
-		moves.push_back(Move(board, king, king - 1));
+	bitboard king		= *(board.sideToMove == WHITE ? board.W_KING : board.B_KING);
+	bitboard mask		= 0;
+	if (!(king & eighthRank)) mask |= king << 8;
+	if (!(king & firstRank)) mask |= king >> 8;
+	if (!(king & hFile)) mask |= king << 1;
+	if (!(king & aFile)) mask |= king >> 1;
+	if (!(king & (aFile | eighthRank))) mask |= king << 7;
+	if (!(king & (hFile | eighthRank))) mask |= king << 9;
+	if (!(king & (hFile | firstRank))) mask |= king >> 7;
+	if (!(king & (aFile | firstRank))) mask |= king >> 9;
+	mask &= ~yourPieces;
+	if (mask)
+		do moves.push_back(Move(board, bitscan(king), bitscan(LS1B(mask))));
+		while (mask ^= LS1B(mask));
 	return moves;
 }
 
