@@ -25,7 +25,7 @@ std::vector<Move> MoveGen::genPawnMoves() {
 		bitboard mask	 = Xs | push | dblPush;
 		if (mask)
 			do
-				if (LS1B(mask) & (firstRank | eightRank))
+				if (LS1B(mask) & (firstRank | eighthRank))
 					for (int i = 1; i <= 4; i++)
 						moves.push_back(Move(board, bitscan(pawn), bitscan(LS1B(mask)), i));
 				else
@@ -40,26 +40,23 @@ std::vector<Move> MoveGen::genKnightMoves() {
 	std::vector<Move> moves;
 	bitboard knights	= *(board.sideToMove == WHITE ? board.W_KNIGHT : board.B_KNIGHT);
 	bitboard yourPieces = board.sideToMove == WHITE ? board.whitePieces() : board.blackPieces();
-	for (int i = 0; i < 64; i++) {
-		if (!((knights >> i) & 1)) continue;
+	do {
+		bitboard knight = LS1B(knights);
+		bitboard mask	= 0;
+		if (!(knight & aFile || knight & (seventhRank | eighthRank))) mask |= knight << 15;
+		if (!(knight & hFile || knight & (seventhRank | eighthRank))) mask |= knight << 17;
+		if (!(knight & aFile || knight & (firstRank | secondRank))) mask |= knight >> 17;
+		if (!(knight & hFile || knight & (firstRank | secondRank))) mask |= knight >> 15;
+		if (!(knight & eighthRank || knight & (aFile | bFile))) mask |= knight << 6;
+		if (!(knight & eighthRank || knight & (gFile | hFile))) mask |= knight << 10;
+		if (!(knight & firstRank || knight & (aFile | bFile))) mask |= knight >> 10;
+		if (!(knight & firstRank || knight & (gFile | hFile))) mask |= knight >> 6;
+		mask &= ~yourPieces;
 
-		int rank		   = i / 8;
-		int moveOffsets1[] = {15, 17};
-		for (int offset : moveOffsets1) {
-			if (inRange(i + offset, 0, 63) && ((i + offset) / 8) - rank == 2 && ~(yourPieces >> (i + offset)) & 1)
-				moves.push_back(Move(board, i, i + offset));
-			if (inRange(i - offset, 0, 63) && ((i - offset) / 8) - rank == -2 && ~(yourPieces >> (i - offset)) & 1)
-				moves.push_back(Move(board, i, i - offset));
-		}
-
-		int moveOffsets2[] = {6, 10};
-		for (int offset : moveOffsets2) {
-			if (inRange(i + offset, 0, 63) && ((i + offset) / 8) - rank == 1 && ~(yourPieces >> (i + offset)) & 1)
-				moves.push_back(Move(board, i, i + offset));
-			if (inRange(i - offset, 0, 63) && ((i - offset) / 8) - rank == -1 && ~(yourPieces >> (i - offset)) & 1)
-				moves.push_back(Move(board, i, i - offset));
-		}
-	}
+		if (mask)
+			do moves.push_back(Move(board, bitscan(knight), bitscan(LS1B(mask))));
+			while (mask ^= LS1B(mask));
+	} while (knights ^= LS1B(knights));
 	return moves;
 }
 
@@ -163,7 +160,7 @@ std::vector<Move> genSlidingPieces(bitboard pieces, Board board, bool straight, 
 		bitboard diagonalRays = 0;
 		if (straight) {
 			bitboard Nrays = piece, Erays = piece, Wrays = piece, Srays = piece;
-			while (!(Nrays & eightRank)) {
+			while (!(Nrays & eighthRank)) {
 				if (yourPieces & MS1B(Nrays << 8)) break;
 				Nrays |= Nrays << 8;
 				if (theirPieces & MS1B(Nrays)) break;
@@ -190,13 +187,13 @@ std::vector<Move> genSlidingPieces(bitboard pieces, Board board, bool straight, 
 		}
 		if (diagonal) {
 			bitboard NErays = piece, NWrays = piece, SWrays = piece, SErays = piece;
-			while (!(NErays & (eightRank | hFile))) {
+			while (!(NErays & (eighthRank | hFile))) {
 				if (yourPieces & MS1B(NErays << 9)) break;
 				NErays |= NErays << 9;
 				if (theirPieces & MS1B(NErays)) break;
 			}
 
-			while (!(NWrays & (eightRank | aFile))) {
+			while (!(NWrays & (eighthRank | aFile))) {
 				if (yourPieces & MS1B(NWrays << 7)) break;
 				NWrays |= NWrays << 7;
 				if (theirPieces & MS1B(NWrays)) break;

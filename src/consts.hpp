@@ -4,12 +4,22 @@
 typedef unsigned long long bitboard;
 #define bitscan std::__countr_zero
 
-#define eightRank	0xff00000000000000
 #define firstRank	0xff
-#define seventhRank 0xff000000000000
 #define secondRank	0xff00
+#define thirdRank	0xff0000
+#define fourthRank	0xff000000
+#define fifthRank	0xff00000000
+#define sixthRank	0xff0000000000
+#define seventhRank 0xff000000000000
+#define eighthRank	0xff00000000000000
+#define aFile		0x0101010101010101
+#define bFile		0x0202020202020202
+#define cFile		0x0404040404040404
+#define dFile		0x0808080808080808
+#define eFile		0x1010101010101010
+#define fFile		0x2020202020202020
+#define gFile		0x4040404040404040
 #define hFile		0x8080808080808080
-#define aFile		0x101010101010101
 
 enum Color {
 	WHITE,
