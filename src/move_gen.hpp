@@ -15,6 +15,16 @@ private:
 	*/
 	Board board;
 
+	/**
+	* @brief returns true if none of the squares between the kings position and the destination of a castle are under attack
+	*/
+	bool isntCastlingThroughCheck(bool longCastle);
+
+	/**
+	* @brief returns true if the king is in check
+	*/
+	bool inCheck();
+
 public:
 	/**
 	* @brief movegen constructor
@@ -33,6 +43,11 @@ public:
 	std::vector<Move> genPseudoLegalMoves();
 
 	/**
+	* @brief returns vector of all pseudo legal moves - including moves which cause the king to be put into check, but not including castling moves
+	*/
+	std::vector<Move> genPseudoLegalMovesWithoutCastling();
+
+	/**
 	* @brief generates legal pawn moves
 	*/
 	std::vector<Move> genPawnMoves();
@@ -46,6 +61,11 @@ public:
 	* @brief generates legal king moves
 	*/
 	std::vector<Move> genKingMoves();
+
+	/**
+	* @brief generates legal castling moves
+	*/
+	std::vector<Move> genCastlingMoves();
 
 	/**
 	* @brief generates legal bishop moves

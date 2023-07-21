@@ -38,7 +38,7 @@ Board &Board::operator=(const Board &b) {
 	return *this;
 }
 
-std::string Board::stringBoard() {
+std::ostream &operator<<(std::ostream &os, const Board &b) {
 	std::unordered_map<int, char> indexToChar = {
 		{0, 'K'},
 		{1, 'Q'},
@@ -60,13 +60,14 @@ std::string Board::stringBoard() {
 			char pieceChar = '.';
 			for (int pieceIndex = 0; pieceIndex < 12; pieceIndex++)
 				// if pieces[pieceIndex] has a piece at squareIndex
-				if ((pieces[pieceIndex] >> squareIndex) & 1)
+				if ((b.pieces[pieceIndex] >> squareIndex) & 1)
 					pieceChar = indexToChar[pieceIndex];
 			board = (board + pieceChar) + ' ';
 		}
 		board = board + '\n';
 	}
-	return board;
+	os << board;
+	return os;
 }
 
 void Board::setToFen(std::string fen) {
@@ -127,12 +128,8 @@ void Board::setToFen(std::string fen) {
 
 bool Board::inIllegalCheck() {
 	for (Move m : MoveGen(*this).genPseudoLegalMoves()) {
-		// std::cout << m.notation() << std::endl;
 		Board b = m.execute();
-		// std::cout << b.stringBoard() << std::endl;
-		bitboard king = b.pieces[b.sideToMove == WHITE ? 0 : 6];
-		// std::cout << bboard(king) << std::endl;
-		if (!king) return true;
+		if (!*b.W_KING || !*b.B_KING) return true;
 	}
 	return false;
 }

@@ -39,35 +39,35 @@ std::vector<Move> MoveGen::genPawnMoves() {
 
 			// if theres a capturable piece to the right
 			if ((board.blackPieces() >> (i + 9)) & 1) {
-				// if its an h pawn
-				if ((i + 1) % 8 == 0) continue;
+				// if its not an h pawn
+				if ((i + 1) % 8 != 0) {
+					Move m = Move(board, i, i + 9);
 
-				Move m = Move(board, i, i + 9);
-
-				// if target square is on last rank
-				if ((i + 9) >= 56)
-					for (int i = 1; i <= 4; i++) {
-						m.setPromoPiece(i);
+					// if target square is on last rank
+					if ((i + 9) >= 56)
+						for (int i = 1; i <= 4; i++) {
+							m.setPromoPiece(i);
+							moves.push_back(m);
+						}
+					else
 						moves.push_back(m);
-					}
-				else
-					moves.push_back(m);
+				}
 			}
 			// if theres a capturable piece to the left
 			if ((board.blackPieces() >> (i + 7)) & 1) {
-				// if its an a pawn
-				if (i % 8 == 0) continue;
+				// if its not an a pawn
+				if (i % 8 != 0) {
+					Move m = Move(board, i, i + 7);
 
-				Move m = Move(board, i, i + 7);
-
-				// if target square is on last rank
-				if ((i + 7) >= 56)
-					for (int i = 1; i <= 4; i++) {
-						m.setPromoPiece(i);
+					// if target square is on last rank
+					if ((i + 7) >= 56)
+						for (int i = 1; i <= 4; i++) {
+							m.setPromoPiece(i);
+							moves.push_back(m);
+						}
+					else
 						moves.push_back(m);
-					}
-				else
-					moves.push_back(m);
+				}
 			}
 			if ((board.enPassantSquare >> (i + 7)) & 1 && i % 8)
 				moves.push_back(Move(board, i, i + 7));
@@ -99,35 +99,35 @@ std::vector<Move> MoveGen::genPawnMoves() {
 
 			// if theres a capturable piece to the right
 			if ((board.whitePieces() >> (i - 7)) & 1) {
-				// if its an h pawn
-				if ((i + 1) % 8 == 0) continue;
+				// if its not an h pawn
+				if ((i + 1) % 8 != 0) {
+					Move m = Move(board, i, i - 7);
 
-				Move m = Move(board, i, i - 7);
-
-				// if target square is on last rank
-				if ((i - 7) >= 56)
-					for (int i = 1; i <= 4; i++) {
-						m.setPromoPiece(i);
+					// if target square is on last rank
+					if ((i - 7) < 8)
+						for (int i = 1; i <= 4; i++) {
+							m.setPromoPiece(i);
+							moves.push_back(m);
+						}
+					else
 						moves.push_back(m);
-					}
-				else
-					moves.push_back(m);
+				}
 			}
 			// if theres a capturable piece to the left
 			if ((board.whitePieces() >> (i - 9)) & 1) {
-				// if its an a pawn
-				if (i % 8 == 0) continue;
+				// if its not an a pawn
+				if (i % 8 != 0) {
+					Move m = Move(board, i, i - 9);
 
-				Move m = Move(board, i, i - 9);
-
-				// if target square is on last rank
-				if ((i - 9) >= 56)
-					for (int i = 1; i <= 4; i++) {
-						m.setPromoPiece(i);
+					// if target square is on last rank
+					if ((i - 9) < 8)
+						for (int i = 1; i <= 4; i++) {
+							m.setPromoPiece(i);
+							moves.push_back(m);
+						}
+					else
 						moves.push_back(m);
-					}
-				else
-					moves.push_back(m);
+				}
 			}
 			if ((board.enPassantSquare >> (i - 9)) & 1 && i % 8)
 				moves.push_back(Move(board, i, i - 9));
@@ -165,9 +165,60 @@ std::vector<Move> MoveGen::genKnightMoves() {
 	return moves;
 }
 
+bool MoveGen::isntCastlingThroughCheck(bool longCastle) {
+	Board cpy									  = board;
+	cpy.pieces[board.sideToMove == WHITE ? 0 : 6] = 0;
+	cpy.sideToMove								  = (Color)!board.sideToMove;
+	for (Move m : MoveGen(cpy).genPseudoLegalMovesWithoutCastling()) {
+		if (board.sideToMove == WHITE) {
+			if (longCastle) {
+				if (
+					(m.execute().blackPieces() >> c1) & 1 ||
+					(m.execute().blackPieces() >> d1) & 1 ||
+					(m.execute().blackPieces() >> e1) & 1
+				)
+					return false;
+			} else {
+				if (
+					(m.execute().blackPieces() >> e1) & 1 ||
+					(m.execute().blackPieces() >> f1) & 1 ||
+					(m.execute().blackPieces() >> g1) & 1
+				)
+					return false;
+			}
+		} else {
+			if (longCastle) {
+				if (
+					(m.execute().whitePieces() >> c8) & 1 ||
+					(m.execute().whitePieces() >> d8) & 1 ||
+					(m.execute().whitePieces() >> e8) & 1
+				)
+					return false;
+			} else {
+				if (
+					(m.execute().whitePieces() >> e8) & 1 ||
+					(m.execute().whitePieces() >> f8) & 1 ||
+					(m.execute().whitePieces() >> g8) & 1
+				)
+					return false;
+			}
+		}
+	}
+	return true;
+}
+
+bool MoveGen::inCheck() {
+	Board cpy	   = board;
+	cpy.sideToMove = (Color)!board.sideToMove;
+	for (Move m : MoveGen(cpy).genPseudoLegalMovesWithoutCastling()) {
+		Board b = m.execute();
+		if (!*b.W_KING || !*b.B_KING) return true;
+	}
+	return false;
+}
+
 std::vector<Move> MoveGen::genKingMoves() {
 	std::vector<Move> moves;
-	// index of king
 	int king			= bitscan(board.sideToMove == WHITE ? *board.W_KING : *board.B_KING);
 	int rank			= king / 8;
 	bitboard yourPieces = board.sideToMove == WHITE ? board.whitePieces() : board.blackPieces();
@@ -184,6 +235,21 @@ std::vector<Move> MoveGen::genKingMoves() {
 		moves.push_back(Move(board, king, king + 1));
 	if (inRange(king - 1, 0, 63) && ((king - 1) / 8) - rank == 0 && ~(yourPieces >> (king - 1)) & 1)
 		moves.push_back(Move(board, king, king - 1));
+	return moves;
+}
+
+std::vector<Move> MoveGen::genCastlingMoves() {
+	std::vector<Move> moves;
+	if (inCheck()) return moves;
+	int king					  = bitscan(board.sideToMove == WHITE ? *board.W_KING : *board.B_KING);
+	unsigned short castlingRights = board.sideToMove == WHITE ? board.castlingRights >> 2 : board.castlingRights & 3;
+	bitboard allPieces			  = board.whitePieces() | board.blackPieces();
+	if (castlingRights & 2 && isntCastlingThroughCheck(false) && !((allPieces >> (king + 1)) & 1) && !((allPieces >> (king + 2)) & 1)) {
+		moves.push_back(Move(board, king, king + 2));
+	}
+	if (castlingRights & 1 && isntCastlingThroughCheck(true) && !((allPieces >> (king - 1)) & 1) && !((allPieces >> (king - 2)) & 1) && !((allPieces >> (king - 3)) & 1)) {
+		moves.push_back(Move(board, king, king - 2));
+	}
 	return moves;
 }
 
@@ -277,9 +343,16 @@ std::vector<Move> MoveGen::genQueenMoves() {
 	return genSlidingPieces(queens, board, true, true);
 }
 
-std::vector<Move> MoveGen::genPseudoLegalMoves() {
+std::vector<Move> MoveGen::genPseudoLegalMovesWithoutCastling() {
 	std::vector<Move> moves;
 	std::vector<Move> allMoves[] = {genPawnMoves(), genKnightMoves(), genKingMoves(), genBishopMoves(), genRookMoves(), genQueenMoves()};
+	for (auto v : allMoves) moves.insert(moves.end(), v.begin(), v.end());
+	return moves;
+}
+
+std::vector<Move> MoveGen::genPseudoLegalMoves() {
+	std::vector<Move> moves;
+	std::vector<Move> allMoves[] = {genPawnMoves(), genKnightMoves(), genKingMoves(), genBishopMoves(), genRookMoves(), genQueenMoves(), genCastlingMoves()};
 	for (auto v : allMoves) moves.insert(moves.end(), v.begin(), v.end());
 	return moves;
 }

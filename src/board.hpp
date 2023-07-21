@@ -70,15 +70,9 @@ public:
 	Board &operator=(const Board &a);
 
 	/**
-	* @brief return a visual representation of the board position using ascii art with a1 in the bottom left and h8 in the top right
+	* @brief overload the << operator to print a visual representation of the board position using ascii art with a1 in the bottom left and h8 in the top right
 	*/
-	std::string stringBoard();
-
-	/**
-	* @brief return a visual representation of the board position using ascii art
-	* @param flipped [bool] - if true, the board is flipped; shown from black's perspective
-	*/
-	std::string stringBoard(bool);
+	friend std::ostream &operator<<(std::ostream &os, const Board &b);
 
 	/**
 	* @brief set board to specified fen string position

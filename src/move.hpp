@@ -42,7 +42,7 @@ private:
 	/**
 	* @brief revokes castling rights if king or rook moves
 	*/
-	Board updateCastlingRights(Board);
+	unsigned short updateCastlingRights(Board);
 
 public:
 	/**
@@ -105,6 +105,11 @@ public:
 	* @brief return move notation in long algebraic form
 	*/
 	std::string notation();
+
+	/**
+	* @brief return move notation in uci algebraic form
+	*/
+	std::string UCInotation();
 
 	/**
 	* @brief execute move

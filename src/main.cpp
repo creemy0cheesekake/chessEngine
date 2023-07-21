@@ -3,19 +3,32 @@
 #include "move.cpp"
 #include "move_gen.cpp"
 
+int moveGenTest(Board b, int depth) {
+	if (depth <= 0) return 1;
+
+	int n = 0;
+	for (Move m : MoveGen(b).genMoves()) n += moveGenTest(m.execute(), depth - 1);
+	return n;
+}
+
+bool test(Board b, int depth, int ans) {
+	int num = moveGenTest(b, depth);
+	return (num == ans);
+}
+
+bool debug(Board b, int depth, int ans) {
+	int total = 0;
+	for (Move m : MoveGen(b).genMoves()) {
+		int num = moveGenTest(m.execute(), depth - 1);
+		total += num;
+		std::cout << m.UCInotation() << ": " << num << std::endl;
+	}
+	std::cout << total << std::endl;
+	return (total == ans);
+}
+
 int main() {
 	Board b = Board();
-	// std::string fen = "r1bqkbnr/ppp2ppp/2np4/1B2p3/4P3/5N2/PPPP1PPP/RNBQ1RK1 b kq - 1 4";
-	std::string fen = "8/8/8/8/1Q2K3/8/k7/8 b - - 4 6";
-	b.setToFen(fen);
-	std::cout << b.stringBoard() << std::endl;
-	std::cout << "\n///////////" << std::endl;
-	int x = 0;
-	for (Move i : MoveGen(b).genMoves()) {
-		std::cout << i.getFrom() << " " << i.getTo() << " " << i.getFlags() << " " << std::endl;
-		std::cout << i.notation() << std::endl;
-		std::cout << i.execute().stringBoard() << std::endl;
-		x++;
-	}
-	std::cout << x << std::endl;
+	b.setToFen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
+	std::cout << test(b, 3, 97862) << std::endl;
 }

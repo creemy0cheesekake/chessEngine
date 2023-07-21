@@ -35,7 +35,7 @@ unsigned int Move::genFlags(Board board) {
 			flags += QS_CASTLE;
 		if ((*board.W_PAWN >> from) & 1 && inRange(from, 8, 15) && inRange(to, 24, 31))
 			flags += DBL_PAWN;
-		if ((board.enPassantSquare >> to) & 1)
+		if ((board.enPassantSquare >> to) & 1 && (*board.W_PAWN >> from) & 1)
 			flags += (EN_PASSANT + CAPTURE);
 		if ((*board.W_PAWN >> from) & 1 && inRange(to, 56, 63))
 			flags += PROMOTION;
@@ -50,7 +50,7 @@ unsigned int Move::genFlags(Board board) {
 			flags += QS_CASTLE;
 		if ((*board.B_PAWN >> from) & 1 && inRange(from, 48, 55) && inRange(to, 32, 39))
 			flags += DBL_PAWN;
-		if ((board.enPassantSquare >> to) & 1)
+		if ((board.enPassantSquare >> to) & 1 && (*board.B_PAWN >> from) & 1)
 			flags += (EN_PASSANT + CAPTURE);
 		if ((*board.B_PAWN >> from) & 1 && inRange(to, 0, 7))
 			flags += PROMOTION;
@@ -113,6 +113,22 @@ std::string Move::notation() {
 	return notation;
 }
 
+std::string Move::UCInotation() {
+	std::string notation = "";
+	notation += from % 8 + 97;
+	notation += from / 8 + 49;
+	notation += to % 8 + 97;
+	notation += to / 8 + 49;
+	if (flags & PROMOTION)
+		notation += (std::unordered_map<int, char>){
+			{1, 'q'},
+			{2, 'r'},
+			{3, 'b'},
+			{4, 'n'},
+		}[promoPiece];
+	return notation;
+}
+
 Board Move::execute() {
 	Board b = board;
 	if (flags & KS_CASTLE) {
@@ -142,8 +158,13 @@ Board Move::execute() {
 		}
 		// moves the piece from its current square to the destination square
 		for (int i = 0; i < 12; i++)
-			if ((b.pieces[i] >> from) & 1)
-				b.pieces[i] ^= (1UL << to) + (1UL << from);
+			if ((b.pieces[i] >> from) & 1) {
+				bitboard moveMask = (1UL << from);
+				if (!(flags & PROMOTION)) moveMask += (1UL << to);
+				b.pieces[i] ^= moveMask;
+			}
+		if (flags & PROMOTION)
+			b.pieces[promoPiece + (b.sideToMove == WHITE ? 0 : 6)] |= 1UL << to;
 	}
 
 	b = updateGameData(b);
@@ -151,6 +172,7 @@ Board Move::execute() {
 }
 
 Board Move::updateGameData(Board b) {
+	b.enPassantSquare = 0;
 	b.hmClock++;
 	if (b.sideToMove == BLACK)
 		b.fmClock++;
@@ -161,23 +183,23 @@ Board Move::updateGameData(Board b) {
 	if (flags & DBL_PAWN)
 		b.enPassantSquare = 1UL << (b.sideToMove == WHITE ? to - 8 : to + 8);
 
-	b = updateCastlingRights(b);
+	b.castlingRights = updateCastlingRights(b);
 
 	// switching side to move
-	b.sideToMove = b.sideToMove == WHITE ? BLACK : WHITE;
+	b.sideToMove = (Color)!b.sideToMove;
 	return b;
 }
 
-Board Move::updateCastlingRights(Board b) {
+unsigned short Move::updateCastlingRights(Board b) {
 	// if either side castles remove all their castling rights
 	if (b.sideToMove == WHITE) {
 		if (flags & KS_CASTLE || flags & QS_CASTLE) b.castlingRights &= 3;
 	} else if (flags & KS_CASTLE || flags & QS_CASTLE) b.castlingRights &= ~3;
 
 	// if the kings move remove all their castling rights
-	if ((*b.W_KING >> to) & 1 && ((b.castlingRights >> 3) & 1 || (b.castlingRights >> 2) & 1))
+	if ((*b.W_KING >> to) & 1)
 		b.castlingRights &= 3;
-	if ((*b.B_KING >> to) & 1 && ((b.castlingRights >> 1) & 1 || (b.castlingRights) & 1))
+	if ((*b.B_KING >> to) & 1)
 		b.castlingRights &= ~3;
 
 	// if the rooks move remove castling rights for that side
@@ -187,8 +209,19 @@ Board Move::updateCastlingRights(Board b) {
 		b.castlingRights &= ~(1 << 2);
 	if ((*b.B_ROOK >> to) & 1 && from == 63)
 		b.castlingRights &= ~(1 << 1);
-	if ((*b.W_ROOK >> to) & 1 && from == 56)
+	if ((*b.B_ROOK >> to) & 1 && from == 56)
 		b.castlingRights &= ~1;
 
-	return b;
+	// if the rooks are captured remove castling rights for that side
+	if (flags & CAPTURE) {
+		if (to == 7)
+			b.castlingRights &= ~(1 << 3);
+		if (to == 0)
+			b.castlingRights &= ~(1 << 2);
+		if (to == 63)
+			b.castlingRights &= ~(1 << 1);
+		if (to == 56)
+			b.castlingRights &= ~1;
+	}
+	return b.castlingRights;
 }
