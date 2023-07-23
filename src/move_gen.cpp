@@ -19,6 +19,7 @@ std::vector<Move> MoveGen::genPawnMoves() {
 		bitboard pawn = LS1B(pawns);
 		bitboard Xs	  = (pawn & ~aFile ? pawn << 7 : 0) | (pawn & ~hFile ? pawn << 9 : 0);
 		if (board.sideToMove == BLACK) Xs >>= 16;
+		attacks[board.sideToMove] |= Xs;
 		Xs &= theirPieces | board.enPassantSquare;
 		bitboard push	 = (board.sideToMove == WHITE ? pawn << 8 : pawn >> 8) & ~(allPieces ^ pawn);
 		bitboard dblPush = pawn & (secondRank | seventhRank) ? (board.sideToMove == WHITE ? push << 8 : push >> 8) & ~(allPieces ^ pawn) : 0;
@@ -51,6 +52,7 @@ std::vector<Move> MoveGen::genKnightMoves() {
 		if (!(knight & eighthRank || knight & (gFile | hFile))) mask |= knight << 10;
 		if (!(knight & firstRank || knight & (aFile | bFile))) mask |= knight >> 10;
 		if (!(knight & firstRank || knight & (gFile | hFile))) mask |= knight >> 6;
+		attacks[board.sideToMove] |= mask;
 		mask &= ~yourPieces;
 
 		if (mask)
@@ -61,55 +63,20 @@ std::vector<Move> MoveGen::genKnightMoves() {
 }
 
 bool MoveGen::isntCastlingThroughCheck(bool longCastle) {
-	Board cpy									  = board;
-	cpy.pieces[board.sideToMove == WHITE ? 0 : 6] = 0;
-	cpy.sideToMove								  = (Color)!board.sideToMove;
-	for (Move m : MoveGen(cpy).genPseudoLegalMovesWithoutCastling()) {
-		if (board.sideToMove == WHITE) {
-			if (longCastle) {
-				if (
-					(m.execute().blackPieces() >> c1) & 1 ||
-					(m.execute().blackPieces() >> d1) & 1 ||
-					(m.execute().blackPieces() >> e1) & 1
-				)
-					return false;
-			} else {
-				if (
-					(m.execute().blackPieces() >> e1) & 1 ||
-					(m.execute().blackPieces() >> f1) & 1 ||
-					(m.execute().blackPieces() >> g1) & 1
-				)
-					return false;
-			}
-		} else {
-			if (longCastle) {
-				if (
-					(m.execute().whitePieces() >> c8) & 1 ||
-					(m.execute().whitePieces() >> d8) & 1 ||
-					(m.execute().whitePieces() >> e8) & 1
-				)
-					return false;
-			} else {
-				if (
-					(m.execute().whitePieces() >> e8) & 1 ||
-					(m.execute().whitePieces() >> f8) & 1 ||
-					(m.execute().whitePieces() >> g8) & 1
-				)
-					return false;
-			}
-		}
-	}
+	MoveGen mg			= MoveGen(board);
+	mg.board.sideToMove = (Color)!mg.board.sideToMove;
+	mg.genPseudoLegalMovesWithoutCastling();
+	bitboard theirAttacks = mg.attacks[mg.board.sideToMove];
+
+	if (board.sideToMove == WHITE && longCastle && theirAttacks & (1UL << c1 | 1UL << d1)) return false;
+	if (board.sideToMove == WHITE && !longCastle && theirAttacks & (1UL << f1 | 1UL << g1)) return false;
+	if (board.sideToMove == BLACK && longCastle && theirAttacks & (1UL << c8 | 1UL << d8)) return false;
+	if (board.sideToMove == BLACK && !longCastle && theirAttacks & (1UL << f8 | 1UL << g8)) return false;
 	return true;
 }
 
 bool MoveGen::inCheck() {
-	Board cpy	   = board;
-	cpy.sideToMove = (Color)!board.sideToMove;
-	for (Move m : MoveGen(cpy).genPseudoLegalMovesWithoutCastling()) {
-		Board b = m.execute();
-		if (!*b.W_KING || !*b.B_KING) return true;
-	}
-	return false;
+	return attacks[!board.sideToMove] & *(board.sideToMove == WHITE ? board.W_KING : board.B_KING);
 }
 
 std::vector<Move> MoveGen::genKingMoves() {
@@ -125,6 +92,7 @@ std::vector<Move> MoveGen::genKingMoves() {
 	if (!(king & (hFile | eighthRank))) mask |= king << 9;
 	if (!(king & (hFile | firstRank))) mask |= king >> 7;
 	if (!(king & (aFile | firstRank))) mask |= king >> 9;
+	attacks[board.sideToMove] |= mask;
 	mask &= ~yourPieces;
 	if (mask)
 		do moves.push_back(Move(board, bitscan(king), bitscan(LS1B(mask))));
@@ -135,19 +103,18 @@ std::vector<Move> MoveGen::genKingMoves() {
 std::vector<Move> MoveGen::genCastlingMoves() {
 	std::vector<Move> moves;
 	if (inCheck()) return moves;
-	int king					  = bitscan(board.sideToMove == WHITE ? *board.W_KING : *board.B_KING);
+	bitboard king				  = board.sideToMove == WHITE ? *board.W_KING : *board.B_KING;
+	unsigned short kingIndex	  = bitscan(king);
 	unsigned short castlingRights = board.sideToMove == WHITE ? board.castlingRights >> 2 : board.castlingRights & 3;
 	bitboard allPieces			  = board.whitePieces() | board.blackPieces();
-	if (castlingRights & 2 && isntCastlingThroughCheck(false) && !((allPieces >> (king + 1)) & 1) && !((allPieces >> (king + 2)) & 1)) {
-		moves.push_back(Move(board, king, king + 2));
-	}
-	if (castlingRights & 1 && isntCastlingThroughCheck(true) && !((allPieces >> (king - 1)) & 1) && !((allPieces >> (king - 2)) & 1) && !((allPieces >> (king - 3)) & 1)) {
-		moves.push_back(Move(board, king, king - 2));
-	}
+	if (castlingRights & 2 && isntCastlingThroughCheck(false) && !(allPieces & (king << 1 | king << 2)))
+		moves.push_back(Move(board, kingIndex, kingIndex + 2));
+	if (castlingRights & 1 && isntCastlingThroughCheck(true) && !(allPieces & (king >> 1 | king >> 2 | king >> 3)))
+		moves.push_back(Move(board, kingIndex, kingIndex - 2));
 	return moves;
 }
 
-std::vector<Move> genSlidingPieces(bitboard pieces, Board board, bool straight, bool diagonal) {
+std::vector<Move> MoveGen::genSlidingPieces(bitboard pieces, bool straight, bool diagonal) {
 	std::vector<Move> moves;
 	if (!pieces) return moves;
 	bitboard yourPieces	 = board.sideToMove == WHITE ? board.whitePieces() : board.blackPieces();
@@ -214,6 +181,7 @@ std::vector<Move> genSlidingPieces(bitboard pieces, Board board, bool straight, 
 
 		bitboard rays = (straightRays | diagonalRays) ^ piece;
 
+		attacks[board.sideToMove] |= rays;
 		if (rays)
 			do moves.push_back(Move(board, bitscan(piece), bitscan(LS1B(rays))));
 			while (rays ^= LS1B(rays));
@@ -224,17 +192,17 @@ std::vector<Move> genSlidingPieces(bitboard pieces, Board board, bool straight, 
 
 std::vector<Move> MoveGen::genBishopMoves() {
 	bitboard bishops = *(board.sideToMove == WHITE ? board.W_BISHOP : board.B_BISHOP);
-	return genSlidingPieces(bishops, board, false, true);
+	return genSlidingPieces(bishops, false, true);
 }
 
 std::vector<Move> MoveGen::genRookMoves() {
 	bitboard rooks = *(board.sideToMove == WHITE ? board.W_ROOK : board.B_ROOK);
-	return genSlidingPieces(rooks, board, true, false);
+	return genSlidingPieces(rooks, true, false);
 }
 
 std::vector<Move> MoveGen::genQueenMoves() {
 	bitboard queens = *(board.sideToMove == WHITE ? board.W_QUEEN : board.B_QUEEN);
-	return genSlidingPieces(queens, board, true, true);
+	return genSlidingPieces(queens, true, true);
 }
 
 std::vector<Move> MoveGen::genPseudoLegalMovesWithoutCastling() {
