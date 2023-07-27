@@ -2,9 +2,10 @@
 #define UTIL
 
 #include <bitset>
-#include "consts.hpp"
 #include <chrono>
 #include <iostream>
+
+#include "consts.hpp"
 
 inline bool inRange(int val, int start, int end) {
 	return val >= start && val <= end;

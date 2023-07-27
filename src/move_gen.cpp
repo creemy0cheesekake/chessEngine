@@ -1,11 +1,7 @@
-#include "consts.hpp"
-#include "lookup_tables.hpp"
 #include "move_gen.hpp"
-#include <algorithm>
-#include <bitset>
-#include <iostream>
-#include <string>
-#include <unordered_map>
+#include "board.hpp"
+#include "lookup_tables.hpp"
+#include "util.cpp"
 
 MoveGen::MoveGen(Board b) {
 	board	= b;

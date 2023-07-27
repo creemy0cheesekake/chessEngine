@@ -2,9 +2,9 @@
 #define BOARD_H
 
 #include <string>
-#include <unordered_map>
 
 #include "consts.hpp"
+
 class Board {
 public:
 	bitboard pieces[12] = {

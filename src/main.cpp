@@ -1,7 +1,10 @@
+#include <iostream>
+
 #include "board.cpp"
-#include "lookup_tables.cpp"
 #include "move.cpp"
 #include "move_gen.cpp"
+#include "lookup_tables.cpp"
+#include "util.cpp"
 
 int moveGenTest(Board b, int depth) {
 	if (depth <= 0) return 1;

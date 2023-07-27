@@ -1,5 +1,4 @@
 #include "lookup_tables.hpp"
-#include <iostream>
 
 bitboard LookupTables::knightAttacks[] = {0};
 bitboard LookupTables::kingAttacks[]   = {0};

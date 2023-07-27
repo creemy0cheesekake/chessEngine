@@ -1,7 +1,7 @@
 #include "board.hpp"
-#include "consts.hpp"
-#include "move.hpp"
 #include "move_gen.hpp"
+#include "util.cpp"
+#include <unordered_map>
 
 Board::Board() {}
 

@@ -1,12 +1,10 @@
 #ifndef MOVE_GEN_H
 #define MOVE_GEN_H
 
-#include <string>
 #include <vector>
-#include "board.hpp"
+
 #include "consts.hpp"
 #include "move.hpp"
-#include "util.cpp"
 
 typedef std::vector<Move> Moves;
 

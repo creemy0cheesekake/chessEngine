@@ -1,10 +1,8 @@
 #ifndef MOVE_H
 #define MOVE_H
 
-#include <string>
-#include "board.hpp"
 #include "consts.hpp"
-#include "util.cpp"
+#include "board.hpp"
 
 class Move {
 private:

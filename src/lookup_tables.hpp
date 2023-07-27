@@ -1,7 +1,6 @@
 #ifndef LOOKUP_TABLES_H
 #define LOOKUP_TABLES_H
 
-#include <iostream>
 #include "consts.hpp"
 
 class LookupTables {

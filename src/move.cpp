@@ -1,6 +1,7 @@
-#include "consts.hpp"
-#include "util.cpp"
+#include <unordered_map>
+
 #include "move.hpp"
+#include "util.cpp"
 
 Move::Move(Board b, unsigned int f, unsigned int t, unsigned int pP) {
 	from	   = f;
