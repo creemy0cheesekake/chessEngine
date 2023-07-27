@@ -2,24 +2,34 @@
 #include "consts.hpp"
 #include "move.hpp"
 #include "move_gen.hpp"
-#include <iostream>
 
 Board::Board() {}
 
 Board::Board(const Board &b) {
-	std::copy(std::begin(b.pieces), std::end(b.pieces), std::begin(pieces));
-	W_KING	 = &pieces[0];
-	W_QUEEN	 = &pieces[1];
-	W_ROOK	 = &pieces[2];
-	W_BISHOP = &pieces[3];
-	W_KNIGHT = &pieces[4];
-	W_PAWN	 = &pieces[5];
-	B_KING	 = &pieces[6];
-	B_QUEEN	 = &pieces[7];
-	B_ROOK	 = &pieces[8];
-	B_BISHOP = &pieces[9];
-	B_KNIGHT = &pieces[10];
-	B_PAWN	 = &pieces[11];
+	pieces[0]  = b.pieces[0];
+	pieces[1]  = b.pieces[1];
+	pieces[2]  = b.pieces[2];
+	pieces[3]  = b.pieces[3];
+	pieces[4]  = b.pieces[4];
+	pieces[5]  = b.pieces[5];
+	pieces[6]  = b.pieces[6];
+	pieces[7]  = b.pieces[7];
+	pieces[8]  = b.pieces[8];
+	pieces[9]  = b.pieces[9];
+	pieces[10] = b.pieces[10];
+	pieces[11] = b.pieces[11];
+	W_KING	   = &pieces[0];
+	W_QUEEN	   = &pieces[1];
+	W_ROOK	   = &pieces[2];
+	W_BISHOP   = &pieces[3];
+	W_KNIGHT   = &pieces[4];
+	W_PAWN	   = &pieces[5];
+	B_KING	   = &pieces[6];
+	B_QUEEN	   = &pieces[7];
+	B_ROOK	   = &pieces[8];
+	B_BISHOP   = &pieces[9];
+	B_KNIGHT   = &pieces[10];
+	B_PAWN	   = &pieces[11];
 
 	sideToMove		= b.sideToMove;
 	castlingRights	= b.castlingRights;
@@ -28,7 +38,18 @@ Board::Board(const Board &b) {
 	fmClock			= b.fmClock;
 }
 Board &Board::operator=(const Board &b) {
-	std::copy(std::begin(b.pieces), std::end(b.pieces), std::begin(pieces));
+	pieces[0]  = b.pieces[0];
+	pieces[1]  = b.pieces[1];
+	pieces[2]  = b.pieces[2];
+	pieces[3]  = b.pieces[3];
+	pieces[4]  = b.pieces[4];
+	pieces[5]  = b.pieces[5];
+	pieces[6]  = b.pieces[6];
+	pieces[7]  = b.pieces[7];
+	pieces[8]  = b.pieces[8];
+	pieces[9]  = b.pieces[9];
+	pieces[10] = b.pieces[10];
+	pieces[11] = b.pieces[11];
 
 	sideToMove		= b.sideToMove;
 	castlingRights	= b.castlingRights;
@@ -39,30 +60,29 @@ Board &Board::operator=(const Board &b) {
 }
 
 std::ostream &operator<<(std::ostream &os, const Board &b) {
-	std::unordered_map<int, char> indexToChar = {
-		{0, 'K'},
-		{1, 'Q'},
-		{2, 'R'},
-		{3, 'B'},
-		{4, 'N'},
-		{5, 'P'},
-		{6, 'k'},
-		{7, 'q'},
-		{8, 'r'},
-		{9, 'b'},
-		{10, 'n'},
-		{11, 'p'},
+	std::unordered_map<int, std::string> indexToPiece = {
+		{0, "♚ "},
+		{1, "♛ "},
+		{2, "♜ "},
+		{3, "♝ "},
+		{4, "♞ "},
+		{5, "♟︎ "},
+		{6, "♔ "},
+		{7, "♕ "},
+		{8, "♖ "},
+		{9, "♗ "},
+		{10, "♘ "},
+		{11, "♙ "},
 	};
 
 	std::string board = "";
 	for (int rank = 7; rank >= 0; rank--) {
 		for (int squareIndex = rank * 8; squareIndex < (rank + 1) * 8; squareIndex++) {
-			char pieceChar = '.';
+			std::string pieceString = ". ";
 			for (int pieceIndex = 0; pieceIndex < 12; pieceIndex++)
-				// if pieces[pieceIndex] has a piece at squareIndex
 				if ((b.pieces[pieceIndex] >> squareIndex) & 1)
-					pieceChar = indexToChar[pieceIndex];
-			board = (board + pieceChar) + ' ';
+					pieceString = indexToPiece[pieceIndex];
+			board += pieceString;
 		}
 		board = board + '\n';
 	}
@@ -92,7 +112,7 @@ void Board::setToFen(std::string fen) {
 		if (*ptr == ' ') break;
 
 		if (*ptr == '/') writeIndex -= 16;
-		else if (*ptr >= '1' and *ptr <= '9') writeIndex += *ptr - 48;
+		else if (inRange(*ptr, '1', '9')) writeIndex += *ptr - 48;
 		else pieces[charToIndex[*ptr]] |= (1UL << writeIndex++);
 	} while (*ptr++);
 	sideToMove = *(++ptr) == 'w' ? WHITE : BLACK;
@@ -101,13 +121,13 @@ void Board::setToFen(std::string fen) {
 	while (*ptr != ' ') {
 		switch (*ptr) {
 			case 'K':
-				castlingRights |= 1 << 3;
+				castlingRights |= 8;
 				break;
 			case 'Q':
-				castlingRights |= 1 << 2;
+				castlingRights |= 4;
 				break;
 			case 'k':
-				castlingRights |= 1 << 1;
+				castlingRights |= 2;
 				break;
 			case 'q':
 				castlingRights |= 1;
@@ -127,11 +147,10 @@ void Board::setToFen(std::string fen) {
 }
 
 bool Board::inIllegalCheck() {
-	for (Move m : MoveGen(*this).genPseudoLegalMoves()) {
-		Board b = m.execute();
-		if (!*b.W_KING || !*b.B_KING) return true;
-	}
-	return false;
+	Board b		  = *this;
+	b.sideToMove  = (Color)!b.sideToMove;
+	bitboard king = *(sideToMove == WHITE ? b.B_KING : b.W_KING);
+	return king & MoveGen(b).getAttacks();
 }
 
 bitboard Board::whitePieces() {

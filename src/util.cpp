@@ -3,8 +3,10 @@
 
 #include <bitset>
 #include "consts.hpp"
+#include <chrono>
+#include <iostream>
 
-bool inRange(int val, int start, int end) {
+inline bool inRange(int val, int start, int end) {
 	return val >= start && val <= end;
 }
 
@@ -27,7 +29,7 @@ std::string bboard(bitboard b) {
 	return board;
 }
 
-bitboard MS1B(bitboard x) {
+inline bitboard MS1B(bitboard x) {
 	x |= x >> 32;
 	x |= x >> 16;
 	x |= x >> 8;
@@ -37,8 +39,21 @@ bitboard MS1B(bitboard x) {
 	return (x >> 1) + 1;
 }
 
-bitboard LS1B(bitboard x) {
+inline bitboard LS1B(bitboard x) {
 	return x & -x;
+}
+
+namespace Timer {
+std::chrono::time_point<std::chrono::high_resolution_clock> startTime, endTime;
+std::chrono::duration<float> duration;
+void start() {
+	startTime = std::chrono::high_resolution_clock::now();
+}
+void end() {
+	endTime	 = std::chrono::high_resolution_clock::now();
+	duration = endTime - startTime;
+	std::cout << duration.count() * 1000.0f << " ms" << std::endl;
+}
 }
 
 #endif

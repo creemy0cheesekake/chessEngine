@@ -8,6 +8,8 @@
 #include "move.hpp"
 #include "util.cpp"
 
+typedef std::vector<Move> Moves;
+
 class MoveGen {
 private:
 	/**
@@ -18,8 +20,12 @@ private:
 	/**
 	* @brief bitboard showing every square attacked by oppponent
 	*/
-	// bitboard attacks = 0;
-	bitboard attacks[2] = {0, 0};
+	bitboard attacks = 0;
+
+	/**
+	* @brief Moves list of all pseudo legal moves generated so far
+	*/
+	Moves _moves;
 
 	/**
 	* @brief returns true if none of the squares between the kings position and the destination of a castle are under attack
@@ -32,9 +38,41 @@ private:
 	bool inCheck();
 
 	/**
-	* @brief fills up the attacks bitboard with every square that is being attacked by an enemy piece
+	* @brief returns a bitboard of all squares attacked by pawns
 	*/
-	void generateAttacks();
+	bitboard genPawnAttacks();
+
+	/**
+	* @brief returns a bitboard of all squares attacked by knights
+	*/
+	bitboard genKnightAttacks();
+
+	/**
+	* @brief returns a bitboard of all squares attacked by the king
+	*/
+	bitboard genKingAttacks();
+
+	/**
+	* @brief general function for sliding piece attacks
+	* @param pieces -- bitboard of pieces which reperesent the pieces that the moves will be generated for
+	* @param straight -- if true, it will assume this piece is a sliding piece that moves in straight lines
+	* @param diagonal -- if true, it will assume this piece is a sliding piece that moves along diagonals
+	*/
+	bitboard genSlidingPiecesAttacks(bitboard pieces, bool straight, bool diagonal);
+	/**
+	* @brief returns a bitboard of all squares attacked by bishops
+	*/
+	bitboard genBishopAttacks();
+
+	/**
+	* @brief returns a bitboard of all squares attacked by rooks
+	*/
+	bitboard genRookAttacks();
+
+	/**
+	* @brief bitboard of all squares attacked by queens
+	*/
+	bitboard genQueenAttacks();
 
 public:
 	/**
@@ -46,37 +84,32 @@ public:
 	/**
 	* @brief returns vector of all legal moves
 	*/
-	std::vector<Move> genMoves();
+	Moves genMoves();
 
 	/**
 	* @brief returns vector of all pseudo legal moves - including moves which cause the king to be put into check
 	*/
-	std::vector<Move> genPseudoLegalMoves();
-
-	/**
-	* @brief returns vector of all pseudo legal moves - including moves which cause the king to be put into check, but not including castling moves
-	*/
-	std::vector<Move> genPseudoLegalMovesWithoutCastling();
+	void genPseudoLegalMoves();
 
 	/**
 	* @brief generates legal pawn moves
 	*/
-	std::vector<Move> genPawnMoves();
+	void genPawnMoves();
 
 	/**
 	* @brief generates legal knight moves
 	*/
-	std::vector<Move> genKnightMoves();
+	void genKnightMoves();
 
 	/**
 	* @brief generates legal king moves
 	*/
-	std::vector<Move> genKingMoves();
+	void genKingMoves();
 
 	/**
 	* @brief generates legal castling moves
 	*/
-	std::vector<Move> genCastlingMoves();
+	void genCastlingMoves();
 
 	/**
 	* @brief general function to generate all sliding moves
@@ -84,20 +117,30 @@ public:
 	* @param straight -- if true, it will assume this piece is a sliding piece that moves in straight lines
 	* @param diagonal -- if true, it will assume this piece is a sliding piece that moves along diagonals
 	*/
-	std::vector<Move> genSlidingPieces(bitboard pieces, bool straight, bool diagonal);
+	void genSlidingPieces(bitboard pieces, bool straight, bool diagonal);
 	/**
 	* @brief generates legal bishop moves
 	*/
-	std::vector<Move> genBishopMoves();
+	void genBishopMoves();
 
 	/**
 	* @brief generates legal rook moves
 	*/
-	std::vector<Move> genRookMoves();
+	void genRookMoves();
 
 	/**
 	* @brief generates legal queen moves
 	*/
-	std::vector<Move> genQueenMoves();
+	void genQueenMoves();
+
+	/**
+	* @brief returns a bitboard with every square that is being attacked by an enemy piece
+	*/
+	bitboard genAttacks();
+
+	/**
+	* @brief returns attacks bitboard
+	*/
+	bitboard getAttacks();
 };
 #endif

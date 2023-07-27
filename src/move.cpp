@@ -1,19 +1,6 @@
 #include "consts.hpp"
 #include "util.cpp"
 #include "move.hpp"
-#include <algorithm>
-#include <bitset>
-#include <iostream>
-#include <string>
-#include <unordered_map>
-
-Move::Move(Board b, unsigned int f, unsigned int t) {
-	from  = f;
-	to	  = t;
-	board = b;
-
-	flags = genFlags(board);
-}
 
 Move::Move(Board b, unsigned int f, unsigned int t, unsigned int pP) {
 	from	   = f;
@@ -27,35 +14,35 @@ Move::Move(Board b, unsigned int f, unsigned int t, unsigned int pP) {
 unsigned int Move::genFlags(Board board) {
 	unsigned int flags = 0;
 	if (board.sideToMove == WHITE) {
-		if ((board.blackPieces() >> to) & 1)
-			flags += CAPTURE;
-		if ((*board.W_KING >> 4) & 1 && from == 4 && to == 6)
-			flags += KS_CASTLE;
-		if ((*board.W_KING >> 4) & 1 && from == 4 && to == 2)
-			flags += QS_CASTLE;
-		if ((*board.W_PAWN >> from) & 1 && inRange(from, 8, 15) && inRange(to, 24, 31))
-			flags += DBL_PAWN;
-		if ((board.enPassantSquare >> to) & 1 && (*board.W_PAWN >> from) & 1)
-			flags += (EN_PASSANT + CAPTURE);
 		if ((*board.W_PAWN >> from) & 1 && inRange(to, 56, 63))
 			flags += PROMOTION;
 		if ((*board.W_PAWN >> from) & 1)
 			flags += PAWN_MOVE;
-	} else {
-		if ((board.whitePieces() >> to) & 1)
+		if ((board.blackPieces() >> to) & 1)
 			flags += CAPTURE;
-		if ((*board.B_KING >> 60) & 1 && from == 60 && to == 62)
+		else if ((*board.W_KING >> 4) & 1 && from == 4 && to == 6)
 			flags += KS_CASTLE;
-		if ((*board.B_KING >> 60) & 1 && from == 60 && to == 58)
+		else if ((*board.W_KING >> 4) & 1 && from == 4 && to == 2)
 			flags += QS_CASTLE;
-		if ((*board.B_PAWN >> from) & 1 && inRange(from, 48, 55) && inRange(to, 32, 39))
+		else if ((*board.W_PAWN >> from) & 1 && inRange(from, 8, 15) && inRange(to, 24, 31))
 			flags += DBL_PAWN;
-		if ((board.enPassantSquare >> to) & 1 && (*board.B_PAWN >> from) & 1)
+		else if ((board.enPassantSquare >> to) & 1 && (*board.W_PAWN >> from) & 1)
 			flags += (EN_PASSANT + CAPTURE);
+	} else {
 		if ((*board.B_PAWN >> from) & 1 && inRange(to, 0, 7))
 			flags += PROMOTION;
 		if ((*board.B_PAWN >> from) & 1)
 			flags += PAWN_MOVE;
+		if ((board.whitePieces() >> to) & 1)
+			flags += CAPTURE;
+		else if ((*board.B_KING >> 60) & 1 && from == 60 && to == 62)
+			flags += KS_CASTLE;
+		else if ((*board.B_KING >> 60) & 1 && from == 60 && to == 58)
+			flags += QS_CASTLE;
+		else if ((*board.B_PAWN >> from) & 1 && inRange(from, 48, 55) && inRange(to, 32, 39))
+			flags += DBL_PAWN;
+		else if ((board.enPassantSquare >> to) & 1 && (*board.B_PAWN >> from) & 1)
+			flags += (EN_PASSANT + CAPTURE);
 	}
 	return flags;
 }
@@ -79,19 +66,19 @@ void Move::setPromoPiece(unsigned int piece) {
 std::string Move::notation() {
 	if (flags & KS_CASTLE) return "0-0";
 	if (flags & QS_CASTLE) return "0-0-0";
-	std::unordered_map<int, char> indexToChar = {
-		{0, 'K'},
-		{1, 'Q'},
-		{2, 'R'},
-		{3, 'B'},
-		{4, 'N'},
-	};
 	std::string notation = "";
 	for (int i = 0; i < 12; i++) {
 		int charIndex = -1;
 		if ((board.pieces[i] >> from) & 1) {
 			charIndex = i % 6;
-			if (charIndex < 5) notation += indexToChar[charIndex];
+			if (charIndex < 5)
+				notation += (std::unordered_map<int, char>){
+					{0, 'K'},
+					{1, 'Q'},
+					{2, 'R'},
+					{3, 'B'},
+					{4, 'N'},
+				}[charIndex];
 			break;
 		}
 	}
@@ -102,13 +89,12 @@ std::string Move::notation() {
 	notation += to / 8 + 49;
 	if (flags & PROMOTION) {
 		notation += "=";
-		std::unordered_map<int, char> numToPromoPiece = {
+		notation += (std::unordered_map<int, char>){
 			{1, 'Q'},
 			{2, 'R'},
 			{3, 'B'},
 			{4, 'N'},
-		};
-		notation += numToPromoPiece[promoPiece];
+		}[promoPiece];
 	}
 	return notation;
 }

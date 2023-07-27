@@ -26,7 +26,7 @@ private:
 	/**
 	* @brief promotion piece: 1-Q, 2-R, 3-B, 4-N
 	*/
-	unsigned int promoPiece = 0;
+	unsigned int promoPiece;
 
 	/**
 	* @brief infers flags from move and board position
@@ -56,16 +56,9 @@ public:
 	* @param Board -- board on which to execute the move
 	* @param UInt -- starting square in little endian rank file 
 	* @param UInt -- ending square in little endian rank file 
-	*/
-	Move(Board, unsigned int, unsigned int);
-	/**
-	* @brief move constructor. infers the flags from the move
-	* @param Board -- board on which to execute the move
-	* @param UInt -- starting square in little endian rank file 
-	* @param UInt -- ending square in little endian rank file 
 	* @param UInt -- promotion piece: 1-Q, 2-R, 3-B, 4-N
 	*/
-	Move(Board, unsigned int, unsigned int, unsigned int);
+	Move(Board, unsigned int, unsigned int, unsigned int = 0);
 
 	/**
 	* @brief move flags
