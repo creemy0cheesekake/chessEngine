@@ -49,10 +49,28 @@ std::chrono::duration<float> duration;
 void start() {
 	startTime = std::chrono::high_resolution_clock::now();
 }
+void format(float d) {
+	std::string unit = "s";
+	if (d >= 60) {
+		d /= 60.0f;
+		unit = "m";
+	}
+	if (d < 1) {
+		d *= 1000.0f;
+		unit = "ms";
+	}
+	if (d < 1) {
+		d *= 1000.0f;
+		unit = "μs";
+	}
+	// std::ostream &os = std::cout;
+	std::ostream &os = std::cout;
+	os << d << " " << unit << std::endl;
+}
 void end() {
 	endTime	 = std::chrono::high_resolution_clock::now();
 	duration = endTime - startTime;
-	std::cout << duration.count() * 1000.0f << " ms" << std::endl;
+	format(duration.count());
 }
 }
 

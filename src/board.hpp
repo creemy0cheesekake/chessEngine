@@ -21,18 +21,18 @@ public:
 		0x4200000000000000,
 		0xff000000000000,
 	};
-	bitboard *W_KING   = &pieces[0];
-	bitboard *W_QUEEN  = &pieces[1];
-	bitboard *W_ROOK   = &pieces[2];
-	bitboard *W_BISHOP = &pieces[3];
-	bitboard *W_KNIGHT = &pieces[4];
-	bitboard *W_PAWN   = &pieces[5];
-	bitboard *B_KING   = &pieces[6];
-	bitboard *B_QUEEN  = &pieces[7];
-	bitboard *B_ROOK   = &pieces[8];
-	bitboard *B_BISHOP = &pieces[9];
-	bitboard *B_KNIGHT = &pieces[10];
-	bitboard *B_PAWN   = &pieces[11];
+	// bitboard *W_KING   = &pieces[0];
+	// bitboard *W_QUEEN  = &pieces[1];
+	// bitboard *W_ROOK   = &pieces[2];
+	// bitboard *W_BISHOP = &pieces[3];
+	// bitboard *W_KNIGHT = &pieces[4];
+	// bitboard *W_PAWN   = &pieces[5];
+	// bitboard *B_KING   = &pieces[6];
+	// bitboard *B_QUEEN  = &pieces[7];
+	// bitboard *B_ROOK   = &pieces[8];
+	// bitboard *B_BISHOP = &pieces[9];
+	// bitboard *B_KNIGHT = &pieces[10];
+	// bitboard *B_PAWN   = &pieces[11];
 
 	Color sideToMove = WHITE;
 
@@ -62,12 +62,6 @@ public:
 	* @brief initalizes board to default starter position
 	*/
 	Board();
-
-	/**
-	* @brief copy constructors, so the pointers are correct when passing a copy
-	*/
-	Board(const Board &a);
-	Board &operator=(const Board &a);
 
 	/**
 	* @brief overload the << operator to print a visual representation of the board position using ascii art with a1 in the bottom left and h8 in the top right

@@ -5,60 +5,6 @@
 
 Board::Board() {}
 
-Board::Board(const Board &b) {
-	pieces[0]  = b.pieces[0];
-	pieces[1]  = b.pieces[1];
-	pieces[2]  = b.pieces[2];
-	pieces[3]  = b.pieces[3];
-	pieces[4]  = b.pieces[4];
-	pieces[5]  = b.pieces[5];
-	pieces[6]  = b.pieces[6];
-	pieces[7]  = b.pieces[7];
-	pieces[8]  = b.pieces[8];
-	pieces[9]  = b.pieces[9];
-	pieces[10] = b.pieces[10];
-	pieces[11] = b.pieces[11];
-	W_KING	   = &pieces[0];
-	W_QUEEN	   = &pieces[1];
-	W_ROOK	   = &pieces[2];
-	W_BISHOP   = &pieces[3];
-	W_KNIGHT   = &pieces[4];
-	W_PAWN	   = &pieces[5];
-	B_KING	   = &pieces[6];
-	B_QUEEN	   = &pieces[7];
-	B_ROOK	   = &pieces[8];
-	B_BISHOP   = &pieces[9];
-	B_KNIGHT   = &pieces[10];
-	B_PAWN	   = &pieces[11];
-
-	sideToMove		= b.sideToMove;
-	castlingRights	= b.castlingRights;
-	enPassantSquare = b.enPassantSquare;
-	hmClock			= b.hmClock;
-	fmClock			= b.fmClock;
-}
-Board &Board::operator=(const Board &b) {
-	pieces[0]  = b.pieces[0];
-	pieces[1]  = b.pieces[1];
-	pieces[2]  = b.pieces[2];
-	pieces[3]  = b.pieces[3];
-	pieces[4]  = b.pieces[4];
-	pieces[5]  = b.pieces[5];
-	pieces[6]  = b.pieces[6];
-	pieces[7]  = b.pieces[7];
-	pieces[8]  = b.pieces[8];
-	pieces[9]  = b.pieces[9];
-	pieces[10] = b.pieces[10];
-	pieces[11] = b.pieces[11];
-
-	sideToMove		= b.sideToMove;
-	castlingRights	= b.castlingRights;
-	enPassantSquare = b.enPassantSquare;
-	hmClock			= b.hmClock;
-	fmClock			= b.fmClock;
-	return *this;
-}
-
 std::ostream &operator<<(std::ostream &os, const Board &b) {
 	std::unordered_map<int, std::string> indexToPiece = {
 		{0, "♚ "},
@@ -149,29 +95,29 @@ void Board::setToFen(std::string fen) {
 bool Board::inIllegalCheck() {
 	Board b		  = *this;
 	b.sideToMove  = (Color)!b.sideToMove;
-	bitboard king = *(sideToMove == WHITE ? b.B_KING : b.W_KING);
+	bitboard king = sideToMove == WHITE ? b.pieces[B_KING] : b.pieces[W_KING];
 	return king & MoveGen(b).getAttacks();
 }
 
 bitboard Board::whitePieces() {
-	return *W_PAWN | *W_KNIGHT | *W_BISHOP | *W_ROOK | *W_QUEEN | *W_KING;
+	return pieces[W_PAWN] | pieces[W_KNIGHT] | pieces[W_BISHOP] | pieces[W_ROOK] | pieces[W_QUEEN] | pieces[W_KING];
 }
 
 bitboard Board::blackPieces() {
-	return *B_PAWN | *B_KNIGHT | *B_BISHOP | *B_ROOK | *B_QUEEN | *B_KING;
+	return pieces[B_PAWN] | pieces[B_KNIGHT] | pieces[B_BISHOP] | pieces[B_ROOK] | pieces[B_QUEEN] | pieces[B_KING];
 }
 
 void Board::reset() {
-	*W_KING	  = 0x10;
-	*W_QUEEN  = 0x8;
-	*W_ROOK	  = 0x81;
-	*W_BISHOP = 0x24;
-	*W_KNIGHT = 0x42;
-	*W_PAWN	  = 0xff00;
-	*B_KING	  = 0x1000000000000000;
-	*B_QUEEN  = 0x800000000000000;
-	*B_ROOK	  = 0x8100000000000000;
-	*B_BISHOP = 0x2400000000000000;
-	*B_KNIGHT = 0x4200000000000000;
-	*B_PAWN	  = 0xff000000000000;
+	pieces[W_KING]	 = 0x10;
+	pieces[W_QUEEN]	 = 0x8;
+	pieces[W_ROOK]	 = 0x81;
+	pieces[W_BISHOP] = 0x24;
+	pieces[W_KNIGHT] = 0x42;
+	pieces[W_PAWN]	 = 0xff00;
+	pieces[B_KING]	 = 0x1000000000000000;
+	pieces[B_QUEEN]	 = 0x800000000000000;
+	pieces[B_ROOK]	 = 0x8100000000000000;
+	pieces[B_BISHOP] = 0x2400000000000000;
+	pieces[B_KNIGHT] = 0x4200000000000000;
+	pieces[B_PAWN]	 = 0xff000000000000;
 }

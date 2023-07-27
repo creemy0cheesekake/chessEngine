@@ -14,34 +14,34 @@ Move::Move(Board b, unsigned int f, unsigned int t, unsigned int pP) {
 unsigned int Move::genFlags(Board board) {
 	unsigned int flags = 0;
 	if (board.sideToMove == WHITE) {
-		if ((*board.W_PAWN >> from) & 1 && inRange(to, 56, 63))
+		if ((board.pieces[W_PAWN] >> from) & 1 && inRange(to, 56, 63))
 			flags += PROMOTION;
-		if ((*board.W_PAWN >> from) & 1)
+		if ((board.pieces[W_PAWN] >> from) & 1)
 			flags += PAWN_MOVE;
 		if ((board.blackPieces() >> to) & 1)
 			flags += CAPTURE;
-		else if ((*board.W_KING >> 4) & 1 && from == 4 && to == 6)
+		else if ((board.pieces[W_KING] >> 4) & 1 && from == 4 && to == 6)
 			flags += KS_CASTLE;
-		else if ((*board.W_KING >> 4) & 1 && from == 4 && to == 2)
+		else if ((board.pieces[W_KING] >> 4) & 1 && from == 4 && to == 2)
 			flags += QS_CASTLE;
-		else if ((*board.W_PAWN >> from) & 1 && inRange(from, 8, 15) && inRange(to, 24, 31))
+		else if ((board.pieces[W_PAWN] >> from) & 1 && inRange(from, 8, 15) && inRange(to, 24, 31))
 			flags += DBL_PAWN;
-		else if ((board.enPassantSquare >> to) & 1 && (*board.W_PAWN >> from) & 1)
+		else if ((board.enPassantSquare >> to) & 1 && (board.pieces[W_PAWN] >> from) & 1)
 			flags += (EN_PASSANT + CAPTURE);
 	} else {
-		if ((*board.B_PAWN >> from) & 1 && inRange(to, 0, 7))
+		if ((board.pieces[B_PAWN] >> from) & 1 && inRange(to, 0, 7))
 			flags += PROMOTION;
-		if ((*board.B_PAWN >> from) & 1)
+		if ((board.pieces[B_PAWN] >> from) & 1)
 			flags += PAWN_MOVE;
 		if ((board.whitePieces() >> to) & 1)
 			flags += CAPTURE;
-		else if ((*board.B_KING >> 60) & 1 && from == 60 && to == 62)
+		else if ((board.pieces[B_KING] >> 60) & 1 && from == 60 && to == 62)
 			flags += KS_CASTLE;
-		else if ((*board.B_KING >> 60) & 1 && from == 60 && to == 58)
+		else if ((board.pieces[B_KING] >> 60) & 1 && from == 60 && to == 58)
 			flags += QS_CASTLE;
-		else if ((*board.B_PAWN >> from) & 1 && inRange(from, 48, 55) && inRange(to, 32, 39))
+		else if ((board.pieces[B_PAWN] >> from) & 1 && inRange(from, 48, 55) && inRange(to, 32, 39))
 			flags += DBL_PAWN;
-		else if ((board.enPassantSquare >> to) & 1 && (*board.B_PAWN >> from) & 1)
+		else if ((board.enPassantSquare >> to) & 1 && (board.pieces[B_PAWN] >> from) & 1)
 			flags += (EN_PASSANT + CAPTURE);
 	}
 	return flags;
@@ -119,19 +119,19 @@ Board Move::execute() {
 	Board b = board;
 	if (flags & KS_CASTLE) {
 		if (b.sideToMove == WHITE) {
-			*b.W_KING ^= (1UL << 6) + (1UL << 4);
-			*b.W_ROOK ^= (1UL << 7) + (1UL << 5);
+			b.pieces[W_KING] ^= (1UL << 6) + (1UL << 4);
+			b.pieces[W_ROOK] ^= (1UL << 7) + (1UL << 5);
 		} else {
-			*b.B_KING ^= (1UL << 62) + (1UL << 60);
-			*b.B_ROOK ^= (1UL << 63) + (1UL << 61);
+			b.pieces[B_KING] ^= (1UL << 62) + (1UL << 60);
+			b.pieces[B_ROOK] ^= (1UL << 63) + (1UL << 61);
 		}
 	} else if (flags & QS_CASTLE) {
 		if (b.sideToMove == WHITE) {
-			*b.W_KING ^= (1UL << 4) + (1UL << 2);
-			*b.W_ROOK ^= (1UL << 3) + 1;
+			b.pieces[W_KING] ^= (1UL << 4) + (1UL << 2);
+			b.pieces[W_ROOK] ^= (1UL << 3) + 1;
 		} else {
-			*b.B_KING ^= (1UL << 60) + (1UL << 58);
-			*b.B_ROOK ^= (1UL << 59) + (1UL << 56);
+			b.pieces[B_KING] ^= (1UL << 60) + (1UL << 58);
+			b.pieces[B_ROOK] ^= (1UL << 59) + (1UL << 56);
 		}
 	} else {
 		// removes piece from the destination square if theres one there
@@ -183,19 +183,19 @@ unsigned short Move::updateCastlingRights(Board b) {
 	} else if (flags & KS_CASTLE || flags & QS_CASTLE) b.castlingRights &= ~3;
 
 	// if the kings move remove all their castling rights
-	if ((*b.W_KING >> to) & 1)
+	if ((b.pieces[W_KING] >> to) & 1)
 		b.castlingRights &= 3;
-	if ((*b.B_KING >> to) & 1)
+	if ((b.pieces[B_KING] >> to) & 1)
 		b.castlingRights &= ~3;
 
 	// if the rooks move remove castling rights for that side
-	if ((*b.W_ROOK >> to) & 1 && from == 7)
+	if ((b.pieces[W_ROOK] >> to) & 1 && from == 7)
 		b.castlingRights &= ~(1 << 3);
-	if ((*b.W_ROOK >> to) & 1 && from == 0)
+	if ((b.pieces[W_ROOK] >> to) & 1 && from == 0)
 		b.castlingRights &= ~(1 << 2);
-	if ((*b.B_ROOK >> to) & 1 && from == 63)
+	if ((b.pieces[B_ROOK] >> to) & 1 && from == 63)
 		b.castlingRights &= ~(1 << 1);
-	if ((*b.B_ROOK >> to) & 1 && from == 56)
+	if ((b.pieces[B_ROOK] >> to) & 1 && from == 56)
 		b.castlingRights &= ~1;
 
 	// if the rooks are captured remove castling rights for that side
