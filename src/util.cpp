@@ -31,13 +31,14 @@ std::string bboard(bitboard b) {
 }
 
 inline bitboard MS1B(bitboard x) {
-	x |= x >> 32;
-	x |= x >> 16;
-	x |= x >> 8;
-	x |= x >> 4;
-	x |= x >> 2;
-	x |= x >> 1;
-	return (x >> 1) + 1;
+	// x |= x >> 32;
+	// x |= x >> 16;
+	// x |= x >> 8;
+	// x |= x >> 4;
+	// x |= x >> 2;
+	// x |= x >> 1;
+	// return (x >> 1) + 1;
+	return 0x8000000000000000 >> __builtin_clzll(x);
 }
 
 inline bitboard LS1B(bitboard x) {

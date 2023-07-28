@@ -111,11 +111,12 @@ public:
 
 	/**
 	* @brief general function to generate all sliding moves
+	* @param p -- Piece type of piece
 	* @param pieces -- bitboard of pieces which reperesent the pieces that the moves will be generated for
 	* @param straight -- if true, it will assume this piece is a sliding piece that moves in straight lines
 	* @param diagonal -- if true, it will assume this piece is a sliding piece that moves along diagonals
 	*/
-	void genSlidingPieces(bitboard pieces, bool straight, bool diagonal);
+	void genSlidingPieces(Piece p, bitboard pieces, bool straight, bool diagonal);
 	/**
 	* @brief generates legal bishop moves
 	*/
