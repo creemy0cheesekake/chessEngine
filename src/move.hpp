@@ -29,7 +29,6 @@ private:
 	/**
 	* @brief type of piece that moved
 	*/
-	Piece pieceType;
 
 	/**
 	* @brief infers flags from move and board position
@@ -48,12 +47,15 @@ private:
 	unsigned short updateCastlingRights(Board);
 
 public:
+	Piece pieceType;
 	/**
 	* @brief board on which move will be executed
 	*/
 	Board board;
-	// default constructor shouldnt be called
-	Move() = delete;
+	/**
+	* @brief initalizes null move
+	*/
+	Move();
 	/**
 	* @brief move constructor. infers the flags from the move
 	* @param Board -- board on which to execute the move

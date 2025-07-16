@@ -1,8 +1,7 @@
 #include "move_gen.hpp"
-#include "move_gen_attacks.cpp"
 #include "board.hpp"
 #include "lookup_tables.hpp"
-#include "util.cpp"
+#include "util.hpp"
 
 MoveGen::MoveGen(Board b) {
 	board	= b;
@@ -10,7 +9,7 @@ MoveGen::MoveGen(Board b) {
 }
 
 void MoveGen::genPawnMoves() {
-	bitboard pawns = board.sideToMove == WHITE ? board.pieces[W_PAWN] : board.pieces[B_PAWN];
+	bitboard pawns = board.pieces[board.sideToMove][PAWN];
 	if (!pawns) return;
 	bitboard allPieces	 = board.whitePieces() | board.blackPieces();
 	bitboard theirPieces = board.sideToMove == WHITE ? board.blackPieces() : board.whitePieces();
@@ -26,49 +25,49 @@ void MoveGen::genPawnMoves() {
 			do
 				if (LS1B(mask) & (firstRank | eighthRank))
 					for (int i = 1; i <= 4; i++)
-						_moves.push_back(Move(board, bitscan(pawn), bitscan(LS1B(mask)), (const Piece[]){W_PAWN, B_PAWN}[board.sideToMove], i));
+						_moves.push_back(Move(board, bitscan(pawn), bitscan(LS1B(mask)), PAWN, i));
 				else
-					_moves.push_back(Move(board, bitscan(pawn), bitscan(LS1B(mask)), (const Piece[]){W_PAWN, B_PAWN}[board.sideToMove]));
+					_moves.push_back(Move(board, bitscan(pawn), bitscan(LS1B(mask)), PAWN));
 			while (mask &= mask - 1);
 	} while (pawns &= pawns - 1);
 }
 
 void MoveGen::genKnightMoves() {
-	bitboard knights = board.sideToMove == WHITE ? board.pieces[W_KNIGHT] : board.pieces[B_KNIGHT];
+	bitboard knights = board.pieces[board.sideToMove][KNIGHT];
 	if (!knights) return;
 	bitboard yourPieces = board.sideToMove == WHITE ? board.whitePieces() : board.blackPieces();
 	do {
 		bitboard knight = LS1B(knights);
 		bitboard mask	= LookupTables::knightAttacks[bitscan(knight)] & ~yourPieces;
 		if (mask)
-			do _moves.push_back(Move(board, bitscan(knight), bitscan(LS1B(mask)), (const Piece[]){W_KNIGHT, B_KNIGHT}[board.sideToMove]));
+			do _moves.push_back(Move(board, bitscan(knight), bitscan(LS1B(mask)), KNIGHT));
 			while (mask &= mask - 1);
 	} while (knights &= knights - 1);
 }
 
 bool MoveGen::inCheck() {
-	return attacks & (board.sideToMove == WHITE ? board.pieces[W_KING] : board.pieces[B_KING]);
+	return attacks & board.pieces[board.sideToMove][KING];
 }
 
 void MoveGen::genKingMoves() {
 	bitboard yourPieces = board.sideToMove == WHITE ? board.whitePieces() : board.blackPieces();
-	bitboard king		= board.sideToMove == WHITE ? board.pieces[W_KING] : board.pieces[B_KING];
+	bitboard king		= board.pieces[board.sideToMove][KING];
 	bitboard mask		= LookupTables::kingAttacks[bitscan(king)] & ~yourPieces;
 	if (mask)
-		do _moves.push_back(Move(board, bitscan(king), bitscan(LS1B(mask)), (const Piece[]){W_KING, B_KING}[board.sideToMove]));
+		do _moves.push_back(Move(board, bitscan(king), bitscan(LS1B(mask)), KING));
 		while (mask &= mask - 1);
 }
 
 void MoveGen::genCastlingMoves() {
 	if (inCheck()) return;
-	bitboard king				  = board.sideToMove == WHITE ? board.pieces[W_KING] : board.pieces[B_KING];
+	bitboard king				  = board.pieces[board.sideToMove][KING];
 	unsigned short kingIndex	  = bitscan(king);
 	unsigned short castlingRights = board.sideToMove == WHITE ? board.castlingRights >> 2 : board.castlingRights & 3;
 	bitboard allPieces			  = board.whitePieces() | board.blackPieces();
 	if (castlingRights & 2 && !((attacks | allPieces) & (king << 1 | king << 2)))
-		_moves.push_back(Move(board, kingIndex, kingIndex + 2, (const Piece[]){W_KING, B_KING}[board.sideToMove]));
+		_moves.push_back(Move(board, kingIndex, kingIndex + 2, KING));
 	if (castlingRights & 1 && !((attacks | allPieces) & (king >> 1 | king >> 2)) && !(allPieces & king >> 3))
-		_moves.push_back(Move(board, kingIndex, kingIndex - 2, (const Piece[]){W_KING, B_KING}[board.sideToMove]));
+		_moves.push_back(Move(board, kingIndex, kingIndex - 2, KING));
 }
 
 void MoveGen::genSlidingPieces(Piece p, bitboard pieces, bool straight, bool diagonal) {
@@ -136,18 +135,18 @@ void MoveGen::genSlidingPieces(Piece p, bitboard pieces, bool straight, bool dia
 }
 
 void MoveGen::genBishopMoves() {
-	bitboard bishops = board.sideToMove == WHITE ? board.pieces[W_BISHOP] : board.pieces[B_BISHOP];
-	genSlidingPieces((const Piece[]){W_BISHOP, B_BISHOP}[board.sideToMove], bishops, false, true);
+	bitboard bishops = board.pieces[board.sideToMove][BISHOP];
+	genSlidingPieces(BISHOP, bishops, false, true);
 }
 
 void MoveGen::genRookMoves() {
-	bitboard rooks = board.sideToMove == WHITE ? board.pieces[W_ROOK] : board.pieces[B_ROOK];
-	genSlidingPieces((const Piece[]){W_ROOK, B_ROOK}[board.sideToMove], rooks, true, false);
+	bitboard rooks = board.pieces[board.sideToMove][ROOK];
+	genSlidingPieces(ROOK, rooks, true, false);
 }
 
 void MoveGen::genQueenMoves() {
-	bitboard queens = board.sideToMove == WHITE ? board.pieces[W_QUEEN] : board.pieces[B_QUEEN];
-	genSlidingPieces((const Piece[]){W_QUEEN, B_QUEEN}[board.sideToMove], queens, true, true);
+	bitboard queens = board.pieces[board.sideToMove][QUEEN];
+	genSlidingPieces(QUEEN, queens, true, true);
 }
 
 void MoveGen::genPseudoLegalMoves() {

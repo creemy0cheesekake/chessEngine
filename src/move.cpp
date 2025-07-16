@@ -1,7 +1,15 @@
 #include <unordered_map>
 
 #include "move.hpp"
-#include "util.cpp"
+#include "util.hpp"
+
+Move::Move() {
+	from	   = 0;
+	to		   = 0;
+	promoPiece = 0;
+	board	   = Board();
+	pieceType  = NONE;
+}
 
 Move::Move(Board b, unsigned int f, unsigned int t, Piece p, unsigned int pP) {
 	from	   = f;
@@ -13,37 +21,42 @@ Move::Move(Board b, unsigned int f, unsigned int t, Piece p, unsigned int pP) {
 	flags = genFlags(board);
 }
 
+std::ostream &operator<<(std::ostream &os, Move &m) {
+	os << m.notation();
+	return os;
+}
+
 unsigned int Move::genFlags(Board board) {
 	unsigned int flags = 0;
 	if (board.sideToMove == WHITE) {
-		if (pieceType == W_PAWN && inRange(to, 56, 63))
+		if (pieceType == PAWN && inRange(to, 56, 63))
 			flags += PROMOTION;
-		if (pieceType == W_PAWN)
+		if (pieceType == PAWN)
 			flags += PAWN_MOVE;
 		if ((board.blackPieces() >> to) & 1)
 			flags += CAPTURE;
-		else if (pieceType == W_KING && from == 4 && to == 6)
+		else if (pieceType == KING && from == 4 && to == 6)
 			flags += KS_CASTLE;
-		else if (pieceType == W_KING && from == 4 && to == 2)
+		else if (pieceType == KING && from == 4 && to == 2)
 			flags += QS_CASTLE;
-		else if (pieceType == W_PAWN && inRange(from, 8, 15) && inRange(to, 24, 31))
+		else if (pieceType == PAWN && inRange(from, 8, 15) && inRange(to, 24, 31))
 			flags += DBL_PAWN;
-		else if ((board.enPassantSquare >> to) & 1 && pieceType == W_PAWN)
+		else if ((board.enPassantSquare >> to) & 1 && pieceType == PAWN)
 			flags += (EN_PASSANT + CAPTURE);
 	} else {
-		if (pieceType == B_PAWN && inRange(to, 0, 7))
+		if (pieceType == PAWN && inRange(to, 0, 7))
 			flags += PROMOTION;
-		if (pieceType == B_PAWN)
+		if (pieceType == PAWN)
 			flags += PAWN_MOVE;
 		if ((board.whitePieces() >> to) & 1)
 			flags += CAPTURE;
-		else if (pieceType == B_KING && from == 60 && to == 62)
+		else if (pieceType == KING && from == 60 && to == 62)
 			flags += KS_CASTLE;
-		else if (pieceType == B_KING && from == 60 && to == 58)
+		else if (pieceType == KING && from == 60 && to == 58)
 			flags += QS_CASTLE;
-		else if (pieceType == B_PAWN && inRange(from, 48, 55) && inRange(to, 32, 39))
+		else if (pieceType == PAWN && inRange(from, 48, 55) && inRange(to, 32, 39))
 			flags += DBL_PAWN;
-		else if ((board.enPassantSquare >> to) & 1 && pieceType == B_PAWN)
+		else if ((board.enPassantSquare >> to) & 1 && pieceType == PAWN)
 			flags += (EN_PASSANT + CAPTURE);
 	}
 	return flags;
@@ -66,6 +79,7 @@ void Move::setPromoPiece(unsigned int piece) {
 }
 
 std::string Move::notation() {
+	if (pieceType == NONE) return "null";
 	if (flags & KS_CASTLE) return "0-0";
 	if (flags & QS_CASTLE) return "0-0-0";
 	std::string notation = "";
@@ -112,39 +126,39 @@ std::string Move::UCInotation() {
 }
 
 Board Move::execute() {
-	Board b = board;
+	Board b	  = board;
+	Color stm = b.sideToMove;
 	if (flags & KS_CASTLE) {
-		if (b.sideToMove == WHITE) {
-			b.pieces[W_KING] ^= 0x50;
-			b.pieces[W_ROOK] ^= 0xa0;
+		if (stm == WHITE) {
+			b.pieces[WHITE][KING] ^= 0x50;
+			b.pieces[WHITE][ROOK] ^= 0xa0;
 		} else {
-			b.pieces[B_KING] ^= 0x5000000000000000;
-			b.pieces[B_ROOK] ^= 0xa000000000000000;
+			b.pieces[BLACK][KING] ^= 0x5000000000000000;
+			b.pieces[BLACK][ROOK] ^= 0xa000000000000000;
 		}
 	} else if (flags & QS_CASTLE) {
-		if (b.sideToMove == WHITE) {
-			b.pieces[W_KING] ^= 0x14;
-			b.pieces[W_ROOK] ^= 0x9;
+		if (stm == WHITE) {
+			b.pieces[WHITE][KING] ^= 0x14;
+			b.pieces[WHITE][ROOK] ^= 0x9;
 		} else {
-			b.pieces[B_KING] ^= 0x1400000000000000;
-			b.pieces[B_ROOK] ^= 0x900000000000000;
+			b.pieces[BLACK][KING] ^= 0x1400000000000000;
+			b.pieces[BLACK][ROOK] ^= 0x900000000000000;
 		}
 	} else {
 		if (flags & CAPTURE) {
 			// removes piece from the destination square
-			if (flags & EN_PASSANT)
-				if (b.sideToMove == WHITE) b.pieces[B_PAWN] &= ~(1UL << (to - 8));
-				else b.pieces[W_PAWN] &= ~(1UL << (to + 8));
-			else
-				for (int i = 0; i < 12; i++)
-					b.pieces[i] &= ~(1UL << to);
+			if (flags & EN_PASSANT) {
+				b.pieces[!stm][PAWN] &= ~(1UL << (to + (stm == WHITE ? -8 : 8)));
+			} else
+				for (int i = 0; i < 6; i++)
+					b.pieces[!stm][i] &= ~(1UL << to);
 		}
 		// moves the piece from its current square to the destination square
 		bitboard moveMask = (1UL << from);
 		if (!(flags & PROMOTION)) moveMask += (1UL << to);
-		b.pieces[pieceType] ^= moveMask;
+		b.pieces[stm][pieceType] ^= moveMask;
 		if (flags & PROMOTION)
-			b.pieces[promoPiece + (b.sideToMove == WHITE ? 0 : 6)] |= 1UL << to;
+			b.pieces[stm][promoPiece] |= 1UL << to;
 	}
 
 	b = updateGameData(b);
@@ -177,19 +191,19 @@ unsigned short Move::updateCastlingRights(Board b) {
 	} else if (flags & KS_CASTLE || flags & QS_CASTLE) b.castlingRights &= ~3;
 
 	// if the kings move remove all their castling rights
-	if ((b.pieces[W_KING] >> to) & 1)
+	if ((b.pieces[WHITE][KING] >> to) & 1)
 		b.castlingRights &= 3;
-	if ((b.pieces[B_KING] >> to) & 1)
+	if ((b.pieces[BLACK][KING] >> to) & 1)
 		b.castlingRights &= ~3;
 
 	// if the rooks move remove castling rights for that side
-	if ((b.pieces[W_ROOK] >> to) & 1 && from == 7)
+	if ((b.pieces[WHITE][ROOK] >> to) & 1 && from == 7)
 		b.castlingRights &= ~(1 << 3);
-	if ((b.pieces[W_ROOK] >> to) & 1 && from == 0)
+	if ((b.pieces[WHITE][ROOK] >> to) & 1 && from == 0)
 		b.castlingRights &= ~(1 << 2);
-	if ((b.pieces[B_ROOK] >> to) & 1 && from == 63)
+	if ((b.pieces[BLACK][ROOK] >> to) & 1 && from == 63)
 		b.castlingRights &= ~(1 << 1);
-	if ((b.pieces[B_ROOK] >> to) & 1 && from == 56)
+	if ((b.pieces[BLACK][ROOK] >> to) & 1 && from == 56)
 		b.castlingRights &= ~1;
 
 	// if the rooks are captured remove castling rights for that side

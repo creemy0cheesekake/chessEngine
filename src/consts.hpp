@@ -1,8 +1,12 @@
-#ifndef DEFS_H
-#define DEFS_H
+#ifndef CONSTS_H
+#define CONSTS_H
+
+#include <bit>
+#include <limits>
 
 typedef unsigned long long bitboard;
-#define bitscan std::__countr_zero
+#define bitscan std::countr_zero
+#define INF		std::numeric_limits<float>::infinity()
 
 #define firstRank	0xff
 #define secondRank	0xff00
@@ -27,18 +31,13 @@ enum Color {
 };
 
 enum Piece {
-	W_KING,
-	W_QUEEN,
-	W_ROOK,
-	W_BISHOP,
-	W_KNIGHT,
-	W_PAWN,
-	B_KING,
-	B_QUEEN,
-	B_ROOK,
-	B_BISHOP,
-	B_KNIGHT,
-	B_PAWN,
+	KING,
+	QUEEN,
+	ROOK,
+	BISHOP,
+	KNIGHT,
+	PAWN,
+	NONE,
 };
 
 // clang-format off

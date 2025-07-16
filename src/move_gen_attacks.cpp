@@ -1,15 +1,15 @@
 #include "move_gen.hpp"
 #include "lookup_tables.hpp"
-#include "util.cpp"
+#include "util.hpp"
 
 bitboard MoveGen::genPawnAttacks() {
 	bool whiteToMove = board.sideToMove == WHITE;
-	bitboard pawns	 = whiteToMove ? board.pieces[B_PAWN] : board.pieces[W_PAWN];
+	bitboard pawns	 = board.pieces[whiteToMove][PAWN];
 	return (!whiteToMove ? ((pawns & ~aFile) << 7) | ((pawns & ~hFile) << 9) : ((pawns & ~hFile) >> 7) | ((pawns & ~aFile) >> 9));
 }
 
 bitboard MoveGen::genKnightAttacks() {
-	bitboard knights = board.sideToMove == WHITE ? board.pieces[B_KNIGHT] : board.pieces[W_KNIGHT];
+	bitboard knights = board.pieces[!board.sideToMove][KNIGHT];
 	if (!knights) return 0;
 	bitboard atts = 0;
 	do {
@@ -20,7 +20,7 @@ bitboard MoveGen::genKnightAttacks() {
 }
 
 bitboard MoveGen::genKingAttacks() {
-	bitboard king = board.sideToMove == WHITE ? board.pieces[B_KING] : board.pieces[W_KING];
+	bitboard king = board.pieces[!board.sideToMove][KING];
 	return LookupTables::kingAttacks[bitscan(king)];
 }
 
@@ -86,15 +86,15 @@ bitboard MoveGen::genSlidingPiecesAttacks(bitboard pieces, bool straight, bool d
 }
 
 bitboard MoveGen::genBishopAttacks() {
-	bitboard bishops = board.sideToMove == BLACK ? board.pieces[W_BISHOP] : board.pieces[B_BISHOP];
+	bitboard bishops = board.pieces[!board.sideToMove][BISHOP];
 	return genSlidingPiecesAttacks(bishops, false, true);
 };
 bitboard MoveGen::genRookAttacks() {
-	bitboard rooks = board.sideToMove == BLACK ? board.pieces[W_ROOK] : board.pieces[B_ROOK];
+	bitboard rooks = board.pieces[!board.sideToMove][ROOK];
 	return genSlidingPiecesAttacks(rooks, true, false);
 };
 bitboard MoveGen::genQueenAttacks() {
-	bitboard queens = board.sideToMove == BLACK ? board.pieces[W_QUEEN] : board.pieces[B_QUEEN];
+	bitboard queens = board.pieces[!board.sideToMove][QUEEN];
 	return genSlidingPiecesAttacks(queens, true, true);
 }
 

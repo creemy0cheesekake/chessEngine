@@ -31,11 +31,6 @@ private:
 	bool isntCastlingThroughCheck(bool longCastle);
 
 	/**
-	* @brief returns true if the king is in check
-	*/
-	bool inCheck();
-
-	/**
 	* @brief returns a bitboard of all squares attacked by pawns
 	*/
 	bitboard genPawnAttacks();
@@ -73,6 +68,10 @@ private:
 	bitboard genQueenAttacks();
 
 public:
+	/**
+	* @brief returns true if the king is in check
+	*/
+	bool inCheck();
 	/**
 	* @brief movegen constructor
 	* @param Board -- board position for which moves will be generated

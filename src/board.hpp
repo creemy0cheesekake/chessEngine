@@ -7,32 +7,24 @@
 
 class Board {
 public:
-	bitboard pieces[12] = {
-		0x10,
-		0x8,
-		0x81,
-		0x24,
-		0x42,
-		0xff00,
-		0x1000000000000000,
-		0x800000000000000,
-		0x8100000000000000,
-		0x2400000000000000,
-		0x4200000000000000,
-		0xff000000000000,
+	bitboard pieces[2][6] = {
+		{
+			0x10,
+			0x8,
+			0x81,
+			0x24,
+			0x42,
+			0xff00,
+		},
+		{
+			0x1000000000000000,
+			0x800000000000000,
+			0x8100000000000000,
+			0x2400000000000000,
+			0x4200000000000000,
+			0xff000000000000,
+		}
 	};
-	// bitboard *W_KING   = &pieces[0];
-	// bitboard *W_QUEEN  = &pieces[1];
-	// bitboard *W_ROOK   = &pieces[2];
-	// bitboard *W_BISHOP = &pieces[3];
-	// bitboard *W_KNIGHT = &pieces[4];
-	// bitboard *W_PAWN   = &pieces[5];
-	// bitboard *B_KING   = &pieces[6];
-	// bitboard *B_QUEEN  = &pieces[7];
-	// bitboard *B_ROOK   = &pieces[8];
-	// bitboard *B_BISHOP = &pieces[9];
-	// bitboard *B_KNIGHT = &pieces[10];
-	// bitboard *B_PAWN   = &pieces[11];
 
 	Color sideToMove = WHITE;
 
@@ -62,6 +54,11 @@ public:
 	* @brief initalizes board to default starter position
 	*/
 	Board();
+
+	/**
+	* @brief print a visual representation of the board position using ascii art with a1 in the bottom left and h8 in the top right
+	*/
+	std::string printBoard() const;
 
 	/**
 	* @brief overload the << operator to print a visual representation of the board position using ascii art with a1 in the bottom left and h8 in the top right

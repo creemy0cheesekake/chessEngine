@@ -1,11 +1,11 @@
 #include "board.hpp"
 #include "move_gen.hpp"
-#include "util.cpp"
+#include "util.hpp"
 #include <unordered_map>
 
 Board::Board() {}
 
-std::ostream &operator<<(std::ostream &os, const Board &b) {
+std::string Board::printBoard() const {
 	std::unordered_map<int, std::string> indexToPiece = {
 		{0, "♚ "},
 		{1, "♛ "},
@@ -25,14 +25,19 @@ std::ostream &operator<<(std::ostream &os, const Board &b) {
 	for (int rank = 7; rank >= 0; rank--) {
 		for (int squareIndex = rank * 8; squareIndex < (rank + 1) * 8; squareIndex++) {
 			std::string pieceString = ". ";
-			for (int pieceIndex = 0; pieceIndex < 12; pieceIndex++)
-				if ((b.pieces[pieceIndex] >> squareIndex) & 1)
-					pieceString = indexToPiece[pieceIndex];
+			for (int colorIndex = 0; colorIndex < 2; colorIndex++)
+				for (int pieceIndex = 0; pieceIndex < 6; pieceIndex++)
+					if ((pieces[colorIndex][pieceIndex] >> squareIndex) & 1)
+						pieceString = indexToPiece[6 * colorIndex + pieceIndex];
 			board += pieceString;
 		}
 		board = board + '\n';
 	}
-	os << board;
+	return board;
+}
+
+std::ostream &operator<<(std::ostream &os, const Board &b) {
+	os << b.printBoard();
 	return os;
 }
 
@@ -44,14 +49,9 @@ void Board::setToFen(std::string fen) {
 		{'B', 3},
 		{'N', 4},
 		{'P', 5},
-		{'k', 6},
-		{'q', 7},
-		{'r', 8},
-		{'b', 9},
-		{'n', 10},
-		{'p', 11},
 	};
-	for (int i = 0; i < 12; i++) pieces[i] = 0;
+	for (int i = 0; i < 6; i++) pieces[WHITE][i] = 0;
+	for (int i = 0; i < 6; i++) pieces[BLACK][i] = 0;
 	int writeIndex = 56;
 	char *ptr	   = &fen[0];
 	do {
@@ -59,7 +59,7 @@ void Board::setToFen(std::string fen) {
 
 		if (*ptr == '/') writeIndex -= 16;
 		else if (inRange(*ptr, '1', '9')) writeIndex += *ptr - 48;
-		else pieces[charToIndex[*ptr]] |= (1UL << writeIndex++);
+		else pieces[!!islower(*ptr)][charToIndex[toupper(*ptr)]] |= (1UL << writeIndex++);
 	} while (*ptr++);
 	sideToMove = *(++ptr) == 'w' ? WHITE : BLACK;
 	ptr += 2;
@@ -95,29 +95,29 @@ void Board::setToFen(std::string fen) {
 bool Board::inIllegalCheck() {
 	Board b		  = *this;
 	b.sideToMove  = (Color)!b.sideToMove;
-	bitboard king = sideToMove == WHITE ? b.pieces[B_KING] : b.pieces[W_KING];
+	bitboard king = b.pieces[b.sideToMove][KING];
 	return king & MoveGen(b).getAttacks();
 }
 
 bitboard Board::whitePieces() {
-	return pieces[W_PAWN] | pieces[W_KNIGHT] | pieces[W_BISHOP] | pieces[W_ROOK] | pieces[W_QUEEN] | pieces[W_KING];
+	return pieces[WHITE][PAWN] | pieces[WHITE][KNIGHT] | pieces[WHITE][BISHOP] | pieces[WHITE][ROOK] | pieces[WHITE][QUEEN] | pieces[WHITE][KING];
 }
 
 bitboard Board::blackPieces() {
-	return pieces[B_PAWN] | pieces[B_KNIGHT] | pieces[B_BISHOP] | pieces[B_ROOK] | pieces[B_QUEEN] | pieces[B_KING];
+	return pieces[BLACK][PAWN] | pieces[BLACK][KNIGHT] | pieces[BLACK][BISHOP] | pieces[BLACK][ROOK] | pieces[BLACK][QUEEN] | pieces[BLACK][KING];
 }
 
 void Board::reset() {
-	pieces[W_KING]	 = 0x10;
-	pieces[W_QUEEN]	 = 0x8;
-	pieces[W_ROOK]	 = 0x81;
-	pieces[W_BISHOP] = 0x24;
-	pieces[W_KNIGHT] = 0x42;
-	pieces[W_PAWN]	 = 0xff00;
-	pieces[B_KING]	 = 0x1000000000000000;
-	pieces[B_QUEEN]	 = 0x800000000000000;
-	pieces[B_ROOK]	 = 0x8100000000000000;
-	pieces[B_BISHOP] = 0x2400000000000000;
-	pieces[B_KNIGHT] = 0x4200000000000000;
-	pieces[B_PAWN]	 = 0xff000000000000;
+	pieces[WHITE][KING]	  = 0x10;
+	pieces[WHITE][QUEEN]  = 0x8;
+	pieces[WHITE][ROOK]	  = 0x81;
+	pieces[WHITE][BISHOP] = 0x24;
+	pieces[WHITE][KNIGHT] = 0x42;
+	pieces[WHITE][PAWN]	  = 0xff00;
+	pieces[BLACK][KING]	  = 0x1000000000000000;
+	pieces[BLACK][QUEEN]  = 0x800000000000000;
+	pieces[BLACK][ROOK]	  = 0x8100000000000000;
+	pieces[BLACK][BISHOP] = 0x2400000000000000;
+	pieces[BLACK][KNIGHT] = 0x4200000000000000;
+	pieces[BLACK][PAWN]	  = 0xff000000000000;
 }
