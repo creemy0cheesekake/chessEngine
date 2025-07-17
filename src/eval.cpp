@@ -6,9 +6,9 @@
 
 float Eval::countMaterial(Board b) {
 	float material = 0;
-	for (int color = WHITE; color <= BLACK; color++) {
-		for (int i = QUEEN; i < NONE; i++) {
-			bitboard piece = b.pieces[color][i];
+	for (Color color : {WHITE, BLACK}) {
+		for (Piece pieceType : {QUEEN, ROOK, BISHOP, KNIGHT, PAWN}) {
+			bitboard piece = b.pieces[color][pieceType];
 			int count	   = 0;
 			while (piece) {
 				piece ^= LS1B(piece);
@@ -21,7 +21,7 @@ float Eval::countMaterial(Board b) {
 							{BISHOP, 3.1f},
 							{KNIGHT, 3.0f},
 							{PAWN, 1.0f},
-						}[i] *
+						}[pieceType] *
 				(color == WHITE ? 1 : -1);
 		}
 	}
@@ -29,16 +29,26 @@ float Eval::countMaterial(Board b) {
 }
 
 float Eval::evaluate(Board b) {
+	MoveGen mg	= MoveGen(b);
+	Moves moves = mg.genLegalMoves();
+	if (!moves.size()) {
+		return mg.inCheck() ? -INF : 0;
+	}
+
 	float evaluation = countMaterial(b);
 	return round(evaluation, 5);
 }
 
 float Eval::search(Moves *topLine, Board b, int depthLeft, float alpha, float beta) {
-	if (depthLeft <= 0) return evaluate(b);
+	if (depthLeft <= 0) {
+		return evaluate(b);
+	}
 
 	MoveGen mg	= MoveGen(b);
-	Moves moves = mg.genMoves();
-	if (!moves.size() && !mg.inCheck()) return 0;  // stalemate
+	Moves moves = mg.genLegalMoves();
+	if (!moves.size()) {
+		return evaluate(b);
+	}
 
 	float bestScore = -INF;
 	Move bestMove;
@@ -58,7 +68,9 @@ float Eval::search(Moves *topLine, Board b, int depthLeft, float alpha, float be
 			topLine->push_back(bestMove);
 			topLine->insert(topLine->end(), subline.begin(), subline.end());
 		}
-		if (eval >= beta) break;
+		if (eval >= beta) {
+			break;
+		}
 	}
 	return bestScore;
 }

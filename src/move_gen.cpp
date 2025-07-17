@@ -10,39 +10,55 @@ MoveGen::MoveGen(Board b) {
 
 void MoveGen::genPawnMoves() {
 	bitboard pawns = board.pieces[board.sideToMove][PAWN];
-	if (!pawns) return;
+	if (!pawns) {
+		return;
+	}
 	bitboard allPieces	 = board.whitePieces() | board.blackPieces();
 	bitboard theirPieces = board.sideToMove == WHITE ? board.blackPieces() : board.whitePieces();
 	do {
-		bitboard pawn = LS1B(pawns);
-		bitboard Xs	  = (pawn & ~aFile ? pawn << 7 : 0) | (pawn & ~hFile ? pawn << 9 : 0);
-		if (board.sideToMove == BLACK) Xs >>= 16;
-		Xs &= theirPieces | board.enPassantSquare;
-		bitboard push	 = (board.sideToMove == WHITE ? pawn << 8 : pawn >> 8) & ~(allPieces ^ pawn);
-		bitboard dblPush = pawn & (secondRank | seventhRank) ? (board.sideToMove == WHITE ? push << 8 : push >> 8) & ~(allPieces ^ pawn) : 0;
-		bitboard mask	 = Xs | push | dblPush;
-		if (mask)
-			do
-				if (LS1B(mask) & (firstRank | eighthRank))
-					for (int i = 1; i <= 4; i++)
-						_moves.push_back(Move(board, bitscan(pawn), bitscan(LS1B(mask)), PAWN, i));
-				else
-					_moves.push_back(Move(board, bitscan(pawn), bitscan(LS1B(mask)), PAWN));
-			while (mask &= mask - 1);
-	} while (pawns &= pawns - 1);
+		bitboard pawn				= LS1B(pawns);
+		bitboard captureMoveTargets = (pawn & ~aFile ? pawn << 7 : 0) | (pawn & ~hFile ? pawn << 9 : 0);
+		if (board.sideToMove == BLACK) {
+			captureMoveTargets >>= 16;
+		}
+		captureMoveTargets &= theirPieces | board.enPassantSquare;
+		bitboard pushMoveTargets	= (board.sideToMove == WHITE ? pawn << 8 : pawn >> 8) & ~allPieces;
+		bitboard dblPushMoveTargets = 0;
+		if (pawn & (secondRank | seventhRank)) {
+			dblPushMoveTargets = (board.sideToMove == WHITE ? pushMoveTargets << 8 : pushMoveTargets >> 8) & ~(allPieces ^ pawn);
+		}
+		bitboard pawnMoveTargets = captureMoveTargets | pushMoveTargets | dblPushMoveTargets;
+		if (pawnMoveTargets != 0) {
+			do {
+				bitboard moveTarget = LS1B(pawnMoveTargets);
+				if (moveTarget & (firstRank | eighthRank)) {
+					for (Piece promoPiece : {QUEEN, ROOK, BISHOP, KNIGHT}) {
+						_pseudoLegalMoves.push_back(Move(board, (Square)bitscan(pawn), (Square)bitscan(moveTarget), PAWN, promoPiece));
+					}
+				} else {
+					_pseudoLegalMoves.push_back(Move(board, (Square)bitscan(pawn), (Square)bitscan(moveTarget), PAWN));
+				}
+			} while (removeLS1B(pawnMoveTargets));
+		}
+	} while (removeLS1B(pawns));
 }
 
 void MoveGen::genKnightMoves() {
 	bitboard knights = board.pieces[board.sideToMove][KNIGHT];
-	if (!knights) return;
+	if (!knights) {
+		return;
+	}
 	bitboard yourPieces = board.sideToMove == WHITE ? board.whitePieces() : board.blackPieces();
 	do {
-		bitboard knight = LS1B(knights);
-		bitboard mask	= LookupTables::knightAttacks[bitscan(knight)] & ~yourPieces;
-		if (mask)
-			do _moves.push_back(Move(board, bitscan(knight), bitscan(LS1B(mask)), KNIGHT));
-			while (mask &= mask - 1);
-	} while (knights &= knights - 1);
+		bitboard knight			   = LS1B(knights);
+		bitboard knightMoveTargets = LookupTables::knightAttacks[bitscan(knight)] & ~yourPieces;
+		if (knightMoveTargets) {
+			do {
+				bitboard moveTarget = LS1B(knightMoveTargets);
+				_pseudoLegalMoves.push_back(Move(board, (Square)bitscan(knight), (Square)bitscan(moveTarget), KNIGHT));
+			} while (removeLS1B(knightMoveTargets));
+		}
+	} while (removeLS1B(knights));
 }
 
 bool MoveGen::inCheck() {
@@ -50,28 +66,51 @@ bool MoveGen::inCheck() {
 }
 
 void MoveGen::genKingMoves() {
-	bitboard yourPieces = board.sideToMove == WHITE ? board.whitePieces() : board.blackPieces();
-	bitboard king		= board.pieces[board.sideToMove][KING];
-	bitboard mask		= LookupTables::kingAttacks[bitscan(king)] & ~yourPieces;
-	if (mask)
-		do _moves.push_back(Move(board, bitscan(king), bitscan(LS1B(mask)), KING));
-		while (mask &= mask - 1);
+	bitboard yourPieces		 = board.sideToMove == WHITE ? board.whitePieces() : board.blackPieces();
+	bitboard king			 = board.pieces[board.sideToMove][KING];
+	bitboard kingMoveTargets = LookupTables::kingAttacks[bitscan(king)] & ~yourPieces;
+	if (kingMoveTargets) {
+		do {
+			bitboard moveTarget = LS1B(kingMoveTargets);
+			_pseudoLegalMoves.push_back(Move(board, (Square)bitscan(king), (Square)bitscan(moveTarget), KING));
+		} while (removeLS1B(kingMoveTargets));
+	}
 }
 
 void MoveGen::genCastlingMoves() {
-	if (inCheck()) return;
+	if (inCheck()) {
+		return;
+	}
 	bitboard king				  = board.pieces[board.sideToMove][KING];
-	unsigned short kingIndex	  = bitscan(king);
-	unsigned short castlingRights = board.sideToMove == WHITE ? board.castlingRights >> 2 : board.castlingRights & 3;
+	unsigned short castlingRights = 0;
 	bitboard allPieces			  = board.whitePieces() | board.blackPieces();
-	if (castlingRights & 2 && !((attacks | allPieces) & (king << 1 | king << 2)))
-		_moves.push_back(Move(board, kingIndex, kingIndex + 2, KING));
-	if (castlingRights & 1 && !((attacks | allPieces) & (king >> 1 | king >> 2)) && !(allPieces & king >> 3))
-		_moves.push_back(Move(board, kingIndex, kingIndex - 2, KING));
+	if (board.sideToMove == WHITE) {
+		castlingRights = board.castlingRights.getWhiteRights();
+		// kingside castling
+		if (castlingRights & 0b10 && !((attacks | allPieces) & (1UL << f1 | 1UL << g1))) {
+			_pseudoLegalMoves.push_back(Move(board, e1, g1, KING));
+		}
+		// queenside castling
+		if (castlingRights & 0b01 && !((attacks | allPieces) & (1UL << d1 | 1UL << c1)) && ~allPieces & 1UL << b1) {
+			_pseudoLegalMoves.push_back(Move(board, e1, c1, KING));
+		}
+	} else {
+		castlingRights = board.castlingRights.getBlackRights();
+		// kingside castling
+		if (castlingRights & 0b10 && !((attacks | allPieces) & (1UL << f8 | 1UL << g8))) {
+			_pseudoLegalMoves.push_back(Move(board, e8, g8, KING));
+		}
+		// queenside castling
+		if (castlingRights & 0b01 && !((attacks | allPieces) & (1UL << d8 | 1UL << c8)) && ~allPieces & 1UL << b8) {
+			_pseudoLegalMoves.push_back(Move(board, e8, c8, KING));
+		}
+	}
 }
 
-void MoveGen::genSlidingPieces(Piece p, bitboard pieces, bool straight, bool diagonal) {
-	if (!pieces) return;
+void MoveGen::genSlidingPieces(Piece p, bitboard pieces, SlidingPieceDirectionFlags direction) {
+	if (!pieces) {
+		return;
+	}
 	bitboard yourPieces = board.sideToMove == WHITE ? board.whitePieces() : board.blackPieces();
 	bitboard allPieces	= board.whitePieces() | board.blackPieces();
 
@@ -79,74 +118,87 @@ void MoveGen::genSlidingPieces(Piece p, bitboard pieces, bool straight, bool dia
 		bitboard piece		  = LS1B(pieces);
 		bitboard straightRays = 0;
 		bitboard diagonalRays = 0;
-		if (straight) {
+		if (direction & STRAIGHT) {
 			bitboard Nrays = piece, Erays = piece, Wrays = piece, Srays = piece;
 			while (!(Nrays & eighthRank)) {
 				Nrays |= Nrays << 8;
-				if (allPieces & MS1B(Nrays)) break;
+				if (allPieces & MS1B(Nrays)) {
+					break;
+				}
 			}
-
 			while (!(Erays & hFile)) {
 				Erays |= Erays << 1;
-				if (allPieces & MS1B(Erays)) break;
+				if (allPieces & MS1B(Erays)) {
+					break;
+				}
 			}
-
 			while (!(Wrays & aFile)) {
 				Wrays |= Wrays >> 1;
-				if (allPieces & LS1B(Wrays)) break;
+				if (allPieces & LS1B(Wrays)) {
+					break;
+				}
 			}
-
 			while (!(Srays & firstRank)) {
 				Srays |= Srays >> 8;
-				if (allPieces & LS1B(Srays)) break;
+				if (allPieces & LS1B(Srays)) {
+					break;
+				}
 			}
 			straightRays = Nrays | Erays | Wrays | Srays;
 		}
-		if (diagonal) {
+		if (direction & DIAGONAL) {
 			bitboard NErays = piece, NWrays = piece, SWrays = piece, SErays = piece;
 			while (!(NErays & (eighthRank | hFile))) {
 				NErays |= NErays << 9;
-				if (allPieces & MS1B(NErays)) break;
+				if (allPieces & MS1B(NErays)) {
+					break;
+				}
 			}
-
 			while (!(NWrays & (eighthRank | aFile))) {
 				NWrays |= NWrays << 7;
-				if (allPieces & MS1B(NWrays)) break;
+				if (allPieces & MS1B(NWrays)) {
+					break;
+				}
 			}
-
 			while (!(SWrays & (firstRank | aFile))) {
 				SWrays |= SWrays >> 9;
-				if (allPieces & LS1B(SWrays)) break;
+				if (allPieces & LS1B(SWrays)) {
+					break;
+				}
 			}
-
 			while (!(SErays & (firstRank | hFile))) {
 				SErays |= SErays >> 7;
-				if (allPieces & LS1B(SErays)) break;
+				if (allPieces & LS1B(SErays)) {
+					break;
+				}
 			}
 			diagonalRays = NErays | NWrays | SWrays | SErays;
 		}
 
 		bitboard rays = ((straightRays | diagonalRays) ^ piece) & ~yourPieces;
 
-		if (rays)
-			do _moves.push_back(Move(board, bitscan(piece), bitscan(LS1B(rays)), p));
-			while (rays &= rays - 1);
-	} while (pieces &= pieces - 1);
+		if (rays) {
+			do {
+				bitboard moveTarget = LS1B(rays);
+				_pseudoLegalMoves.push_back(Move(board, (Square)bitscan(piece), (Square)bitscan(moveTarget), p));
+			} while (removeLS1B(rays));
+		}
+	} while (removeLS1B(pieces));
 }
 
 void MoveGen::genBishopMoves() {
 	bitboard bishops = board.pieces[board.sideToMove][BISHOP];
-	genSlidingPieces(BISHOP, bishops, false, true);
+	genSlidingPieces(BISHOP, bishops, SlidingPieceDirectionFlags::DIAGONAL);
 }
 
 void MoveGen::genRookMoves() {
 	bitboard rooks = board.pieces[board.sideToMove][ROOK];
-	genSlidingPieces(ROOK, rooks, true, false);
+	genSlidingPieces(ROOK, rooks, SlidingPieceDirectionFlags::STRAIGHT);
 }
 
 void MoveGen::genQueenMoves() {
 	bitboard queens = board.pieces[board.sideToMove][QUEEN];
-	genSlidingPieces(QUEEN, queens, true, true);
+	genSlidingPieces(QUEEN, queens, SlidingPieceDirectionFlags(DIAGONAL | STRAIGHT));
 }
 
 void MoveGen::genPseudoLegalMoves() {
@@ -159,11 +211,14 @@ void MoveGen::genPseudoLegalMoves() {
 	genCastlingMoves();
 }
 
-Moves MoveGen::genMoves() {
+Moves MoveGen::genLegalMoves() {
 	Moves moves;
-	moves.reserve(218);
+	moves.reserve(218);	 // known approximation for maximum number of legal moves possible in a position
 	genPseudoLegalMoves();
-	for (Move m : _moves)
-		if (!m.execute().inIllegalCheck()) moves.push_back(m);
+	for (Move m : _pseudoLegalMoves) {
+		if (!m.execute().inIllegalCheck()) {
+			moves.push_back(m);
+		}
+	}
 	return moves;
 }

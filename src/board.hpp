@@ -2,37 +2,85 @@
 #define BOARD_H
 
 #include <string>
+#include <array>
 
 #include "consts.hpp"
 
 class Board {
 public:
-	bitboard pieces[2][6] = {
-		{
-			0x10,
-			0x8,
-			0x81,
-			0x24,
-			0x42,
-			0xff00,
-		},
-		{
-			0x1000000000000000,
-			0x800000000000000,
-			0x8100000000000000,
-			0x2400000000000000,
-			0x4200000000000000,
-			0xff000000000000,
-		}
+	// bitboard pieces[2][6] = {
+	std::array<std::array<bitboard, 6>, 2> pieces = {
+		{{
+			 0x10,
+			 0x8,
+			 0x81,
+			 0x24,
+			 0x42,
+			 0xff00,
+		 },
+		 {
+			 0x1000000000000000,
+			 0x800000000000000,
+			 0x8100000000000000,
+			 0x2400000000000000,
+			 0x4200000000000000,
+			 0xff000000000000,
+		 }}
+	};
+
+	struct CastlingRights {
+		/**
+		* @brief each binary digit represents one of the castling options. KQkq
+		* meaning 1st digit represents whites kingside castling, 2nd for white queenside castling, 3rd for black kingside, 4th for black queenside
+		*/
+		unsigned short rights = 0b1111;
+
+		/**
+		* @brief return first two digits
+		*/
+		inline unsigned short getWhiteRights() {
+			return rights >> 2;
+		};
+
+		/**
+		* @brief return second two digits
+		*/
+		inline unsigned short getBlackRights() {
+			return rights & 0b0011;
+		};
+
+		/**
+		* @brief set first bit of rights to 1 if true else 0
+		*/
+		inline void setWhiteKS(bool whiteKSCastlingRights) {
+			rights = whiteKSCastlingRights ? rights | 0b1000 : rights & 0b0111;
+		};
+
+		/**
+		* @brief set second bit of rights to 1 if true else 0
+		*/
+		inline void setWhiteQS(bool whiteQSCastlingRights) {
+			rights = whiteQSCastlingRights ? rights | 0b0100 : rights & 0b1011;
+		};
+
+		/**
+		* @brief set third bit of rights to 1 if true else 0
+		*/
+		inline void setBlackKS(bool blackKSCastlingRights) {
+			rights = blackKSCastlingRights ? rights | 0b0010 : rights & 0b1101;
+		};
+
+		/**
+		* @brief set fourth bit of rights to 1 if true else 0
+		*/
+		inline void setBlackQS(bool blackQSCastlingRights) {
+			rights = blackQSCastlingRights ? rights | 0b0001 : rights & 0b1110;
+		};
 	};
 
 	Color sideToMove = WHITE;
 
-	/**
-	* @brief each binary digit represents one of the castling options. KQkq
-	* meaning 1st digit represents whites kingside castling, 2nd for white queenside castling, 3rd for black kingside, 4th for black queenside
-	*/
-	unsigned short castlingRights = 0b1111;
+	CastlingRights castlingRights;
 
 	/**
 	* @brief square where en passant may be taken. for example, after 1. e4 the enPassantSquare
@@ -41,7 +89,7 @@ public:
 	bitboard enPassantSquare = 0;
 
 	/**
-	* @brief half move clock. moves since last pawn move or capture
+	* @brief half move clock. number of half moves since last pawn move or capture
 	*/
 	unsigned int hmClock = 0;
 
@@ -61,7 +109,7 @@ public:
 	std::string printBoard() const;
 
 	/**
-	* @brief overload the << operator to print a visual representation of the board position using ascii art with a1 in the bottom left and h8 in the top right
+	* @brief overload the << operator to call printBoard
 	*/
 	friend std::ostream &operator<<(std::ostream &os, const Board &b);
 

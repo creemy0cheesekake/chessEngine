@@ -4,8 +4,8 @@
 #include <bit>
 #include <limits>
 
-typedef unsigned long long bitboard;
-#define bitscan std::countr_zero
+using bitboard = unsigned long long;
+#define bitscan std::__countr_zero
 #define INF		std::numeric_limits<float>::infinity()
 
 #define firstRank	0xff
@@ -37,7 +37,7 @@ enum Piece {
 	BISHOP,
 	KNIGHT,
 	PAWN,
-	NONE,
+	NONE_PIECE,
 };
 
 // clang-format off
@@ -50,6 +50,7 @@ enum Square {
 	a6, b6, c6, d6, e6, f6, g6, h6,
 	a7, b7, c7, d7, e7, f7, g7, h7,
 	a8, b8, c8, d8, e8, f8, g8, h8,
+	NONE_SQUARE
 };
 // clang-format on
 

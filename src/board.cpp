@@ -25,10 +25,13 @@ std::string Board::printBoard() const {
 	for (int rank = 7; rank >= 0; rank--) {
 		for (int squareIndex = rank * 8; squareIndex < (rank + 1) * 8; squareIndex++) {
 			std::string pieceString = ". ";
-			for (int colorIndex = 0; colorIndex < 2; colorIndex++)
-				for (int pieceIndex = 0; pieceIndex < 6; pieceIndex++)
-					if ((pieces[colorIndex][pieceIndex] >> squareIndex) & 1)
+			for (int colorIndex = 0; colorIndex < 2; colorIndex++) {
+				for (int pieceIndex = 0; pieceIndex < 6; pieceIndex++) {
+					if ((pieces[colorIndex][pieceIndex] >> squareIndex) & 1) {
 						pieceString = indexToPiece[6 * colorIndex + pieceIndex];
+					}
+				}
+			}
 			board += pieceString;
 		}
 		board = board + '\n';
@@ -42,72 +45,105 @@ std::ostream &operator<<(std::ostream &os, const Board &b) {
 }
 
 void Board::setToFen(std::string fen) {
-	std::unordered_map<char, int> charToIndex = {
-		{'K', 0},
-		{'Q', 1},
-		{'R', 2},
-		{'B', 3},
-		{'N', 4},
-		{'P', 5},
-	};
-	for (int i = 0; i < 6; i++) pieces[WHITE][i] = 0;
-	for (int i = 0; i < 6; i++) pieces[BLACK][i] = 0;
-	int writeIndex = 56;
-	char *ptr	   = &fen[0];
-	do {
-		if (*ptr == ' ') break;
+	/* 
+	 * heres a fen string for reference:
+	 * r1bk1bnr/p1p2ppp/1pnp4/1B2p3/4P2q/P1N2N1P/1PPP1PP1/R1BQK2R w KQ - 0 7
+	 */
+	// clear board
+	for (Color color : {WHITE, BLACK}) {
+		for (Piece piece : {KING, QUEEN, ROOK, BISHOP, KNIGHT, PAWN}) {
+			pieces[color][piece] = 0;
+		}
+	}
 
-		if (*ptr == '/') writeIndex -= 16;
-		else if (inRange(*ptr, '1', '9')) writeIndex += *ptr - 48;
-		else pieces[!!islower(*ptr)][charToIndex[toupper(*ptr)]] |= (1UL << writeIndex++);
-	} while (*ptr++);
-	sideToMove = *(++ptr) == 'w' ? WHITE : BLACK;
-	ptr += 2;
-	castlingRights = 0;
-	while (*ptr != ' ') {
-		switch (*ptr) {
+	int squareToWriteTo = Square::a8;
+	char *fenChar		= &fen[0];
+	do {
+		if (*fenChar == ' ') {
+			break;
+		}
+
+		if (*fenChar == '/') {
+			squareToWriteTo -= 16;
+		} else if (inRange(*fenChar, '1', '9')) {
+			squareToWriteTo += *fenChar - '0';
+		} else {
+			Color colorOfPiece = islower(*fenChar) ? BLACK : WHITE;
+			Piece typeOfPiece  = (std::unordered_map<char, Piece>){
+				 {'K', KING},
+				 {'Q', QUEEN},
+				 {'R', ROOK},
+				 {'B', BISHOP},
+				 {'N', KNIGHT},
+				 {'P', PAWN},
+			 }[toupper(*fenChar)];
+
+			pieces[colorOfPiece][typeOfPiece] |= (1UL << squareToWriteTo);
+
+			squareToWriteTo++;
+		}
+	} while (*fenChar++);
+
+	sideToMove = *(++fenChar) == 'w' ? WHITE : BLACK;
+	fenChar += 2;
+	castlingRights.rights = 0;
+	while (*fenChar != ' ') {
+		switch (*fenChar) {
 			case 'K':
-				castlingRights |= 8;
+				castlingRights.setWhiteKS(true);
 				break;
 			case 'Q':
-				castlingRights |= 4;
+				castlingRights.setWhiteQS(true);
 				break;
 			case 'k':
-				castlingRights |= 2;
+				castlingRights.setBlackKS(true);
 				break;
 			case 'q':
-				castlingRights |= 1;
+				castlingRights.setBlackQS(true);
 				break;
 		}
-		ptr++;
+		fenChar++;
 	}
-	if (*(++ptr) != '-') {
-		enPassantSquare = *ptr++ - 97;
-		enPassantSquare += 8 * (*ptr - 49);
-		enPassantSquare = 1UL << enPassantSquare;
+	fenChar++;
+	if (*fenChar != '-') {
+		unsigned int enPassantSquareIndex = *fenChar++ - 'a';
+		enPassantSquareIndex += 8 * (*fenChar - '1');
+		enPassantSquare = 1UL << enPassantSquareIndex;
 	}
-	ptr += 2;
-	hmClock = *ptr - 48;
-	ptr += 2;
-	fmClock = *ptr - 48;
+	fenChar += 2;
+	char *endOfClock;
+	hmClock = std::strtol(fenChar, &endOfClock, 10);
+	fenChar = endOfClock + 1;
+	fmClock = std::strtol(fenChar, &endOfClock, 10);
 }
 
 bool Board::inIllegalCheck() {
-	Board b		  = *this;
-	b.sideToMove  = (Color)!b.sideToMove;
-	bitboard king = b.pieces[b.sideToMove][KING];
-	return king & MoveGen(b).getAttacks();
+	// make a copy, flip sides and see if the king is attacked
+	Board copiedBoard	   = *this;
+	copiedBoard.sideToMove = (Color)!copiedBoard.sideToMove;
+	bitboard king		   = copiedBoard.pieces[copiedBoard.sideToMove][KING];
+	return king & MoveGen(copiedBoard).getAttacks();
 }
 
 bitboard Board::whitePieces() {
-	return pieces[WHITE][PAWN] | pieces[WHITE][KNIGHT] | pieces[WHITE][BISHOP] | pieces[WHITE][ROOK] | pieces[WHITE][QUEEN] | pieces[WHITE][KING];
+	bitboard whitePieces = 0;
+	for (bitboard pieceBitboard : pieces[WHITE]) {
+		whitePieces |= pieceBitboard;
+	}
+	return whitePieces;
 }
 
 bitboard Board::blackPieces() {
-	return pieces[BLACK][PAWN] | pieces[BLACK][KNIGHT] | pieces[BLACK][BISHOP] | pieces[BLACK][ROOK] | pieces[BLACK][QUEEN] | pieces[BLACK][KING];
+	bitboard blackPieces = 0;
+	for (bitboard pieceBitboard : pieces[BLACK]) {
+		blackPieces |= pieceBitboard;
+	}
+	return blackPieces;
 }
 
 void Board::reset() {
+	// all the magic numbers just correspond to the bitboards for each of those
+	// pieces as they would be at the starting position
 	pieces[WHITE][KING]	  = 0x10;
 	pieces[WHITE][QUEEN]  = 0x8;
 	pieces[WHITE][ROOK]	  = 0x81;

@@ -6,7 +6,7 @@
 #include "consts.hpp"
 #include "move.hpp"
 
-typedef std::vector<Move> Moves;
+using Moves = std::vector<Move>;
 
 class MoveGen {
 private:
@@ -23,7 +23,7 @@ private:
 	/**
 	* @brief Moves list of all pseudo legal moves generated so far
 	*/
-	Moves _moves;
+	Moves _pseudoLegalMoves;
 
 	/**
 	* @brief returns true if none of the squares between the kings position and the destination of a castle are under attack
@@ -45,13 +45,18 @@ private:
 	*/
 	bitboard genKingAttacks();
 
+	enum SlidingPieceDirectionFlags {
+		STRAIGHT = 0b01,
+		DIAGONAL = 0b10,
+	};
+
 	/**
 	* @brief general function for sliding piece attacks
 	* @param pieces -- bitboard of pieces which reperesent the pieces that the moves will be generated for
-	* @param straight -- if true, it will assume this piece is a sliding piece that moves in straight lines
-	* @param diagonal -- if true, it will assume this piece is a sliding piece that moves along diagonals
+	* @param direction -- specifies the direction(s) that the sliding pieces go in
 	*/
-	bitboard genSlidingPiecesAttacks(bitboard pieces, bool straight, bool diagonal);
+	bitboard
+	genSlidingPiecesAttacks(bitboard pieces, SlidingPieceDirectionFlags direction);
 	/**
 	* @brief returns a bitboard of all squares attacked by bishops
 	*/
@@ -81,7 +86,7 @@ public:
 	/**
 	* @brief returns vector of all legal moves
 	*/
-	Moves genMoves();
+	Moves genLegalMoves();
 
 	/**
 	* @brief returns vector of all pseudo legal moves - including moves which cause the king to be put into check
@@ -112,10 +117,9 @@ public:
 	* @brief general function to generate all sliding moves
 	* @param p -- Piece type of piece
 	* @param pieces -- bitboard of pieces which reperesent the pieces that the moves will be generated for
-	* @param straight -- if true, it will assume this piece is a sliding piece that moves in straight lines
-	* @param diagonal -- if true, it will assume this piece is a sliding piece that moves along diagonals
+	* @param direction -- specifies the direction(s) that the sliding pieces go in
 	*/
-	void genSlidingPieces(Piece p, bitboard pieces, bool straight, bool diagonal);
+	void genSlidingPieces(Piece p, bitboard pieces, SlidingPieceDirectionFlags direction);
 	/**
 	* @brief generates legal bishop moves
 	*/

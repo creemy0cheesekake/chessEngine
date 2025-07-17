@@ -22,13 +22,14 @@ private:
 	unsigned int flags;
 
 	/**
-	* @brief promotion piece: 1-Q, 2-R, 3-B, 4-N
+	* @brief type of piece to promote to
 	*/
-	unsigned int promoPiece;
+	Piece promoPiece;
 
 	/**
 	* @brief type of piece that moved
 	*/
+	Piece pieceType;
 
 	/**
 	* @brief infers flags from move and board position
@@ -37,17 +38,16 @@ private:
 	unsigned int genFlags(Board);
 
 	/**
-	* @brief updates hmclock, fmclock, ep square, etc.
+	* @brief updates hmclock, fmclock, ep square, side to move
 	*/
-	Board updateGameData(Board);
+	void updateGameData(Board &);
 
 	/**
 	* @brief revokes castling rights if king or rook moves
 	*/
-	unsigned short updateCastlingRights(Board);
+	void updateCastlingRights(Board &);
 
 public:
-	Piece pieceType;
 	/**
 	* @brief board on which move will be executed
 	*/
@@ -59,12 +59,12 @@ public:
 	/**
 	* @brief move constructor. infers the flags from the move
 	* @param Board -- board on which to execute the move
-	* @param UInt -- starting square in little endian rank file 
-	* @param UInt -- ending square in little endian rank file 
-	* @param UInt -- promotion piece: 1-Q, 2-R, 3-B, 4-N
+	* @param Square -- starting square in little endian rank file 
+	* @param Square -- ending square in little endian rank file 
+	* @param Piece -- type of piece to promote to
 	* @param Piece -- type of piece that moved
 	*/
-	Move(Board, unsigned int, unsigned int, Piece, unsigned int = 0);
+	Move(Board, Square, Square, Piece, Piece = NONE_PIECE);
 
 	/**
 	* @brief move flags
@@ -98,7 +98,7 @@ public:
 	/**
 	* @brief sets promotion piece
 	*/
-	void setPromoPiece(unsigned int);
+	void setPromoPiece(Piece);
 
 	/**
 	* @brief return move notation in long algebraic form

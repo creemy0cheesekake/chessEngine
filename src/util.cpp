@@ -7,7 +7,9 @@ std::string bboard(bitboard b) {
 	int i			  = 56;
 	while (i >= 0 && i < 64) {
 		char piece = '.';
-		if (1ULL << i & b) piece = '1';
+		if (1ULL << i & b) {
+			piece = '1';
+		}
 		board = (board + piece) + ' ';
 		if (++i % 8 == 0) {
 			i -= 16;
@@ -19,8 +21,11 @@ std::string bboard(bitboard b) {
 
 float round(float n, int numOfDigits) {
 	float value;
-	if (n > 0) value = (int)(n * std::pow(10, numOfDigits) + .5);
-	else value = (int)(n * std::pow(10, numOfDigits) - .5);
+	if (n > 0) {
+		value = (int)(n * std::pow(10, numOfDigits) + .5);
+	} else {
+		value = (int)(n * std::pow(10, numOfDigits) - .5);
+	}
 	return value / std::pow(10, numOfDigits);
 }
 
