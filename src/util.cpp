@@ -42,12 +42,10 @@ void format(float d) {
 	if (d >= 60) {
 		d /= 60.0f;
 		unit = "m";
-	}
-	if (d < 1) {
+	} else if (d < 1) {
 		d *= 1000.0f;
 		unit = "ms";
-	}
-	if (d < 1) {
+	} else if (d < 1) {
 		d *= 1000.0f;
 		unit = "μs";
 	}

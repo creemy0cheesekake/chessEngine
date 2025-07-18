@@ -125,6 +125,31 @@ bool Board::inIllegalCheck() {
 	return king & MoveGen(copiedBoard).getAttacks();
 }
 
+bool Board::gameOver() {
+	MoveGen mg = MoveGen(*this);
+	if (!mg.genLegalMoves().size()) {
+		return true;
+	}
+	if (hmClock == 100) {
+		return true;
+	}
+	bool sufficientMaterial = false;
+	for (Color color : {WHITE, BLACK}) {
+		for (Piece piece : {QUEEN, ROOK, BISHOP, KNIGHT, PAWN}) {
+			if (pieces[color][piece] != 0) {
+				sufficientMaterial = true;
+				break;
+			}
+		}
+	}
+	if (!sufficientMaterial) {
+		return true;
+	}
+
+	// TODO: implement threefold repetition
+	return false;
+}
+
 bitboard Board::whitePieces() {
 	bitboard whitePieces = 0;
 	for (bitboard pieceBitboard : pieces[WHITE]) {

@@ -32,7 +32,8 @@ float Eval::evaluate(Board b) {
 	MoveGen mg	= MoveGen(b);
 	Moves moves = mg.genLegalMoves();
 	if (!moves.size()) {
-		return mg.inCheck() ? -INF : 0;
+		// add hmClock to prioritize quicker checkmates
+		return mg.inCheck() ? -INF + (int)b.hmClock : 0;
 	}
 
 	float evaluation = countMaterial(b);
@@ -40,16 +41,12 @@ float Eval::evaluate(Board b) {
 }
 
 float Eval::search(Moves *topLine, Board b, int depthLeft, float alpha, float beta) {
-	if (depthLeft <= 0) {
+	if (depthLeft <= 0 || b.gameOver()) {
 		return evaluate(b);
 	}
 
-	MoveGen mg	= MoveGen(b);
-	Moves moves = mg.genLegalMoves();
-	if (!moves.size()) {
-		return evaluate(b);
-	}
-
+	MoveGen mg		= MoveGen(b);
+	Moves moves		= mg.genLegalMoves();
 	float bestScore = -INF;
 	Move bestMove;
 

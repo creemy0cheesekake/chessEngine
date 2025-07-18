@@ -6,7 +6,7 @@
 
 using bitboard = unsigned long long;
 #define bitscan std::__countr_zero
-#define INF		std::numeric_limits<float>::infinity()
+#define INF		999
 
 #define firstRank	0xff
 #define secondRank	0xff00

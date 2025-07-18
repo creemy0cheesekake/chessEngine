@@ -8,7 +8,6 @@
 
 class Board {
 public:
-	// bitboard pieces[2][6] = {
 	std::array<std::array<bitboard, 6>, 2> pieces = {
 		{{
 			 0x10,
@@ -138,5 +137,10 @@ public:
 	* @brief checks whether or not a king is in check when its not their turn to move
 	*/
 	bool inIllegalCheck();
+
+	/**
+	* @brief checks whether or not the game is over
+	*/
+	bool gameOver();
 };
 #endif

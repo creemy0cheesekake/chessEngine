@@ -6,7 +6,7 @@
 #include <iostream>
 
 Move::Move()
-	: from(0), to(0), promoPiece(NONE_PIECE), board(), pieceType(NONE_PIECE), flags(0) {}
+	: from(NONE_SQUARE), to(NONE_SQUARE), promoPiece(NONE_PIECE), board(), pieceType(NONE_PIECE), flags(0) {}
 
 Move::Move(Board board, Square from, Square to, Piece piece, Piece promoPiece)
 	: from(from), to(to), promoPiece(promoPiece), board(board), pieceType(piece) {
