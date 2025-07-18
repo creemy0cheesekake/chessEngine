@@ -6,6 +6,7 @@
 MoveGen::MoveGen(Board b) {
 	board	= b;
 	attacks = genAttacks();
+	_pseudoLegalMoves.reserve(218);	 // known approximation for maximum number of legal moves possible in a position
 }
 
 void MoveGen::genPawnMoves() {
@@ -33,10 +34,10 @@ void MoveGen::genPawnMoves() {
 				Bitboard moveTarget = LS1B(pawnMoveTargets);
 				if (moveTarget & (firstRank | eighthRank)) {
 					for (Piece promoPiece : {QUEEN, ROOK, BISHOP, KNIGHT}) {
-						_pseudoLegalMoves.push_back(Move(board, (Square)bitscan(pawn), (Square)bitscan(moveTarget), PAWN, promoPiece));
+						_pseudoLegalMoves.emplace_back(board, (Square)bitscan(pawn), (Square)bitscan(moveTarget), PAWN, promoPiece);
 					}
 				} else {
-					_pseudoLegalMoves.push_back(Move(board, (Square)bitscan(pawn), (Square)bitscan(moveTarget), PAWN));
+					_pseudoLegalMoves.emplace_back(board, (Square)bitscan(pawn), (Square)bitscan(moveTarget), PAWN);
 				}
 			} while (removeLS1B(pawnMoveTargets));
 		}
@@ -55,7 +56,7 @@ void MoveGen::genKnightMoves() {
 		if (knightMoveTargets) {
 			do {
 				Bitboard moveTarget = LS1B(knightMoveTargets);
-				_pseudoLegalMoves.push_back(Move(board, (Square)bitscan(knight), (Square)bitscan(moveTarget), KNIGHT));
+				_pseudoLegalMoves.emplace_back(board, (Square)bitscan(knight), (Square)bitscan(moveTarget), KNIGHT);
 			} while (removeLS1B(knightMoveTargets));
 		}
 	} while (removeLS1B(knights));
@@ -72,7 +73,7 @@ void MoveGen::genKingMoves() {
 	if (kingMoveTargets) {
 		do {
 			Bitboard moveTarget = LS1B(kingMoveTargets);
-			_pseudoLegalMoves.push_back(Move(board, (Square)bitscan(king), (Square)bitscan(moveTarget), KING));
+			_pseudoLegalMoves.emplace_back(board, (Square)bitscan(king), (Square)bitscan(moveTarget), KING);
 		} while (removeLS1B(kingMoveTargets));
 	}
 }
@@ -88,21 +89,21 @@ void MoveGen::genCastlingMoves() {
 		castlingRights = board.castlingRights.getWhiteRights();
 		// kingside castling
 		if (castlingRights & 0b10 && !((attacks | allPieces) & (1UL << f1 | 1UL << g1))) {
-			_pseudoLegalMoves.push_back(Move(board, e1, g1, KING));
+			_pseudoLegalMoves.emplace_back(board, e1, g1, KING);
 		}
 		// queenside castling
 		if (castlingRights & 0b01 && !((attacks | allPieces) & (1UL << d1 | 1UL << c1)) && ~allPieces & 1UL << b1) {
-			_pseudoLegalMoves.push_back(Move(board, e1, c1, KING));
+			_pseudoLegalMoves.emplace_back(board, e1, c1, KING);
 		}
 	} else {
 		castlingRights = board.castlingRights.getBlackRights();
 		// kingside castling
 		if (castlingRights & 0b10 && !((attacks | allPieces) & (1UL << f8 | 1UL << g8))) {
-			_pseudoLegalMoves.push_back(Move(board, e8, g8, KING));
+			_pseudoLegalMoves.emplace_back(board, e8, g8, KING);
 		}
 		// queenside castling
 		if (castlingRights & 0b01 && !((attacks | allPieces) & (1UL << d8 | 1UL << c8)) && ~allPieces & 1UL << b8) {
-			_pseudoLegalMoves.push_back(Move(board, e8, c8, KING));
+			_pseudoLegalMoves.emplace_back(board, e8, c8, KING);
 		}
 	}
 }
@@ -180,7 +181,7 @@ void MoveGen::genSlidingPieces(Piece p, Bitboard pieces, SlidingPieceDirectionFl
 		if (rays) {
 			do {
 				Bitboard moveTarget = LS1B(rays);
-				_pseudoLegalMoves.push_back(Move(board, (Square)bitscan(piece), (Square)bitscan(moveTarget), p));
+				_pseudoLegalMoves.emplace_back(board, (Square)bitscan(piece), (Square)bitscan(moveTarget), p);
 			} while (removeLS1B(rays));
 		}
 	} while (removeLS1B(pieces));

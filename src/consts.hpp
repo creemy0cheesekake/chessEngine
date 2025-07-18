@@ -3,13 +3,29 @@
 
 #include <bit>
 #include <cstdint>
+#include <unordered_map>
 
 using Bitboard	 = uint64_t;
 using Centipawns = int16_t;
 
-constexpr int bitscan(Bitboard x) {
+/**
+* @brief counts the number of trailing zeros in binary
+*/
+constexpr inline int bitscan(Bitboard x) {
 	return std::__countr_zero(x);
 }
+
+/**
+* @brief bitscan from the other side
+*/
+constexpr inline int reverseBitscan(Bitboard x) {
+	return x ? 63 - __builtin_clzll(x) : 0;
+}
+
+/**
+* @brief centipawn constants for needed values.
+* cant use float infinity because we still want to add and subtract to checkmate scores
+*/
 constexpr Centipawns INF_SCORE		 = 32000;
 constexpr Centipawns CHECKMATE_SCORE = 30000;
 constexpr Centipawns NONE_SCORE		 = -32001;
@@ -32,11 +48,17 @@ constexpr Centipawns DRAW_SCORE		 = 0;
 #define gFile		0x4040404040404040
 #define hFile		0x8080808080808080
 
+/**
+* @brief both chess piece colors
+*/
 enum Color {
 	WHITE,
 	BLACK,
 };
 
+/**
+* @brief all the chess pieces and a none piece
+*/
 enum Piece {
 	KING,
 	QUEEN,
@@ -47,6 +69,9 @@ enum Piece {
 	NONE_PIECE,
 };
 
+/**
+* @brief chess squares in algebraic notation
+*/
 // clang-format off
 enum Square {
 	a1, b1, c1, d1, e1, f1, g1, h1,
@@ -60,5 +85,78 @@ enum Square {
 	NONE_SQUARE
 };
 // clang-format on
+
+/**
+* @brief directions for piece ray lookup tables
+*/
+enum DirectionStraight {
+	NORTH,
+	SOUTH,
+	EAST,
+	WEST,
+};
+enum DirectionDiagonal {
+	NORTHEAST,
+	NORTHWEST,
+	SOUTHEAST,
+	SOUTHWEST,
+};
+
+/**
+* @brief bit flag enum for straight and diagonal directions for sliding move functions
+*/
+enum SlidingPieceDirectionFlags {
+	STRAIGHT = 0b01,
+	DIAGONAL = 0b10,
+};
+
+/**
+* @brief centipawn values for each piece type
+*/
+inline std::unordered_map<Piece, Centipawns> pieceToCentipawns = {
+	{QUEEN, 900},
+	{ROOK, 500},
+	{BISHOP, 310},
+	{KNIGHT, 300},
+	{PAWN, 100},
+};
+
+/**
+* @brief convert piece to notation for algebraic notation
+*/
+inline std::unordered_map<Piece, char> pieceToNotationChar = {
+	{KING, 'K'},
+	{QUEEN, 'Q'},
+	{ROOK, 'R'},
+	{BISHOP, 'B'},
+	{KNIGHT, 'N'},
+};
+
+/**
+* @brief convert piece to notation for uci notation notation
+*/
+inline std::unordered_map<Piece, char> promotionPieceToUCINotationChar = {
+	{QUEEN, 'q'},
+	{ROOK, 'r'},
+	{BISHOP, 'b'},
+	{KNIGHT, 'n'},
+};
+
+/**
+* @brief convert char from fen string to piece
+*/
+inline std::unordered_map<char, Piece> fenPieceChartoPieceType = {
+	{'K', KING},
+	{'Q', QUEEN},
+	{'R', ROOK},
+	{'B', BISHOP},
+	{'N', KNIGHT},
+	{'P', PAWN},
+};
+
+/**
+* @brief index to ascii piece for ascii board representation
+*/
+constexpr const char *indexToPiece[12] = {"♚ ", "♛ ", "♜ ", "♝ ", "♞ ", "♟︎ ", "♔ ", "♕ ", "♖ ", "♗ ", "♘ ", "♙ "};
 
 #endif

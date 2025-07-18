@@ -45,11 +45,6 @@ private:
 	*/
 	Bitboard genKingAttacks();
 
-	enum SlidingPieceDirectionFlags {
-		STRAIGHT = 0b01,
-		DIAGONAL = 0b10,
-	};
-
 	/**
 	* @brief general function for sliding piece attacks
 	* @param pieces -- bitboard of pieces which reperesent the pieces that the moves will be generated for

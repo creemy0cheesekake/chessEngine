@@ -6,35 +6,21 @@
 Board::Board() {}
 
 std::string Board::printBoard() const {
-	std::unordered_map<int, std::string> indexToPiece = {
-		{0, "♚ "},
-		{1, "♛ "},
-		{2, "♜ "},
-		{3, "♝ "},
-		{4, "♞ "},
-		{5, "♟︎ "},
-		{6, "♔ "},
-		{7, "♕ "},
-		{8, "♖ "},
-		{9, "♗ "},
-		{10, "♘ "},
-		{11, "♙ "},
-	};
-
 	std::string board = "";
 	for (int rank = 7; rank >= 0; rank--) {
-		for (int squareIndex = rank * 8; squareIndex < (rank + 1) * 8; squareIndex++) {
+		for (int file = 0; file < 8; file++) {
+			int squareIndex			= 8 * rank + file;
 			std::string pieceString = ". ";
-			for (int colorIndex = 0; colorIndex < 2; colorIndex++) {
-				for (int pieceIndex = 0; pieceIndex < 6; pieceIndex++) {
-					if ((pieces[colorIndex][pieceIndex] >> squareIndex) & 1) {
-						pieceString = indexToPiece[6 * colorIndex + pieceIndex];
+			for (Color color : {WHITE, BLACK}) {
+				for (Piece piece : {KING, QUEEN, ROOK, BISHOP, KNIGHT, PAWN}) {
+					if ((pieces[color][piece] >> squareIndex) & 1) {
+						pieceString = indexToPiece[6 * color + piece];
 					}
 				}
 			}
 			board += pieceString;
 		}
-		board = board + '\n';
+		board += '\n';
 	}
 	return board;
 }
@@ -69,14 +55,7 @@ void Board::setToFen(std::string fen) {
 			squareToWriteTo += *fenChar - '0';
 		} else {
 			Color colorOfPiece = islower(*fenChar) ? BLACK : WHITE;
-			Piece typeOfPiece  = (std::unordered_map<char, Piece>){
-				 {'K', KING},
-				 {'Q', QUEEN},
-				 {'R', ROOK},
-				 {'B', BISHOP},
-				 {'N', KNIGHT},
-				 {'P', PAWN},
-			 }[toupper(*fenChar)];
+			Piece typeOfPiece  = fenPieceChartoPieceType[toupper(*fenChar)];
 
 			pieces[colorOfPiece][typeOfPiece] |= (1UL << squareToWriteTo);
 
@@ -151,19 +130,11 @@ bool Board::gameOver() {
 }
 
 Bitboard Board::whitePieces() {
-	Bitboard whitePieces = 0;
-	for (Bitboard pieceBitboard : pieces[WHITE]) {
-		whitePieces |= pieceBitboard;
-	}
-	return whitePieces;
+	return pieces[WHITE][PAWN] | pieces[WHITE][KNIGHT] | pieces[WHITE][BISHOP] | pieces[WHITE][ROOK] | pieces[WHITE][QUEEN] | pieces[WHITE][KING];
 }
 
 Bitboard Board::blackPieces() {
-	Bitboard blackPieces = 0;
-	for (Bitboard pieceBitboard : pieces[BLACK]) {
-		blackPieces |= pieceBitboard;
-	}
-	return blackPieces;
+	return pieces[BLACK][PAWN] | pieces[BLACK][KNIGHT] | pieces[BLACK][BISHOP] | pieces[BLACK][ROOK] | pieces[BLACK][QUEEN] | pieces[BLACK][KING];
 }
 
 void Board::reset() {

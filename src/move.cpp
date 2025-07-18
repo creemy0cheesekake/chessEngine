@@ -3,8 +3,6 @@
 #include "move.hpp"
 #include "util.hpp"
 
-#include <iostream>
-
 Move::Move()
 	: from(NONE_SQUARE), to(NONE_SQUARE), promoPiece(NONE_PIECE), board(), pieceType(NONE_PIECE), flags(0) {}
 
@@ -88,13 +86,7 @@ std::string Move::notation() {
 	}
 	std::string notation = "";
 	if (pieceType != PAWN) {
-		notation += (std::unordered_map<Piece, char>){
-			{KING, 'K'},
-			{QUEEN, 'Q'},
-			{ROOK, 'R'},
-			{BISHOP, 'B'},
-			{KNIGHT, 'N'},
-		}[pieceType];
+		notation += pieceToNotationChar[pieceType];
 	}
 	notation += from % 8 + 'a';
 	notation += from / 8 + '1';
@@ -103,12 +95,7 @@ std::string Move::notation() {
 	notation += to / 8 + '1';
 	if (flags & PROMOTION) {
 		notation += "=";
-		notation += (std::unordered_map<Piece, char>){
-			{QUEEN, 'Q'},
-			{ROOK, 'R'},
-			{BISHOP, 'B'},
-			{KNIGHT, 'N'},
-		}[promoPiece];
+		notation += pieceToNotationChar[promoPiece];
 	}
 	return notation;
 }
@@ -120,12 +107,7 @@ std::string Move::UCInotation() {
 	notation += to % 8 + 'a';
 	notation += to / 8 + '1';
 	if (flags & PROMOTION) {
-		notation += (std::unordered_map<Piece, char>){
-			{QUEEN, 'q'},
-			{ROOK, 'r'},
-			{BISHOP, 'b'},
-			{KNIGHT, 'n'},
-		}[promoPiece];
+		notation += promotionPieceToUCINotationChar[promoPiece];
 	}
 	return notation;
 }

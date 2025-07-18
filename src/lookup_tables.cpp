@@ -1,10 +1,15 @@
 #include "lookup_tables.hpp"
 
-std::array<Bitboard, 64> LookupTables::knightAttacks = {0};
-std::array<Bitboard, 64> LookupTables::kingAttacks	 = {0};
+Bitboard LookupTables::knightAttacks[64];
+Bitboard LookupTables::kingAttacks[64];
+Bitboard LookupTables::straightRayTable[64][4];
+Bitboard LookupTables::diagonalRayTable[64][4];
+
 void LookupTables::init() {
 	genKingLookupTable();
 	genKnightLookupTable();
+	genStraightRayTable();
+	genDiagonalRayTable();
 };
 
 void LookupTables::genKnightLookupTable() {
@@ -34,5 +39,67 @@ void LookupTables::genKingLookupTable() {
 			 (king << 9 & ~aFile) |
 			 (king >> 7 & ~aFile) |
 			 (king >> 9 & ~hFile));
+	}
+}
+
+void LookupTables::genStraightRayTable() {
+	for (int square = Square::a1; square <= Square::h8; square++) {
+		Bitboard *squareRays = straightRayTable[square];
+
+		Bitboard *Nrays = &squareRays[NORTH];
+		*Nrays |= 1UL << square;
+		while (!(*Nrays & eighthRank)) {
+			*Nrays |= *Nrays << 8;
+		}
+		Bitboard *Erays = &squareRays[EAST];
+		*Erays |= 1UL << square;
+		while (!(*Erays & hFile)) {
+			*Erays |= *Erays << 1;
+		}
+		Bitboard *Wrays = &squareRays[WEST];
+		*Wrays |= 1UL << square;
+		while (!(*Wrays & aFile)) {
+			*Wrays |= *Wrays >> 1;
+		}
+		Bitboard *Srays = &squareRays[SOUTH];
+		*Srays |= 1UL << square;
+		while (!(*Srays & firstRank)) {
+			*Srays |= *Srays >> 8;
+		}
+		*Nrays ^= 1UL << square;
+		*Erays ^= 1UL << square;
+		*Wrays ^= 1UL << square;
+		*Srays ^= 1UL << square;
+	}
+}
+
+void LookupTables::genDiagonalRayTable() {
+	for (int square = Square::a1; square <= Square::h8; square++) {
+		Bitboard *squareRays = diagonalRayTable[square];
+
+		Bitboard *NErays = &squareRays[NORTHEAST];
+		*NErays |= 1UL << square;
+		while (!(*NErays & (eighthRank | hFile))) {
+			*NErays |= *NErays << 9;
+		}
+		Bitboard *NWrays = &squareRays[NORTHWEST];
+		*NWrays |= 1UL << square;
+		while (!(*NWrays & (eighthRank | aFile))) {
+			*NWrays |= *NWrays << 7;
+		}
+		Bitboard *SWrays = &squareRays[SOUTHWEST];
+		*SWrays |= 1UL << square;
+		while (!(*SWrays & (firstRank | aFile))) {
+			*SWrays |= *SWrays >> 9;
+		}
+		Bitboard *SErays = &squareRays[SOUTHEAST];
+		*SErays |= 1UL << square;
+		while (!(*SErays & (firstRank | hFile))) {
+			*SErays |= *SErays >> 7;
+		}
+		*NErays ^= 1UL << square;
+		*NWrays ^= 1UL << square;
+		*SErays ^= 1UL << square;
+		*SWrays ^= 1UL << square;
 	}
 }

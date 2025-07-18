@@ -19,8 +19,7 @@ Bitboard MoveGen::genKnightAttacks() {
 	}
 	Bitboard attacks = 0;
 	do {
-		Bitboard knight = LS1B(knights);
-		attacks |= LookupTables::knightAttacks[bitscan(knight)];
+		attacks |= LookupTables::knightAttacks[bitscan(knights)];
 	} while (removeLS1B(knights));
 	return attacks;
 }
@@ -38,67 +37,41 @@ Bitboard MoveGen::genSlidingPiecesAttacks(Bitboard pieces, SlidingPieceDirection
 	Bitboard attacks   = 0;
 
 	do {
-		Bitboard piece		  = LS1B(pieces);
 		Bitboard straightRays = 0;
 		Bitboard diagonalRays = 0;
+		Square pieceSquare	  = (Square)bitscan(pieces);
 		if (direction & SlidingPieceDirectionFlags::STRAIGHT) {
-			Bitboard Nrays = piece, Erays = piece, Wrays = piece, Srays = piece;
-			while (!(Nrays & eighthRank)) {
-				Nrays |= Nrays << 8;
-				if (allPieces & MS1B(Nrays)) {
-					break;
+			for (DirectionStraight direction : {NORTH, SOUTH, EAST, WEST}) {
+				Bitboard directionalRay = LookupTables::straightRayTable[pieceSquare][direction];
+				Bitboard blockers		= directionalRay & allPieces;
+				Bitboard blockedOffMask = 0;
+				if (blockers) {
+					if (direction == NORTH || direction == EAST) {
+						blockedOffMask = LookupTables::straightRayTable[bitscan(blockers)][direction];
+					} else {
+						blockedOffMask = LookupTables::straightRayTable[reverseBitscan(blockers)][direction];
+					}
 				}
+				straightRays |= directionalRay & ~blockedOffMask;
 			}
-			while (!(Erays & hFile)) {
-				Erays |= Erays << 1;
-				if (allPieces & MS1B(Erays)) {
-					break;
-				}
-			}
-			while (!(Wrays & aFile)) {
-				Wrays |= Wrays >> 1;
-				if (allPieces & LS1B(Wrays)) {
-					break;
-				}
-			}
-			while (!(Srays & firstRank)) {
-				Srays |= Srays >> 8;
-				if (allPieces & LS1B(Srays)) {
-					break;
-				}
-			}
-			straightRays = Nrays | Erays | Wrays | Srays;
 		}
 		if (direction & SlidingPieceDirectionFlags::DIAGONAL) {
-			Bitboard NErays = piece, NWrays = piece, SWrays = piece, SErays = piece;
-			while (!(NErays & (eighthRank | hFile))) {
-				NErays |= NErays << 9;
-				if (allPieces & MS1B(NErays)) {
-					break;
+			for (DirectionDiagonal direction : {NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST}) {
+				Bitboard directionalRay = LookupTables::diagonalRayTable[pieceSquare][direction];
+				Bitboard blockers		= directionalRay & allPieces;
+				Bitboard blockedOffMask = 0;
+				if (blockers) {
+					if (direction == NORTHEAST || direction == NORTHWEST) {
+						blockedOffMask = LookupTables::diagonalRayTable[bitscan(blockers)][direction];
+					} else {
+						blockedOffMask = LookupTables::diagonalRayTable[reverseBitscan(blockers)][direction];
+					}
 				}
+				diagonalRays |= directionalRay & ~blockedOffMask;
 			}
-			while (!(NWrays & (eighthRank | aFile))) {
-				NWrays |= NWrays << 7;
-				if (allPieces & MS1B(NWrays)) {
-					break;
-				}
-			}
-			while (!(SWrays & (firstRank | aFile))) {
-				SWrays |= SWrays >> 9;
-				if (allPieces & LS1B(SWrays)) {
-					break;
-				}
-			}
-			while (!(SErays & (firstRank | hFile))) {
-				SErays |= SErays >> 7;
-				if (allPieces & LS1B(SErays)) {
-					break;
-				}
-			}
-			diagonalRays = NErays | NWrays | SWrays | SErays;
 		}
 
-		attacks |= (straightRays | diagonalRays) ^ piece;
+		attacks |= (straightRays | diagonalRays);
 	} while (removeLS1B(pieces));
 	return attacks;
 }
@@ -106,11 +79,11 @@ Bitboard MoveGen::genSlidingPiecesAttacks(Bitboard pieces, SlidingPieceDirection
 Bitboard MoveGen::genBishopAttacks() {
 	Bitboard bishops = board.pieces[!board.sideToMove][BISHOP];
 	return genSlidingPiecesAttacks(bishops, SlidingPieceDirectionFlags::DIAGONAL);
-};
+}
 Bitboard MoveGen::genRookAttacks() {
 	Bitboard rooks = board.pieces[!board.sideToMove][ROOK];
 	return genSlidingPiecesAttacks(rooks, SlidingPieceDirectionFlags::STRAIGHT);
-};
+}
 Bitboard MoveGen::genQueenAttacks() {
 	Bitboard queens = board.pieces[!board.sideToMove][QUEEN];
 	return genSlidingPiecesAttacks(queens, SlidingPieceDirectionFlags(DIAGONAL | STRAIGHT));

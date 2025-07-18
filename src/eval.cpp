@@ -15,13 +15,7 @@ Centipawns Eval::countMaterial(Board b) {
 				count++;
 			}
 			material +=
-				count * (std::unordered_map<int, Centipawns>){
-							{QUEEN, 900},
-							{ROOK, 500},
-							{BISHOP, 310},
-							{KNIGHT, 300},
-							{PAWN, 100},
-						}[pieceType] *
+				count * pieceToCentipawns[pieceType] *
 				(color == WHITE ? 1 : -1);
 		}
 	}
