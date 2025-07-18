@@ -13,17 +13,17 @@ private:
 	/**
 	* @brief board to gen moves
 	*/
-	Board board;
+	Board m_board;
 
 	/**
 	* @brief bitboard showing every square attacked by oppponent
 	*/
-	Bitboard attacks = 0;
+	Bitboard m_attacks = 0;
 
 	/**
 	* @brief Moves list of all pseudo legal moves generated so far
 	*/
-	Moves _pseudoLegalMoves;
+	Moves m_pseudoLegalMoves;
 
 	/**
 	* @brief returns true if none of the squares between the kings position and the destination of a castle are under attack

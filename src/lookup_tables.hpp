@@ -29,22 +29,22 @@ public:
 	/**
 	* @brief index in little endian rank file. each square has a bitboard of all squares a knight could attack if it was on that square
 	*/
-	static Bitboard knightAttacks[64];
+	static Bitboard s_knightAttacks[64];
 
 	/**
 	* @brief index in little endian rank file. each square has a bitboard of all squares a king could attack if it was on that square
 	*/
-	static Bitboard kingAttacks[64];
+	static Bitboard s_kingAttacks[64];
 
 	/**
 	* @brief rays of all possible straight sliding moves in each direction from each square
 	*/
-	static Bitboard straightRayTable[64][4];
+	static Bitboard s_straightRayTable[64][4];
 
 	/**
 	* @brief rays of all possible diagonal sliding moves in each direction from each square
 	*/
-	static Bitboard diagonalRayTable[64][4];
+	static Bitboard s_diagonalRayTable[64][4];
 
 	/**
 	* @brief populates knightAttacks and kingAttacks

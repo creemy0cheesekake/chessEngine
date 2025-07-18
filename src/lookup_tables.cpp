@@ -1,9 +1,9 @@
 #include "lookup_tables.hpp"
 
-Bitboard LookupTables::knightAttacks[64];
-Bitboard LookupTables::kingAttacks[64];
-Bitboard LookupTables::straightRayTable[64][4];
-Bitboard LookupTables::diagonalRayTable[64][4];
+Bitboard LookupTables::s_knightAttacks[64];
+Bitboard LookupTables::s_kingAttacks[64];
+Bitboard LookupTables::s_straightRayTable[64][4];
+Bitboard LookupTables::s_diagonalRayTable[64][4];
 
 void LookupTables::init() {
 	genKingLookupTable();
@@ -15,7 +15,7 @@ void LookupTables::init() {
 void LookupTables::genKnightLookupTable() {
 	for (int i = Square::a1; i <= Square::h8; i++) {
 		Bitboard knight = 1UL << i;
-		knightAttacks[i] =
+		s_knightAttacks[i] =
 			((knight << 15 & ~(hFile | firstRank | secondRank)) |
 			 (knight << 17 & ~(aFile | firstRank | secondRank)) |
 			 (knight >> 17 & ~(hFile | seventhRank | eighthRank)) |
@@ -30,7 +30,7 @@ void LookupTables::genKnightLookupTable() {
 void LookupTables::genKingLookupTable() {
 	for (int i = Square::a1; i <= Square::h8; i++) {
 		Bitboard king = 1UL << i;
-		kingAttacks[i] =
+		s_kingAttacks[i] =
 			((king << 8) |
 			 (king >> 8) |
 			 (king << 1 & ~aFile) |
@@ -44,7 +44,7 @@ void LookupTables::genKingLookupTable() {
 
 void LookupTables::genStraightRayTable() {
 	for (int square = Square::a1; square <= Square::h8; square++) {
-		Bitboard *squareRays = straightRayTable[square];
+		Bitboard *squareRays = s_straightRayTable[square];
 
 		Bitboard *Nrays = &squareRays[NORTH];
 		*Nrays |= 1UL << square;
@@ -75,7 +75,7 @@ void LookupTables::genStraightRayTable() {
 
 void LookupTables::genDiagonalRayTable() {
 	for (int square = Square::a1; square <= Square::h8; square++) {
-		Bitboard *squareRays = diagonalRayTable[square];
+		Bitboard *squareRays = s_diagonalRayTable[square];
 
 		Bitboard *NErays = &squareRays[NORTHEAST];
 		*NErays |= 1UL << square;

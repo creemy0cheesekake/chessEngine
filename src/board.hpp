@@ -121,12 +121,12 @@ public:
 	/**
 	* @brief returns bitboard of all white pieces
 	*/
-	Bitboard whitePieces();
+	Bitboard whitePieces() const;
 
 	/**
 	* @brief returns bitboard of all black pieces
 	*/
-	Bitboard blackPieces();
+	Bitboard blackPieces() const;
 
 	/**
 	* @brief resets board to initial position
@@ -136,11 +136,11 @@ public:
 	/**
 	* @brief checks whether or not a king is in check when its not their turn to move
 	*/
-	bool inIllegalCheck();
+	bool inIllegalCheck() const;
 
 	/**
 	* @brief checks whether or not the game is over
 	*/
-	bool gameOver();
+	bool gameOver() const;
 };
 #endif

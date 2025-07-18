@@ -9,27 +9,27 @@ private:
 	/**
 	* @brief starting square in little endian rank file 
 	*/
-	unsigned int from;
+	unsigned int m_from;
 
 	/**
 	* @brief destination square in little endian rank file 
 	*/
-	unsigned int to;
+	unsigned int m_to;
 
 	/**
 	* @brief move flags: see enum
 	*/
-	unsigned int flags;
+	unsigned int m_flags;
 
 	/**
 	* @brief type of piece to promote to
 	*/
-	Piece promoPiece;
+	Piece m_promoPiece;
 
 	/**
 	* @brief type of piece that moved
 	*/
-	Piece pieceType;
+	Piece m_pieceType;
 
 	/**
 	* @brief infers flags from move and board position

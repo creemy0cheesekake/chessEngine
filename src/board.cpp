@@ -96,7 +96,7 @@ void Board::setToFen(std::string fen) {
 	fmClock = std::strtol(fenChar, &endOfClock, 10);
 }
 
-bool Board::inIllegalCheck() {
+bool Board::inIllegalCheck() const {
 	// make a copy, flip sides and see if the king is attacked
 	Board copiedBoard	   = *this;
 	copiedBoard.sideToMove = (Color)!copiedBoard.sideToMove;
@@ -104,7 +104,7 @@ bool Board::inIllegalCheck() {
 	return king & MoveGen(copiedBoard).getAttacks();
 }
 
-bool Board::gameOver() {
+bool Board::gameOver() const {
 	MoveGen mg = MoveGen(*this);
 	if (!mg.genLegalMoves().size()) {
 		return true;
@@ -129,11 +129,11 @@ bool Board::gameOver() {
 	return false;
 }
 
-Bitboard Board::whitePieces() {
+Bitboard Board::whitePieces() const {
 	return pieces[WHITE][PAWN] | pieces[WHITE][KNIGHT] | pieces[WHITE][BISHOP] | pieces[WHITE][ROOK] | pieces[WHITE][QUEEN] | pieces[WHITE][KING];
 }
 
-Bitboard Board::blackPieces() {
+Bitboard Board::blackPieces() const {
 	return pieces[BLACK][PAWN] | pieces[BLACK][KNIGHT] | pieces[BLACK][BISHOP] | pieces[BLACK][ROOK] | pieces[BLACK][QUEEN] | pieces[BLACK][KING];
 }
 
