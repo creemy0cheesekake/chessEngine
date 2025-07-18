@@ -4,23 +4,23 @@
 #include "move_gen.hpp"
 #include "util.hpp"
 
-float Eval::countMaterial(Board b) {
-	float material = 0;
+Centipawns Eval::countMaterial(Board b) {
+	Centipawns material = 0;
 	for (Color color : {WHITE, BLACK}) {
 		for (Piece pieceType : {QUEEN, ROOK, BISHOP, KNIGHT, PAWN}) {
-			bitboard piece = b.pieces[color][pieceType];
+			Bitboard piece = b.pieces[color][pieceType];
 			int count	   = 0;
 			while (piece) {
 				piece ^= LS1B(piece);
 				count++;
 			}
 			material +=
-				count * (std::unordered_map<int, float>){
-							{QUEEN, 9.0f},
-							{ROOK, 5.0f},
-							{BISHOP, 3.1f},
-							{KNIGHT, 3.0f},
-							{PAWN, 1.0f},
+				count * (std::unordered_map<int, Centipawns>){
+							{QUEEN, 900},
+							{ROOK, 500},
+							{BISHOP, 310},
+							{KNIGHT, 300},
+							{PAWN, 100},
 						}[pieceType] *
 				(color == WHITE ? 1 : -1);
 		}
@@ -28,32 +28,31 @@ float Eval::countMaterial(Board b) {
 	return material * (b.sideToMove == WHITE ? 1 : -1);
 }
 
-float Eval::evaluate(Board b) {
+Centipawns Eval::evaluate(Board b) {
 	MoveGen mg	= MoveGen(b);
 	Moves moves = mg.genLegalMoves();
 	if (!moves.size()) {
 		// add hmClock to prioritize quicker checkmates
-		return mg.inCheck() ? -INF + (int)b.hmClock : 0;
+		return mg.inCheck() ? -INF_SCORE + (int)b.hmClock : 0;
 	}
 
-	float evaluation = countMaterial(b);
-	return round(evaluation, 5);
+	return countMaterial(b);
 }
 
-float Eval::search(Moves *topLine, Board b, int depthLeft, float alpha, float beta) {
+Centipawns Eval::search(Moves *topLine, Board b, int depthLeft, Centipawns alpha, Centipawns beta) {
 	if (depthLeft <= 0 || b.gameOver()) {
 		return evaluate(b);
 	}
 
-	MoveGen mg		= MoveGen(b);
-	Moves moves		= mg.genLegalMoves();
-	float bestScore = -INF;
+	MoveGen mg			 = MoveGen(b);
+	Moves moves			 = mg.genLegalMoves();
+	Centipawns bestScore = -INF_SCORE;
 	Move bestMove;
 
 	for (Move m : moves) {
 		Board e = m.execute();
 		Moves subline;
-		float eval = -search(&subline, e, depthLeft - 1, -beta, -alpha);
+		Centipawns eval = -search(&subline, e, depthLeft - 1, -beta, -alpha);
 
 		if (eval > bestScore) {
 			bestScore = eval;

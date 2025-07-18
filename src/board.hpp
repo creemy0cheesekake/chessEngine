@@ -8,7 +8,7 @@
 
 class Board {
 public:
-	std::array<std::array<bitboard, 6>, 2> pieces = {
+	std::array<std::array<Bitboard, 6>, 2> pieces = {
 		{{
 			 0x10,
 			 0x8,
@@ -85,7 +85,7 @@ public:
 	* @brief square where en passant may be taken. for example, after 1. e4 the enPassantSquare
 	* would be (1 << 20) (algebraic e3) because if there were a pawn on f4, fxe3 would be possible
 	*/
-	bitboard enPassantSquare = 0;
+	Bitboard enPassantSquare = 0;
 
 	/**
 	* @brief half move clock. number of half moves since last pawn move or capture
@@ -121,12 +121,12 @@ public:
 	/**
 	* @brief returns bitboard of all white pieces
 	*/
-	bitboard whitePieces();
+	Bitboard whitePieces();
 
 	/**
 	* @brief returns bitboard of all black pieces
 	*/
-	bitboard blackPieces();
+	Bitboard blackPieces();
 
 	/**
 	* @brief resets board to initial position

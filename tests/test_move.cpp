@@ -256,7 +256,7 @@ CUSTOM_TEST_CASE("Test execute") {
 
 			testBoard = Move(testBoard, g2, g3, PAWN).execute();
 
-			std::array<std::array<bitboard, 6>, 2> testArr = testBoard.pieces;
+			std::array<std::array<Bitboard, 6>, 2> testArr = testBoard.pieces;
 			CHECK(testArr == refBoard.pieces);
 		}
 		SUBCASE("Case 2") {
@@ -265,7 +265,7 @@ CUSTOM_TEST_CASE("Test execute") {
 			Board refBoard;
 			refBoard.setToFen("r1bk1bnr/p1p2ppp/1pnp4/1B2p3/4P2q/P1N2N1P/1PPP1PP1/R1BQKR2 b Q - 1 7");
 			testBoard									   = Move(testBoard, h1, f1, ROOK).execute();
-			std::array<std::array<bitboard, 6>, 2> testArr = testBoard.pieces;
+			std::array<std::array<Bitboard, 6>, 2> testArr = testBoard.pieces;
 			CHECK(testArr == refBoard.pieces);
 		}
 		SUBCASE("Case 3") {
@@ -274,7 +274,7 @@ CUSTOM_TEST_CASE("Test execute") {
 			Board refBoard;
 			refBoard.setToFen("r1bk1bnr/p1p2ppp/1pnp4/1B1Np3/4P2q/P4N1P/1PPP1PP1/R1BQK2R b KQ - 1 7");
 			testBoard									   = Move(testBoard, c3, d5, KNIGHT).execute();
-			std::array<std::array<bitboard, 6>, 2> testArr = testBoard.pieces;
+			std::array<std::array<Bitboard, 6>, 2> testArr = testBoard.pieces;
 			CHECK(testArr == refBoard.pieces);
 		}
 	}
@@ -285,7 +285,7 @@ CUSTOM_TEST_CASE("Test execute") {
 			Board refBoard;
 			refBoard.setToFen("r1bk1bnr/p1p2ppp/1pnp4/1B2p3/4P2N/P1N4P/1PPP1PP1/R1BQK2R b KQ - 0 7");
 			testBoard									   = Move(testBoard, f3, h4, KNIGHT).execute();
-			std::array<std::array<bitboard, 6>, 2> testArr = testBoard.pieces;
+			std::array<std::array<Bitboard, 6>, 2> testArr = testBoard.pieces;
 			CHECK(testArr == refBoard.pieces);
 		}
 		SUBCASE("Case 2") {
@@ -294,7 +294,7 @@ CUSTOM_TEST_CASE("Test execute") {
 			Board refBoard;
 			refBoard.setToFen("r1bk1bnr/p1p2ppp/1pBp4/4p3/4P2q/P1N2N1P/1PPP1PP1/R1BQK2R b KQ - 0 7");
 			testBoard									   = Move(testBoard, b5, c6, BISHOP).execute();
-			std::array<std::array<bitboard, 6>, 2> testArr = testBoard.pieces;
+			std::array<std::array<Bitboard, 6>, 2> testArr = testBoard.pieces;
 			CHECK(testArr == refBoard.pieces);
 		}
 		SUBCASE("Case 3") {
@@ -303,7 +303,7 @@ CUSTOM_TEST_CASE("Test execute") {
 			Board refBoard;
 			refBoard.setToFen("r1bk1bnr/p1p2ppp/1pnp4/1B2N3/4P2q/P1N4P/1PPP1PP1/R1BQK2R b KQ - 0 7");
 			testBoard									   = Move(testBoard, f3, e5, KNIGHT).execute();
-			std::array<std::array<bitboard, 6>, 2> testArr = testBoard.pieces;
+			std::array<std::array<Bitboard, 6>, 2> testArr = testBoard.pieces;
 			CHECK(testArr == refBoard.pieces);
 		}
 	}
@@ -314,7 +314,7 @@ CUSTOM_TEST_CASE("Test execute") {
 			Board refBoard;
 			refBoard.setToFen("r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQ1RK1 b kq - 5 4");
 			testBoard									   = Move(testBoard, e1, g1, KING).execute();
-			std::array<std::array<bitboard, 6>, 2> testArr = testBoard.pieces;
+			std::array<std::array<Bitboard, 6>, 2> testArr = testBoard.pieces;
 			CHECK(testArr == refBoard.pieces);
 		}
 		SUBCASE("Case 2") {
@@ -323,7 +323,7 @@ CUSTOM_TEST_CASE("Test execute") {
 			Board refBoard;
 			refBoard.setToFen("r1bq1rk1/pppp1ppp/2nb1n2/4p3/2B1P3/2P2N2/PP1P1PPP/RNBQ1RK1 w - - 1 6");
 			testBoard									   = Move(testBoard, e8, g8, KING).execute();
-			std::array<std::array<bitboard, 6>, 2> testArr = testBoard.pieces;
+			std::array<std::array<Bitboard, 6>, 2> testArr = testBoard.pieces;
 			CHECK(testArr == refBoard.pieces);
 		}
 	}
@@ -334,7 +334,7 @@ CUSTOM_TEST_CASE("Test execute") {
 			Board refBoard;
 			refBoard.setToFen("r1bq1rk1/ppppbppp/2n2n2/4p1B1/4P3/2NP4/PPPQ1PPP/2KR1BNR b - - 6 6");
 			testBoard									   = Move(testBoard, e1, c1, KING).execute();
-			std::array<std::array<bitboard, 6>, 2> testArr = testBoard.pieces;
+			std::array<std::array<Bitboard, 6>, 2> testArr = testBoard.pieces;
 			CHECK(testArr == refBoard.pieces);
 		}
 		SUBCASE("Case 2") {
@@ -343,7 +343,7 @@ CUSTOM_TEST_CASE("Test execute") {
 			Board refBoard;
 			refBoard.setToFen("2kr1bnr/pp2pppp/1qn5/3pP3/3P2b1/5N2/PP2BPPP/RNBQ1RK1 w - - 7 9");
 			testBoard									   = Move(testBoard, e8, c8, KING).execute();
-			std::array<std::array<bitboard, 6>, 2> testArr = testBoard.pieces;
+			std::array<std::array<Bitboard, 6>, 2> testArr = testBoard.pieces;
 			CHECK(testArr == refBoard.pieces);
 		}
 	}
@@ -354,7 +354,7 @@ CUSTOM_TEST_CASE("Test execute") {
 			Board refBoard;
 			refBoard.setToFen("1Q6/8/4k3/1K6/8/8/8/8 b - - 0 1");
 			testBoard									   = Move(testBoard, b7, b8, PAWN, QUEEN).execute();
-			std::array<std::array<bitboard, 6>, 2> testArr = testBoard.pieces;
+			std::array<std::array<Bitboard, 6>, 2> testArr = testBoard.pieces;
 			CHECK(testArr == refBoard.pieces);
 		}
 		SUBCASE("Case 2") {
@@ -363,7 +363,7 @@ CUSTOM_TEST_CASE("Test execute") {
 			Board refBoard;
 			refBoard.setToFen("1R6/8/4k3/1K6/8/8/8/8 b - - 0 1");
 			testBoard									   = Move(testBoard, b7, b8, PAWN, ROOK).execute();
-			std::array<std::array<bitboard, 6>, 2> testArr = testBoard.pieces;
+			std::array<std::array<Bitboard, 6>, 2> testArr = testBoard.pieces;
 			CHECK(testArr == refBoard.pieces);
 		}
 		SUBCASE("Case 3") {
@@ -372,7 +372,7 @@ CUSTOM_TEST_CASE("Test execute") {
 			Board refBoard;
 			refBoard.setToFen("8/8/4k3/1K6/8/8/8/1b6 w - - 0 2");
 			testBoard									   = Move(testBoard, b2, b1, PAWN, BISHOP).execute();
-			std::array<std::array<bitboard, 6>, 2> testArr = testBoard.pieces;
+			std::array<std::array<Bitboard, 6>, 2> testArr = testBoard.pieces;
 			CHECK(testArr == refBoard.pieces);
 		}
 		SUBCASE("Case 4") {
@@ -381,7 +381,7 @@ CUSTOM_TEST_CASE("Test execute") {
 			Board refBoard;
 			refBoard.setToFen("8/8/4k3/1K6/8/8/8/1n6 w - - 0 2");
 			testBoard									   = Move(testBoard, b2, b1, PAWN, KNIGHT).execute();
-			std::array<std::array<bitboard, 6>, 2> testArr = testBoard.pieces;
+			std::array<std::array<Bitboard, 6>, 2> testArr = testBoard.pieces;
 			CHECK(testArr == refBoard.pieces);
 		}
 	}

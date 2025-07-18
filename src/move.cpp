@@ -161,7 +161,7 @@ Board Move::execute() {
 			}
 		}
 		// moves the piece from its current square to the destination square
-		bitboard moveMask = (1UL << from);
+		Bitboard moveMask = (1UL << from);
 		if (!(flags & PROMOTION)) {
 			moveMask += (1UL << to);
 		}

@@ -21,12 +21,12 @@ public:
 	/**
 	* @brief index in little endian rank file. each square has a bitboard of all squares a knight could attack if it was on that square
 	*/
-	static std::array<bitboard, 64> knightAttacks;
+	static std::array<Bitboard, 64> knightAttacks;
 
 	/**
 	* @brief index in little endian rank file. each square has a bitboard of all squares a king could attack if it was on that square
 	*/
-	static std::array<bitboard, 64> kingAttacks;
+	static std::array<Bitboard, 64> kingAttacks;
 
 	/**
 	* @brief populates knightAttacks and kingAttacks

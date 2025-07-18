@@ -121,7 +121,7 @@ bool Board::inIllegalCheck() {
 	// make a copy, flip sides and see if the king is attacked
 	Board copiedBoard	   = *this;
 	copiedBoard.sideToMove = (Color)!copiedBoard.sideToMove;
-	bitboard king		   = copiedBoard.pieces[copiedBoard.sideToMove][KING];
+	Bitboard king		   = copiedBoard.pieces[copiedBoard.sideToMove][KING];
 	return king & MoveGen(copiedBoard).getAttacks();
 }
 
@@ -150,17 +150,17 @@ bool Board::gameOver() {
 	return false;
 }
 
-bitboard Board::whitePieces() {
-	bitboard whitePieces = 0;
-	for (bitboard pieceBitboard : pieces[WHITE]) {
+Bitboard Board::whitePieces() {
+	Bitboard whitePieces = 0;
+	for (Bitboard pieceBitboard : pieces[WHITE]) {
 		whitePieces |= pieceBitboard;
 	}
 	return whitePieces;
 }
 
-bitboard Board::blackPieces() {
-	bitboard blackPieces = 0;
-	for (bitboard pieceBitboard : pieces[BLACK]) {
+Bitboard Board::blackPieces() {
+	Bitboard blackPieces = 0;
+	for (Bitboard pieceBitboard : pieces[BLACK]) {
 		blackPieces |= pieceBitboard;
 	}
 	return blackPieces;

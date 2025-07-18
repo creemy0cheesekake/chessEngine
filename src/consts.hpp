@@ -2,11 +2,18 @@
 #define CONSTS_H
 
 #include <bit>
-#include <limits>
+#include <cstdint>
 
-using bitboard = unsigned long long;
-#define bitscan std::__countr_zero
-#define INF		999
+using Bitboard	 = uint64_t;
+using Centipawns = int16_t;
+
+constexpr int bitscan(Bitboard x) {
+	return std::__countr_zero(x);
+}
+constexpr Centipawns INF_SCORE		 = 32000;
+constexpr Centipawns CHECKMATE_SCORE = 30000;
+constexpr Centipawns NONE_SCORE		 = -32001;
+constexpr Centipawns DRAW_SCORE		 = 0;
 
 #define firstRank	0xff
 #define secondRank	0xff00

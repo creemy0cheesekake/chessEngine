@@ -17,7 +17,7 @@ int main() {
 	Timer::start();
 
 	Moves topLine;
-	float evaluation = Eval::search(&topLine, b, 4);
+	Centipawns evaluation = Eval::search(&topLine, b, 4);
 	std::cout << "score: " << evaluation << std::endl;
 
 	std::cout << "pv: ";

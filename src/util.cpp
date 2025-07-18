@@ -1,8 +1,7 @@
 #include "util.hpp"
-#include <cmath>
 #include <iostream>
 
-std::string bboard(bitboard b) {
+std::string bboard(Bitboard b) {
 	std::string board = "";
 	int i			  = 56;
 	while (i >= 0 && i < 64) {
@@ -17,16 +16,6 @@ std::string bboard(bitboard b) {
 		}
 	}
 	return board;
-}
-
-float round(float n, int numOfDigits) {
-	float value;
-	if (n > 0) {
-		value = (int)(n * std::pow(10, numOfDigits) + .5);
-	} else {
-		value = (int)(n * std::pow(10, numOfDigits) - .5);
-	}
-	return value / std::pow(10, numOfDigits);
 }
 
 namespace Timer {

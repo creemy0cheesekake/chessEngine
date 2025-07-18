@@ -18,7 +18,7 @@ private:
 	/**
 	* @brief bitboard showing every square attacked by oppponent
 	*/
-	bitboard attacks = 0;
+	Bitboard attacks = 0;
 
 	/**
 	* @brief Moves list of all pseudo legal moves generated so far
@@ -33,17 +33,17 @@ private:
 	/**
 	* @brief returns a bitboard of all squares attacked by pawns
 	*/
-	bitboard genPawnAttacks();
+	Bitboard genPawnAttacks();
 
 	/**
 	* @brief returns a bitboard of all squares attacked by knights
 	*/
-	bitboard genKnightAttacks();
+	Bitboard genKnightAttacks();
 
 	/**
 	* @brief returns a bitboard of all squares attacked by the king
 	*/
-	bitboard genKingAttacks();
+	Bitboard genKingAttacks();
 
 	enum SlidingPieceDirectionFlags {
 		STRAIGHT = 0b01,
@@ -55,22 +55,22 @@ private:
 	* @param pieces -- bitboard of pieces which reperesent the pieces that the moves will be generated for
 	* @param direction -- specifies the direction(s) that the sliding pieces go in
 	*/
-	bitboard
-	genSlidingPiecesAttacks(bitboard pieces, SlidingPieceDirectionFlags direction);
+	Bitboard
+	genSlidingPiecesAttacks(Bitboard pieces, SlidingPieceDirectionFlags direction);
 	/**
 	* @brief returns a bitboard of all squares attacked by bishops
 	*/
-	bitboard genBishopAttacks();
+	Bitboard genBishopAttacks();
 
 	/**
 	* @brief returns a bitboard of all squares attacked by rooks
 	*/
-	bitboard genRookAttacks();
+	Bitboard genRookAttacks();
 
 	/**
 	* @brief bitboard of all squares attacked by queens
 	*/
-	bitboard genQueenAttacks();
+	Bitboard genQueenAttacks();
 
 public:
 	/**
@@ -119,7 +119,7 @@ public:
 	* @param pieces -- bitboard of pieces which reperesent the pieces that the moves will be generated for
 	* @param direction -- specifies the direction(s) that the sliding pieces go in
 	*/
-	void genSlidingPieces(Piece p, bitboard pieces, SlidingPieceDirectionFlags direction);
+	void genSlidingPieces(Piece p, Bitboard pieces, SlidingPieceDirectionFlags direction);
 	/**
 	* @brief generates legal bishop moves
 	*/
@@ -138,11 +138,11 @@ public:
 	/**
 	* @brief returns a bitboard with every square that is being attacked by an enemy piece
 	*/
-	bitboard genAttacks();
+	Bitboard genAttacks();
 
 	/**
 	* @brief returns attacks bitboard
 	*/
-	bitboard getAttacks();
+	Bitboard getAttacks();
 };
 #endif
