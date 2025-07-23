@@ -4,7 +4,10 @@
 #include <bit>
 #include <cstdint>
 #include <unordered_map>
+#include <vector>
 
+class Move;
+using Moves		 = std::vector<Move>;
 using Bitboard	 = uint64_t;
 using Centipawns = int16_t;
 
@@ -85,6 +88,20 @@ enum Square {
 	NONE_SQUARE
 };
 // clang-format on
+
+/**
+* @brief move bitflags
+*/
+enum MoveFlag {
+	NORMAL_MOVE = 0b0000000,  // 0
+	CAPTURE		= 0b0000001,  // 1
+	KS_CASTLE	= 0b0000010,  // 2
+	QS_CASTLE	= 0b0000100,  // 4
+	DBL_PAWN	= 0b0001000,  // 8
+	EN_PASSANT	= 0b0010000,  // 16
+	PROMOTION	= 0b0100000,  // 32
+	PAWN_MOVE	= 0b1000000,  // 64
+};
 
 /**
 * @brief directions for piece ray lookup tables

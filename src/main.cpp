@@ -22,7 +22,7 @@ int main() {
 
 	std::cout << "pv: ";
 	for (Move m : topLine) {
-		b = m.execute();
+		b.execute(m);
 		std::cout << m.notation() << " ";
 	}
 	std::cout << std::endl;

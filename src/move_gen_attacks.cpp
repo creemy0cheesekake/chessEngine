@@ -1,19 +1,20 @@
+#include "board.hpp"
 #include "move_gen.hpp"
 #include "lookup_tables.hpp"
 #include "util.hpp"
 
-Bitboard MoveGen::genPawnAttacks() {
-	if (m_board.sideToMove == WHITE) {
-		Bitboard pawns = m_board.pieces[BLACK][PAWN];
+Bitboard MoveGen::genPawnAttacks() const {
+	if (m_board->boardState.sideToMove == WHITE) {
+		Bitboard pawns = m_board->boardState.pieces[BLACK][PAWN];
 		return ((pawns & ~hFile) >> 7) | ((pawns & ~aFile) >> 9);
 	} else {
-		Bitboard pawns = m_board.pieces[WHITE][PAWN];
+		Bitboard pawns = m_board->boardState.pieces[WHITE][PAWN];
 		return ((pawns & ~aFile) << 7) | ((pawns & ~hFile) << 9);
 	}
 }
 
-Bitboard MoveGen::genKnightAttacks() {
-	Bitboard knights = m_board.pieces[!m_board.sideToMove][KNIGHT];
+Bitboard MoveGen::genKnightAttacks() const {
+	Bitboard knights = m_board->boardState.pieces[!m_board->boardState.sideToMove][KNIGHT];
 	if (!knights) {
 		return 0;
 	}
@@ -24,16 +25,16 @@ Bitboard MoveGen::genKnightAttacks() {
 	return attacks;
 }
 
-Bitboard MoveGen::genKingAttacks() {
-	Bitboard king = m_board.pieces[!m_board.sideToMove][KING];
+Bitboard MoveGen::genKingAttacks() const {
+	Bitboard king = m_board->boardState.pieces[!m_board->boardState.sideToMove][KING];
 	return LookupTables::s_kingAttacks[bitscan(king)];
 }
 
-Bitboard MoveGen::genSlidingPiecesAttacks(Bitboard pieces, SlidingPieceDirectionFlags direction) {
+Bitboard MoveGen::genSlidingPiecesAttacks(Bitboard pieces, SlidingPieceDirectionFlags direction) const {
 	if (!pieces) {
 		return 0;
 	}
-	Bitboard allPieces = m_board.whitePieces() | m_board.blackPieces();
+	Bitboard allPieces = m_board->whitePieces() | m_board->blackPieces();
 	Bitboard attacks   = 0;
 
 	do {
@@ -76,23 +77,23 @@ Bitboard MoveGen::genSlidingPiecesAttacks(Bitboard pieces, SlidingPieceDirection
 	return attacks;
 }
 
-Bitboard MoveGen::genBishopAttacks() {
-	Bitboard bishops = m_board.pieces[!m_board.sideToMove][BISHOP];
+Bitboard MoveGen::genBishopAttacks() const {
+	Bitboard bishops = m_board->boardState.pieces[!m_board->boardState.sideToMove][BISHOP];
 	return genSlidingPiecesAttacks(bishops, SlidingPieceDirectionFlags::DIAGONAL);
 }
-Bitboard MoveGen::genRookAttacks() {
-	Bitboard rooks = m_board.pieces[!m_board.sideToMove][ROOK];
+Bitboard MoveGen::genRookAttacks() const {
+	Bitboard rooks = m_board->boardState.pieces[!m_board->boardState.sideToMove][ROOK];
 	return genSlidingPiecesAttacks(rooks, SlidingPieceDirectionFlags::STRAIGHT);
 }
-Bitboard MoveGen::genQueenAttacks() {
-	Bitboard queens = m_board.pieces[!m_board.sideToMove][QUEEN];
+Bitboard MoveGen::genQueenAttacks() const {
+	Bitboard queens = m_board->boardState.pieces[!m_board->boardState.sideToMove][QUEEN];
 	return genSlidingPiecesAttacks(queens, SlidingPieceDirectionFlags(DIAGONAL | STRAIGHT));
 }
 
-Bitboard MoveGen::genAttacks() {
+Bitboard MoveGen::genAttacks() const {
 	return genPawnAttacks() | genKnightAttacks() | genKingAttacks() | genBishopAttacks() | genRookAttacks() | genQueenAttacks();
 }
 
-Bitboard MoveGen::getAttacks() {
+Bitboard MoveGen::getAttacks() const {
 	return m_attacks;
 }
