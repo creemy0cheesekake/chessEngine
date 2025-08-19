@@ -1,6 +1,7 @@
 #include "../include/doctest.h"
 #include "custom_text_fixture.hpp"
 
+#include "../src/board.hpp"
 #include "../src/eval.hpp"
 
 CUSTOM_TEST_CASE("Test Material") {

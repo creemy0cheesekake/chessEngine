@@ -6,42 +6,42 @@
 CUSTOM_TEST_CASE("Test Castling Rights") {
 	Board b = Board();
 
-	CHECK(b.castlingRights.rights == 0b1111);
+	CHECK(b.boardState.castlingRights.rights == 0b1111);
 	SUBCASE("Test setWhiteKS") {
 		unsigned int bitForWhiteKS = 0b1000;
-		b.castlingRights.setWhiteKS(true);
-		CHECK((bool)(b.castlingRights.rights & bitForWhiteKS));
-		b.castlingRights.setWhiteKS(false);
-		CHECK((bool)(b.castlingRights.rights & ~bitForWhiteKS));
-		b.castlingRights.setWhiteKS(true);
-		CHECK((bool)(b.castlingRights.rights & bitForWhiteKS));
+		b.boardState.castlingRights.setWhiteKS(true);
+		CHECK((bool)(b.boardState.castlingRights.rights & bitForWhiteKS));
+		b.boardState.castlingRights.setWhiteKS(false);
+		CHECK((bool)(b.boardState.castlingRights.rights & ~bitForWhiteKS));
+		b.boardState.castlingRights.setWhiteKS(true);
+		CHECK((bool)(b.boardState.castlingRights.rights & bitForWhiteKS));
 	}
 	SUBCASE("Test setWhiteQS") {
 		unsigned int bitForWhiteQS = 0b0100;
-		b.castlingRights.setWhiteQS(true);
-		CHECK((bool)(b.castlingRights.rights & bitForWhiteQS));
-		b.castlingRights.setWhiteQS(false);
-		CHECK((bool)(b.castlingRights.rights & ~bitForWhiteQS));
-		b.castlingRights.setWhiteQS(true);
-		CHECK((bool)(b.castlingRights.rights & bitForWhiteQS));
+		b.boardState.castlingRights.setWhiteQS(true);
+		CHECK((bool)(b.boardState.castlingRights.rights & bitForWhiteQS));
+		b.boardState.castlingRights.setWhiteQS(false);
+		CHECK((bool)(b.boardState.castlingRights.rights & ~bitForWhiteQS));
+		b.boardState.castlingRights.setWhiteQS(true);
+		CHECK((bool)(b.boardState.castlingRights.rights & bitForWhiteQS));
 	}
 	SUBCASE("Test setBlackKS") {
 		unsigned int bitForBlackKS = 0b0010;
-		b.castlingRights.setBlackKS(true);
-		CHECK((bool)(b.castlingRights.rights & bitForBlackKS));
-		b.castlingRights.setBlackKS(false);
-		CHECK((bool)(b.castlingRights.rights & ~bitForBlackKS));
-		b.castlingRights.setBlackKS(true);
-		CHECK((bool)(b.castlingRights.rights & bitForBlackKS));
+		b.boardState.castlingRights.setBlackKS(true);
+		CHECK((bool)(b.boardState.castlingRights.rights & bitForBlackKS));
+		b.boardState.castlingRights.setBlackKS(false);
+		CHECK((bool)(b.boardState.castlingRights.rights & ~bitForBlackKS));
+		b.boardState.castlingRights.setBlackKS(true);
+		CHECK((bool)(b.boardState.castlingRights.rights & bitForBlackKS));
 	}
 	SUBCASE("Test setBlackQS") {
 		unsigned int bitForBlackQS = 0b0001;
-		b.castlingRights.setBlackQS(true);
-		CHECK((bool)(b.castlingRights.rights & bitForBlackQS));
-		b.castlingRights.setBlackQS(false);
-		CHECK((bool)(b.castlingRights.rights & ~bitForBlackQS));
-		b.castlingRights.setBlackQS(true);
-		CHECK((bool)(b.castlingRights.rights & bitForBlackQS));
+		b.boardState.castlingRights.setBlackQS(true);
+		CHECK((bool)(b.boardState.castlingRights.rights & bitForBlackQS));
+		b.boardState.castlingRights.setBlackQS(false);
+		CHECK((bool)(b.boardState.castlingRights.rights & ~bitForBlackQS));
+		b.boardState.castlingRights.setBlackQS(true);
+		CHECK((bool)(b.boardState.castlingRights.rights & bitForBlackQS));
 	}
 }
 CUSTOM_TEST_CASE("Test setToFen") {
@@ -49,16 +49,16 @@ CUSTOM_TEST_CASE("Test setToFen") {
 	SUBCASE("Test fen r1bk1bnr/p1p2ppp/1pnp4/1B2p3/4P2q/P1N2N1P/1PPP1PP1/R1BQK2R w KQ - 0 7") {
 		b.setToFen("r1bk1bnr/p1p2ppp/1pnp4/1B2p3/4P2q/P1N2N1P/1PPP1PP1/R1BQK2R w KQ - 0 7");
 		SUBCASE("Test sideToMove") {
-			CHECK(b.sideToMove == WHITE);
+			CHECK(b.boardState.sideToMove == WHITE);
 		}
 		SUBCASE("Test enPassantSquare") {
-			CHECK(b.enPassantSquare == 0);
+			CHECK(b.boardState.enPassantSquare == 0);
 		}
 		SUBCASE("Test hmClock") {
-			CHECK(b.hmClock == 0);
+			CHECK(b.boardState.hmClock == 0);
 		}
 		SUBCASE("Test fmClock") {
-			CHECK(b.fmClock == 7);
+			CHECK(b.boardState.fmClock == 7);
 		}
 		SUBCASE("Test whitePieces") {
 			CHECK(b.whitePieces() == 8869211805UL);
@@ -70,16 +70,16 @@ CUSTOM_TEST_CASE("Test setToFen") {
 	SUBCASE("Test fen r3k2r/pp2bppp/2n1p3/q2pPn2/N2P2P1/4BB1P/PP3P2/R2Q1RK1 b kq g3 0 14") {
 		b.setToFen("r3k2r/pp2bppp/2n1p3/q2pPn2/N2P2P1/4BB1P/PP3P2/R2Q1RK1 b kq g3 0 14");
 		SUBCASE("Test sideToMove") {
-			CHECK(b.sideToMove == BLACK);
+			CHECK(b.boardState.sideToMove == BLACK);
 		}
 		SUBCASE("Test enPassantSquare") {
-			CHECK(b.enPassantSquare == 1UL << g3);
+			CHECK(b.boardState.enPassantSquare == 1UL << g3);
 		}
 		SUBCASE("Test hmClock") {
-			CHECK(b.hmClock == 0);
+			CHECK(b.boardState.hmClock == 0);
 		}
 		SUBCASE("Test fmClock") {
-			CHECK(b.fmClock == 14);
+			CHECK(b.boardState.fmClock == 14);
 		}
 		SUBCASE("Test whitePieces") {
 			CHECK(b.whitePieces() == 69955756905UL);
@@ -91,16 +91,16 @@ CUSTOM_TEST_CASE("Test setToFen") {
 	SUBCASE("Test fen 2rqrnk1/pp2bpp1/2p1bn1p/3p4/3P3B/2NBPP2/PPQ1N1PP/3R1RK1 w - - 3 14") {
 		b.setToFen("2rqrnk1/pp2bpp1/2p1bn1p/3p4/3P3B/2NBPP2/PPQ1N1PP/3R1RK1 w - - 3 14");
 		SUBCASE("Test sideToMove") {
-			CHECK(b.sideToMove == WHITE);
+			CHECK(b.boardState.sideToMove == WHITE);
 		}
 		SUBCASE("Test enPassantSquare") {
-			CHECK(b.enPassantSquare == 0);
+			CHECK(b.boardState.enPassantSquare == 0);
 		}
 		SUBCASE("Test hmClock") {
-			CHECK(b.hmClock == 3);
+			CHECK(b.boardState.hmClock == 3);
 		}
 		SUBCASE("Test fmClock") {
-			CHECK(b.fmClock == 14);
+			CHECK(b.boardState.fmClock == 14);
 		}
 		SUBCASE("Test whitePieces") {
 			CHECK(b.whitePieces() == 2285688680UL);

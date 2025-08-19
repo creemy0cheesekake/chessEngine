@@ -38,7 +38,7 @@ inline Bitboard LS1B(Bitboard x) {
 /**
 * @brief removes the least significant 1 bit from the input and returns the input
 */
-inline Bitboard removeLS1B(Bitboard &x) {
+inline Bitboard removeLS1B(Bitboard& x) {
 	x &= x - 1;
 	return x;
 }

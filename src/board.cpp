@@ -27,12 +27,12 @@ std::string Board::printBoard() const {
 	return board;
 }
 
-std::ostream &operator<<(std::ostream &os, const Board &b) {
+std::ostream& operator<<(std::ostream& os, const Board& b) {
 	os << b.printBoard();
 	return os;
 }
 
-void Board::setToFen(const char *fen) {
+void Board::setToFen(const char* fen) {
 	/* 
 	 * heres a fen string for reference:
 	 * r1bk1bnr/p1p2ppp/1pnp4/1B2p3/4P2q/P1N2N1P/1PPP1PP1/R1BQK2R w KQ - 0 7
@@ -91,7 +91,7 @@ void Board::setToFen(const char *fen) {
 		boardState.enPassantSquare = 1UL << enPassantSquareIndex;
 	}
 	fen += 2;
-	char *endOfClock;
+	char* endOfClock;
 	boardState.hmClock = std::strtol(fen, &endOfClock, 10);
 	fen				   = endOfClock + 1;
 	boardState.fmClock = std::strtol(fen, &endOfClock, 10);
@@ -131,7 +131,7 @@ bool Board::gameOver() {
 	return false;
 }
 
-void Board::execute(const Move &m) {
+void Board::execute(const Move& m) {
 	m_previousBoardStates.push_back(boardState);
 	MoveFlag flags = m.getFlags();
 	if (flags & KS_CASTLE) {
@@ -182,7 +182,7 @@ void Board::undoMove() {
 	boardState = bs;
 }
 
-void Board::updateBoardStateGameData(const Move &m) {
+void Board::updateBoardStateGameData(const Move& m) {
 	MoveFlag flags			   = m.getFlags();
 	boardState.enPassantSquare = 0;
 	boardState.hmClock++;
@@ -204,7 +204,7 @@ void Board::updateBoardStateGameData(const Move &m) {
 	boardState.sideToMove = (Color)!boardState.sideToMove;
 }
 
-void Board::updateCastlingRights(const Move &m) {
+void Board::updateCastlingRights(const Move& m) {
 	Square from = m.getFrom(), to = m.getTo();
 	// if either side castles remove all their castling rights
 	if (m.getFlags() & KS_CASTLE || m.getFlags() & QS_CASTLE) {

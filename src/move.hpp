@@ -38,17 +38,17 @@ private:
 	* @brief infers flags from move and board position
 	* @param Board -- board of the move
 	*/
-	MoveFlag genFlags(const Board &);
+	MoveFlag genFlags(const Board&);
 
 	/**
 	* @brief updates hmclock, fmclock, ep square, side to move
 	*/
-	void updateGameData(Board &) const;
+	void updateGameData(Board&) const;
 
 	/**
 	* @brief revokes castling rights if king or rook moves
 	*/
-	void updateCastlingRights(Board &) const;
+	void updateCastlingRights(Board&) const;
 
 public:
 	/**

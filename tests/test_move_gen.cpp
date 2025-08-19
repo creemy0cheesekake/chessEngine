@@ -1,35 +1,35 @@
 #include "../include/doctest.h"
 #include "custom_text_fixture.hpp"
 
+#include "../src/board.hpp"
 #include "../src/move_gen.hpp"
 
 CUSTOM_TEST_CASE("Test Attacks") {
 	Board b;
 	SUBCASE("Test Perft r1bk1bnr/p1p2ppp/1pnp4/1B2p3/4P2q/P1N2N1P/1PPP1PP1/R1BQK2R w KQ - 0 7") {
 		b.setToFen("r1bk1bnr/p1p2ppp/1pnp4/1B2p3/4P2q/P1N2N1P/1PPP1PP1/R1BQK2R w KQ - 0 7");
-		MoveGen mg = MoveGen(b);
-		CHECK(mg.getAttacks() == 6836459791116673024UL);
+		CHECK(b.moveGenerator.genAttacks() == 6836459791116673024UL);
 	}
 	SUBCASE("Test Perft r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1") {
 		b.setToFen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
-		MoveGen mg = MoveGen(b);
-		CHECK(mg.getAttacks() == 18427602327210643456UL);
+		CHECK(b.moveGenerator.genAttacks() == 18427602327210643456UL);
 	}
 	SUBCASE("Test Perft 5b1k/6Q1/1r6/4K3/r7/8/3r1r2/8 b - - 0 1") {
 		b.setToFen("5b1k/6Q1/1r6/4K3/r7/8/3r1r2/8 b - - 0 1");
-		MoveGen mg = MoveGen(b);
-		CHECK(mg.getAttacks() == 16194935981344833600UL);
+		CHECK(b.moveGenerator.genAttacks() == 16194935981344833600UL);
 	}
 }
 
-int perft(Board b, int depth) {
+int perft(Board& b, int depth) {
 	if (depth <= 0) {
 		return 1;
 	}
 
 	int n = 0;
-	for (Move m : MoveGen(b).genLegalMoves()) {
-		n += perft(m.execute(), depth - 1);
+	for (Move m : b.moveGenerator.genLegalMoves()) {
+		b.execute(m);
+		n += perft(b, depth - 1);
+		b.undoMove();
 	}
 	return n;
 }

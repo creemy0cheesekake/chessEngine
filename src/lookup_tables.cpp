@@ -1,9 +1,9 @@
 #include "lookup_tables.hpp"
 
-Bitboard LookupTables::s_knightAttacks[64];
-Bitboard LookupTables::s_kingAttacks[64];
-Bitboard LookupTables::s_straightRayTable[64][4];
-Bitboard LookupTables::s_diagonalRayTable[64][4];
+std::array<Bitboard, 64> LookupTables::s_knightAttacks{};
+std::array<Bitboard, 64> LookupTables::s_kingAttacks{};
+std::array<std::array<Bitboard, 4>, 64> LookupTables::s_straightRayTable{};
+std::array<std::array<Bitboard, 4>, 64> LookupTables::s_diagonalRayTable{};
 
 void LookupTables::init() {
 	genKingLookupTable();
@@ -44,62 +44,62 @@ void LookupTables::genKingLookupTable() {
 
 void LookupTables::genStraightRayTable() {
 	for (int square = Square::a1; square <= Square::h8; square++) {
-		Bitboard *squareRays = s_straightRayTable[square];
+		std::array<Bitboard, 4>& squareRays = s_straightRayTable[square];
 
-		Bitboard *Nrays = &squareRays[NORTH];
-		*Nrays |= 1UL << square;
-		while (!(*Nrays & eighthRank)) {
-			*Nrays |= *Nrays << 8;
+		Bitboard& Nrays = squareRays[NORTH];
+		Nrays |= 1UL << square;
+		while (!(Nrays & eighthRank)) {
+			Nrays |= Nrays << 8;
 		}
-		Bitboard *Erays = &squareRays[EAST];
-		*Erays |= 1UL << square;
-		while (!(*Erays & hFile)) {
-			*Erays |= *Erays << 1;
+		Bitboard& Erays = squareRays[EAST];
+		Erays |= 1UL << square;
+		while (!(Erays & hFile)) {
+			Erays |= Erays << 1;
 		}
-		Bitboard *Wrays = &squareRays[WEST];
-		*Wrays |= 1UL << square;
-		while (!(*Wrays & aFile)) {
-			*Wrays |= *Wrays >> 1;
+		Bitboard& Wrays = squareRays[WEST];
+		Wrays |= 1UL << square;
+		while (!(Wrays & aFile)) {
+			Wrays |= Wrays >> 1;
 		}
-		Bitboard *Srays = &squareRays[SOUTH];
-		*Srays |= 1UL << square;
-		while (!(*Srays & firstRank)) {
-			*Srays |= *Srays >> 8;
+		Bitboard& Srays = squareRays[SOUTH];
+		Srays |= 1UL << square;
+		while (!(Srays & firstRank)) {
+			Srays |= Srays >> 8;
 		}
-		*Nrays ^= 1UL << square;
-		*Erays ^= 1UL << square;
-		*Wrays ^= 1UL << square;
-		*Srays ^= 1UL << square;
+		Nrays ^= 1UL << square;
+		Erays ^= 1UL << square;
+		Wrays ^= 1UL << square;
+		Srays ^= 1UL << square;
 	}
 }
 
 void LookupTables::genDiagonalRayTable() {
 	for (int square = Square::a1; square <= Square::h8; square++) {
-		Bitboard *squareRays = s_diagonalRayTable[square];
+		std::array<Bitboard, 4>& squareRays = s_diagonalRayTable[square];
 
-		Bitboard *NErays = &squareRays[NORTHEAST];
-		*NErays |= 1UL << square;
-		while (!(*NErays & (eighthRank | hFile))) {
-			*NErays |= *NErays << 9;
+		Bitboard& NErays = squareRays[NORTHEAST];
+		NErays |= 1UL << square;
+		while (!(NErays & (eighthRank | hFile))) {
+			NErays |= NErays << 9;
 		}
-		Bitboard *NWrays = &squareRays[NORTHWEST];
-		*NWrays |= 1UL << square;
-		while (!(*NWrays & (eighthRank | aFile))) {
-			*NWrays |= *NWrays << 7;
+		Bitboard& NWrays = squareRays[NORTHWEST];
+		NWrays |= 1UL << square;
+		while (!(NWrays & (eighthRank | aFile))) {
+			NWrays |= NWrays << 7;
 		}
-		Bitboard *SWrays = &squareRays[SOUTHWEST];
-		*SWrays |= 1UL << square;
-		while (!(*SWrays & (firstRank | aFile))) {
-			*SWrays |= *SWrays >> 9;
+		Bitboard& SWrays = squareRays[SOUTHWEST];
+		SWrays |= 1UL << square;
+		while (!(SWrays & (firstRank | aFile))) {
+			SWrays |= SWrays >> 9;
 		}
-		Bitboard *SErays = &squareRays[SOUTHEAST];
-		*SErays |= 1UL << square;
-		while (!(*SErays & (firstRank | hFile))) {
-			*SErays |= *SErays >> 7;
+		Bitboard& SErays = squareRays[SOUTHEAST];
+		SErays |= 1UL << square;
+		while (!(SErays & (firstRank | hFile))) {
+			SErays |= SErays >> 7;
 		}
-		*NErays ^= 1UL << square;
-		*NWrays ^= 1UL << square;
-		*SErays ^= 1UL << square;
-		*SWrays ^= 1UL << square;
+		NErays ^= 1UL << square;
+		NWrays ^= 1UL << square;
+		SErays ^= 1UL << square;
+		SWrays ^= 1UL << square;
 	}
 }

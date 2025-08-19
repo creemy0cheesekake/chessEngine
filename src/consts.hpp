@@ -1,6 +1,7 @@
 #ifndef CONSTS_H
 #define CONSTS_H
 
+#include <array>
 #include <bit>
 #include <cstdint>
 #include <unordered_map>
@@ -174,6 +175,6 @@ inline std::unordered_map<char, Piece> fenPieceChartoPieceType = {
 /**
 * @brief index to ascii piece for ascii board representation
 */
-constexpr const char *indexToPiece[12] = {"♚ ", "♛ ", "♜ ", "♝ ", "♞ ", "♟︎ ", "♔ ", "♕ ", "♖ ", "♗ ", "♘ ", "♙ "};
+constexpr std::array<const char*, 12> indexToPiece = {"♚ ", "♛ ", "♜ ", "♝ ", "♞ ", "♟︎ ", "♔ ", "♕ ", "♖ ", "♗ ", "♘ ", "♙ "};
 
 #endif

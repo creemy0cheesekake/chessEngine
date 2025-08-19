@@ -1,15 +1,15 @@
-#include "move_gen.hpp"
 #include <iostream>
+#include "move_gen.hpp"
 #include "board.hpp"
 #include "lookup_tables.hpp"
 #include "util.hpp"
 
-MoveGen::MoveGen(Board *b) {
+MoveGen::MoveGen(Board* b) {
 	m_board	  = b;
 	m_attacks = genAttacks();
 }
 
-void MoveGen::genPawnMoves(Moves &pseudoLegalMoves) const {
+void MoveGen::genPawnMoves(Moves& pseudoLegalMoves) const {
 	Bitboard pawns = m_board->boardState.pieces[m_board->boardState.sideToMove][PAWN];
 	if (!pawns) {
 		return;
@@ -44,7 +44,7 @@ void MoveGen::genPawnMoves(Moves &pseudoLegalMoves) const {
 	} while (removeLS1B(pawns));
 }
 
-void MoveGen::genKnightMoves(Moves &pseudoLegalMoves) const {
+void MoveGen::genKnightMoves(Moves& pseudoLegalMoves) const {
 	Bitboard knights = m_board->boardState.pieces[m_board->boardState.sideToMove][KNIGHT];
 	if (!knights) {
 		return;
@@ -66,7 +66,7 @@ bool MoveGen::inCheck() const {
 	return m_attacks & m_board->boardState.pieces[m_board->boardState.sideToMove][KING];
 }
 
-void MoveGen::genKingMoves(Moves &pseudoLegalMoves) const {
+void MoveGen::genKingMoves(Moves& pseudoLegalMoves) const {
 	Bitboard yourPieces		 = m_board->boardState.sideToMove == WHITE ? m_board->whitePieces() : m_board->blackPieces();
 	Bitboard king			 = m_board->boardState.pieces[m_board->boardState.sideToMove][KING];
 	Bitboard kingMoveTargets = LookupTables::s_kingAttacks[bitscan(king)] & ~yourPieces;
@@ -78,7 +78,7 @@ void MoveGen::genKingMoves(Moves &pseudoLegalMoves) const {
 	}
 }
 
-void MoveGen::genCastlingMoves(Moves &pseudoLegalMoves) const {
+void MoveGen::genCastlingMoves(Moves& pseudoLegalMoves) const {
 	if (inCheck()) {
 		return;
 	}
@@ -108,7 +108,7 @@ void MoveGen::genCastlingMoves(Moves &pseudoLegalMoves) const {
 	}
 }
 
-void MoveGen::genSlidingPieces(Moves &pseudoLegalMoves, Piece p, Bitboard pieces, SlidingPieceDirectionFlags direction) const {
+void MoveGen::genSlidingPieces(Moves& pseudoLegalMoves, Piece p, Bitboard pieces, SlidingPieceDirectionFlags direction) const {
 	if (!pieces) {
 		return;
 	}
@@ -187,22 +187,23 @@ void MoveGen::genSlidingPieces(Moves &pseudoLegalMoves, Piece p, Bitboard pieces
 	} while (removeLS1B(pieces));
 }
 
-void MoveGen::genBishopMoves(Moves &pseudoLegalMoves) const {
+void MoveGen::genBishopMoves(Moves& pseudoLegalMoves) const {
 	Bitboard bishops = m_board->boardState.pieces[m_board->boardState.sideToMove][BISHOP];
 	genSlidingPieces(pseudoLegalMoves, BISHOP, bishops, SlidingPieceDirectionFlags::DIAGONAL);
 }
 
-void MoveGen::genRookMoves(Moves &pseudoLegalMoves) const {
+void MoveGen::genRookMoves(Moves& pseudoLegalMoves) const {
 	Bitboard rooks = m_board->boardState.pieces[m_board->boardState.sideToMove][ROOK];
 	genSlidingPieces(pseudoLegalMoves, ROOK, rooks, SlidingPieceDirectionFlags::STRAIGHT);
 }
 
-void MoveGen::genQueenMoves(Moves &pseudoLegalMoves) const {
+void MoveGen::genQueenMoves(Moves& pseudoLegalMoves) const {
 	Bitboard queens = m_board->boardState.pieces[m_board->boardState.sideToMove][QUEEN];
 	genSlidingPieces(pseudoLegalMoves, QUEEN, queens, SlidingPieceDirectionFlags(DIAGONAL | STRAIGHT));
 }
 
-Moves MoveGen::genLegalMoves() const {
+Moves MoveGen::genLegalMoves() {
+	m_attacks = genAttacks();
 	Moves pseudoLegalMoves;
 	Moves moves;
 	pseudoLegalMoves.reserve(218);	// known approximation for maximum number of legal moves possible in a position

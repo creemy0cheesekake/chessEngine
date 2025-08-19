@@ -89,6 +89,27 @@ public:
 				0xff000000000000,
 			}
 		};
+		// /**
+		// * @brief bitboards of attacks for all pieces
+		// */
+		// Bitboard attacks[2][6] = {
+		// 	{
+		// 		0x3828,
+		// 		0x1c14,
+		// 		0x8142,
+		// 		0x5a00,
+		// 		0xa51800,
+		// 		0xff0000,
+		// 	},
+		// 	{
+		// 		0x2838000000000000,
+		// 		0x141c000000000000,
+		// 		0x4281000000000000,
+		// 		0x5a000000000000,
+		// 		0x18a50000000000,
+		// 		0xff0000000000,
+		// 	}
+		// };
 		/**
 		* @brief holds the board states castling rights
 		*/
@@ -135,19 +156,19 @@ public:
 	/**
 	* @brief overload the << operator to call printBoard
 	*/
-	friend std::ostream &operator<<(std::ostream &os, const Board &b);
+	friend std::ostream& operator<<(std::ostream& os, const Board& b);
 
 	/**
 	* @brief set board to specified fen string position
 	* @requires position before setting is the default position
 	* @param fen [string] - fen string to set board to
 	*/
-	void setToFen(const char *fen);
+	void setToFen(const char* fen);
 
 	/**
 	* @brief execute move by adding current boardState to previousBoardStates and updating the current boardState
 	*/
-	void execute(const Move &);
+	void execute(const Move&);
 
 	/**
 	* @brief goes back a move to the previous board state
@@ -188,11 +209,11 @@ private:
 	/**
 	* @brief updates hmclock, fmclock, ep square, etc.
 	*/
-	void updateBoardStateGameData(const Move &);
+	void updateBoardStateGameData(const Move&);
 
 	/**
 	* @brief revokes castling rights if king or rook moves
 	*/
-	void updateCastlingRights(const Move &);
+	void updateCastlingRights(const Move&);
 };
 #endif

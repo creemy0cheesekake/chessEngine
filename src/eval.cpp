@@ -4,7 +4,7 @@
 #include "move_gen.hpp"
 #include "util.hpp"
 
-Centipawns Eval::countMaterial(const Board &b) {
+Centipawns Eval::countMaterial(const Board& b) {
 	Centipawns material = 0;
 	for (Color color : {WHITE, BLACK}) {
 		for (Piece pieceType : {QUEEN, ROOK, BISHOP, KNIGHT, PAWN}) {
@@ -22,7 +22,7 @@ Centipawns Eval::countMaterial(const Board &b) {
 	return material * (b.boardState.sideToMove == WHITE ? 1 : -1);
 }
 
-Centipawns Eval::evaluate(const Board &b) {
+Centipawns Eval::evaluate(Board& b) {
 	Moves moves = b.moveGenerator.genLegalMoves();
 	if (!moves.size()) {
 		// add hmClock to prioritize quicker checkmates
@@ -32,7 +32,7 @@ Centipawns Eval::evaluate(const Board &b) {
 	return countMaterial(b);
 }
 
-Centipawns Eval::search(Moves *topLine, Board &b, int depthLeft, Centipawns alpha, Centipawns beta) {
+Centipawns Eval::search(Moves* topLine, Board& b, int depthLeft, Centipawns alpha, Centipawns beta) {
 	if (depthLeft <= 0 || b.gameOver()) {
 		return evaluate(b);
 	}

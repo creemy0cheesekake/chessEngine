@@ -10,12 +10,12 @@ Move::Move(Board board, Square from, Square to, Piece piece, Piece promoPiece)
 	m_flags = genFlags(board);
 }
 
-std::ostream &operator<<(std::ostream &os, Move &m) {
+std::ostream& operator<<(std::ostream& os, Move& m) {
 	os << m.notation();
 	return os;
 }
 
-MoveFlag Move::genFlags(const Board &board) {
+MoveFlag Move::genFlags(const Board& board) {
 	unsigned int flags = 0;
 	if (board.boardState.sideToMove == WHITE) {
 		if (m_pieceType == PAWN && inRange(m_to, a8, h8)) {

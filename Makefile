@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -g -MMD -MP
+CXXFLAGS = -g -MMD -MP -O2
 BUILD_DIR = build
 TARGET = $(BUILD_DIR)/engine
 
@@ -44,7 +44,6 @@ $(TEST_BUILD_DIR)/%.o: tests/%.cpp | $(TEST_BUILD_DIR)
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
-	#
 $(TEST_BUILD_DIR):
 	mkdir -p $(TEST_BUILD_DIR)
 
