@@ -1,8 +1,9 @@
 #ifndef BOARD_H
 #define BOARD_H
 
-#include <vector>
+#include <array>
 #include <string>
+#include <vector>
 
 #include "consts.hpp"
 #include "move_gen.hpp"
@@ -71,24 +72,24 @@ public:
 		/**
 		* @brief bitboards of all current pieces
 		*/
-		Bitboard pieces[2][6] = {
-			{
-				0x10,
-				0x8,
-				0x81,
-				0x24,
-				0x42,
-				0xff00,
-			},
-			{
-				0x1000000000000000,
-				0x800000000000000,
-				0x8100000000000000,
-				0x2400000000000000,
-				0x4200000000000000,
-				0xff000000000000,
-			}
-		};
+
+		std::array<std::array<Bitboard, 6>, 2> pieces =
+			{{{
+				  0x10,
+				  0x8,
+				  0x81,
+				  0x24,
+				  0x42,
+				  0xff00,
+			  },
+			  {
+				  0x1000000000000000,
+				  0x800000000000000,
+				  0x8100000000000000,
+				  0x2400000000000000,
+				  0x4200000000000000,
+				  0xff000000000000,
+			  }}};
 		// /**
 		// * @brief bitboards of attacks for all pieces
 		// */
@@ -146,7 +147,7 @@ public:
 	/**
 	* @brief MoveGen object to generate moves on this board
 	*/
-	MoveGen moveGenerator = MoveGen(this);
+	MoveGen moveGenerator = MoveGen(*this);
 
 	/**
 	* @brief print a visual representation of the board position using ascii art with a1 in the bottom left and h8 in the top right

@@ -32,7 +32,7 @@ Centipawns Eval::evaluate(Board& b) {
 	return countMaterial(b);
 }
 
-Centipawns Eval::search(Moves* topLine, Board& b, int depthLeft, Centipawns alpha, Centipawns beta) {
+Centipawns Eval::search(Moves& topLine, Board& b, int depthLeft, Centipawns alpha, Centipawns beta) {
 	if (depthLeft <= 0 || b.gameOver()) {
 		return evaluate(b);
 	}
@@ -44,7 +44,7 @@ Centipawns Eval::search(Moves* topLine, Board& b, int depthLeft, Centipawns alph
 	for (Move m : moves) {
 		b.execute(m);
 		Moves subline;
-		Centipawns eval = -search(&subline, b, depthLeft - 1, -beta, -alpha);
+		Centipawns eval = -search(subline, b, depthLeft - 1, -beta, -alpha);
 		b.undoMove();
 
 		if (eval > bestScore) {
@@ -53,9 +53,9 @@ Centipawns Eval::search(Moves* topLine, Board& b, int depthLeft, Centipawns alph
 			alpha	  = std::max(alpha, bestScore);
 
 			// add move to top line
-			topLine->clear();
-			topLine->push_back(bestMove);
-			topLine->insert(topLine->end(), subline.begin(), subline.end());
+			topLine.clear();
+			topLine.push_back(bestMove);
+			topLine.insert(topLine.end(), subline.begin(), subline.end());
 		}
 		if (eval >= beta) {
 			break;

@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -g -MMD -MP -O2
+CXXFLAGS = -g -MMD -MP --std=c++20 -O2
 BUILD_DIR = build
 TARGET = $(BUILD_DIR)/engine
 

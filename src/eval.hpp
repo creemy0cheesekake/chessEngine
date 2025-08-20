@@ -21,6 +21,6 @@ public:
 	/**
 	* @brief negamax search with alpha beta pruning. its sign is whether or not the count is favorable to whoevers turn it is. stores the top engine line in topLine.
 	*/
-	static Centipawns search(Moves* topLine, Board&, int, Centipawns alpha = -INF_SCORE, Centipawns beta = INF_SCORE);
+	static Centipawns search(Moves& topLine, Board&, int, Centipawns alpha = -INF_SCORE, Centipawns beta = INF_SCORE);
 };
 #endif

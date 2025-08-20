@@ -35,22 +35,22 @@ constexpr Centipawns CHECKMATE_SCORE = 30000;
 constexpr Centipawns NONE_SCORE		 = -32001;
 constexpr Centipawns DRAW_SCORE		 = 0;
 
-#define firstRank	0xff
-#define secondRank	0xff00
-#define thirdRank	0xff0000
-#define fourthRank	0xff000000
-#define fifthRank	0xff00000000
-#define sixthRank	0xff0000000000
-#define seventhRank 0xff000000000000
-#define eighthRank	0xff00000000000000
-#define aFile		0x0101010101010101
-#define bFile		0x0202020202020202
-#define cFile		0x0404040404040404
-#define dFile		0x0808080808080808
-#define eFile		0x1010101010101010
-#define fFile		0x2020202020202020
-#define gFile		0x4040404040404040
-#define hFile		0x8080808080808080
+constexpr Bitboard firstRank   = 0xff;
+constexpr Bitboard secondRank  = 0xff00;
+constexpr Bitboard thirdRank   = 0xff0000;
+constexpr Bitboard fourthRank  = 0xff000000;
+constexpr Bitboard fifthRank   = 0xff00000000;
+constexpr Bitboard sixthRank   = 0xff0000000000;
+constexpr Bitboard seventhRank = 0xff000000000000;
+constexpr Bitboard eighthRank  = 0xff00000000000000;
+constexpr Bitboard aFile	   = 0x0101010101010101;
+constexpr Bitboard bFile	   = 0x0202020202020202;
+constexpr Bitboard cFile	   = 0x0404040404040404;
+constexpr Bitboard dFile	   = 0x0808080808080808;
+constexpr Bitboard eFile	   = 0x1010101010101010;
+constexpr Bitboard fFile	   = 0x2020202020202020;
+constexpr Bitboard gFile	   = 0x4040404040404040;
+constexpr Bitboard hFile	   = 0x8080808080808080;
 
 /**
 * @brief both chess piece colors
@@ -176,5 +176,16 @@ inline std::unordered_map<char, Piece> fenPieceChartoPieceType = {
 * @brief index to ascii piece for ascii board representation
 */
 constexpr std::array<const char*, 12> indexToPiece = {"♚ ", "♛ ", "♜ ", "♝ ", "♞ ", "♟︎ ", "♔ ", "♕ ", "♖ ", "♗ ", "♘ ", "♙ "};
+
+constexpr std::array<std::array<int, 6>, 6> MVV_LVA_table = {{
+	/* victims
+	 K	  Q	   R	B	 N	  P		 // aggressors */
+	{999, 500, 400, 300, 200, 100},	 // KING
+	{999, 501, 401, 301, 201, 101},	 // QUEEN
+	{999, 502, 402, 302, 202, 102},	 // ROOK
+	{999, 503, 403, 303, 203, 103},	 // BISHOP
+	{999, 504, 404, 304, 204, 104},	 // KNIGHT
+	{999, 505, 405, 305, 205, 105},	 // PAWN
+}};
 
 #endif

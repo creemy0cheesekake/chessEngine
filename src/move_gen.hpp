@@ -9,7 +9,7 @@ public:
 	/**
 	* @brief board to gen moves
 	*/
-	Board* m_board;
+	Board& m_board;
 
 	/**
 	* @brief bitboard showing every square attacked by oppponent
@@ -66,7 +66,7 @@ public:
 	* @brief movegen constructor
 	* @param Board -- board position for which moves will be generated
 	*/
-	MoveGen(Board*);
+	MoveGen(Board&);
 
 	/**
 	* @brief returns vector of all legal moves
@@ -76,17 +76,17 @@ public:
 	/**
 	* @brief generates legal pawn moves
 	*/
-	void genPawnMoves(Moves&) const;
+	void genPawnMoves(Moves&, Moves&) const;
 
 	/**
 	* @brief generates legal knight moves
 	*/
-	void genKnightMoves(Moves&) const;
+	void genKnightMoves(Moves&, Moves&) const;
 
 	/**
 	* @brief generates legal king moves
 	*/
-	void genKingMoves(Moves&) const;
+	void genKingMoves(Moves&, Moves&) const;
 
 	/**
 	* @brief generates legal castling moves
@@ -100,21 +100,21 @@ public:
 	* @param pieces -- bitboard of pieces which reperesent the pieces that the moves will be generated for
 	* @param direction -- specifies the direction(s) that the sliding pieces go in
 	*/
-	void genSlidingPieces(Moves&, Piece p, Bitboard pieces, SlidingPieceDirectionFlags direction) const;
+	void genSlidingPieces(Moves&, Moves&, Piece p, Bitboard pieces, SlidingPieceDirectionFlags direction) const;
 	/**
 	* @brief generates legal bishop moves
 	*/
-	void genBishopMoves(Moves&) const;
+	void genBishopMoves(Moves&, Moves&) const;
 
 	/**
 	* @brief generates legal rook moves
 	*/
-	void genRookMoves(Moves&) const;
+	void genRookMoves(Moves&, Moves&) const;
 
 	/**
 	* @brief generates legal queen moves
 	*/
-	void genQueenMoves(Moves&) const;
+	void genQueenMoves(Moves&, Moves&) const;
 
 	/**
 	* @brief returns a bitboard with every square that is being attacked by an enemy piece

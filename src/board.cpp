@@ -1,5 +1,4 @@
 #include "board.hpp"
-#include <iostream>
 #include "move_gen.hpp"
 #include "util.hpp"
 
