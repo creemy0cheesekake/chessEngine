@@ -4,6 +4,8 @@
 #include "move_gen.hpp"
 #include "util.hpp"
 
+std::array<std::array<Move, Eval::NUM_KILLER_MOVES>, Eval::MAX_SEARCH_DEPTH> Eval::killerMoves{};
+
 Centipawns Eval::countMaterial(const Board& b) {
 	Centipawns material = 0;
 	for (Color color : {WHITE, BLACK}) {
@@ -63,19 +65,38 @@ Centipawns Eval::quiescence_search(Board& b, Centipawns alpha, Centipawns beta) 
 	return current_best_score;
 }
 
-Centipawns Eval::search(Moves& topLine, Board& b, int depthLeft, Centipawns alpha, Centipawns beta) {
+void Eval::resetKillerMoves() {
+	killerMoves = {};
+}
+
+Centipawns Eval::search(Moves& topLine, Board& b, int depthLeft, Centipawns alpha, Centipawns beta, int plyFromRoot) {
 	if (depthLeft <= 0 || b.gameOver()) {
 		return quiescence_search(b, alpha, beta);
 	}
 
-	Moves moves			 = b.moveGenerator.genLegalMoves();
+	Moves moves			   = b.moveGenerator.genLegalMoves();
+	const Move killerMove1 = killerMoves[plyFromRoot][0];
+	const Move killerMove2 = killerMoves[plyFromRoot][1];
+
+	for (Move& m : moves) {
+		if (m == killerMove1) {
+			m.setScore(KILLER_MOVE_1_SCORE);
+		} else if (m == killerMove2) {
+			m.setScore(KILLER_MOVE_2_SCORE);
+		}
+	}
+
+	std::sort(moves.begin(), moves.end(), [](const Move& a, const Move& b) {
+		return a.getScore() > b.getScore();
+	});
+
 	Centipawns bestScore = -INF_SCORE;
 	Move bestMove;
 
 	for (Move m : moves) {
 		b.execute(m);
 		Moves subline;
-		Centipawns eval = -search(subline, b, depthLeft - 1, -beta, -alpha);
+		Centipawns eval = -search(subline, b, depthLeft - 1, -beta, -alpha, plyFromRoot + 1);
 		b.undoMove();
 
 		if (eval > bestScore) {
@@ -89,7 +110,11 @@ Centipawns Eval::search(Moves& topLine, Board& b, int depthLeft, Centipawns alph
 			topLine.insert(topLine.end(), subline.begin(), subline.end());
 		}
 		if (eval >= beta) {
-			break;
+			if (m != killerMoves[plyFromRoot][0]) {
+				killerMoves[plyFromRoot][1] = killerMoves[plyFromRoot][1];
+				killerMoves[plyFromRoot][0] = m;
+			}
+			return beta;
 		}
 	}
 	return bestScore;

@@ -11,6 +11,7 @@ class Move;
 using Moves		 = std::vector<Move>;
 using Bitboard	 = uint64_t;
 using Centipawns = int16_t;
+using MoveScore	 = int16_t;
 
 /**
 * @brief counts the number of trailing zeros in binary
@@ -34,6 +35,9 @@ constexpr Centipawns INF_SCORE		 = 32000;
 constexpr Centipawns CHECKMATE_SCORE = 30000;
 constexpr Centipawns NONE_SCORE		 = -32001;
 constexpr Centipawns DRAW_SCORE		 = 0;
+
+constexpr MoveScore KILLER_MOVE_1_SCORE = 99;
+constexpr MoveScore KILLER_MOVE_2_SCORE = 98;
 
 constexpr Bitboard firstRank   = 0xff;
 constexpr Bitboard secondRank  = 0xff00;
@@ -177,7 +181,7 @@ inline std::unordered_map<char, Piece> fenPieceChartoPieceType = {
 */
 constexpr std::array<const char*, 12> indexToPiece = {"♚ ", "♛ ", "♜ ", "♝ ", "♞ ", "♟︎ ", "♔ ", "♕ ", "♖ ", "♗ ", "♘ ", "♙ "};
 
-constexpr std::array<std::array<int, 6>, 6> MVV_LVA_table = {{
+constexpr std::array<std::array<MoveScore, 6>, 6> MVV_LVA_table = {{
 	/* victims
 	 K	  Q	   R	B	 N	  P		 // aggressors */
 	{999, 500, 400, 300, 200, 100},	 // KING

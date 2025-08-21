@@ -241,9 +241,9 @@ Moves MoveGen::genLegalMoves() {
 		return MVV_LVA_table[m.getPieceType()][victimPiece];
 	};
 
-	std::sort(pseudoLegalCaptures.begin(), pseudoLegalCaptures.end(), [&](Move a, Move b) {
-		return getMVV_LVA_score(a) > getMVV_LVA_score(b);
-	});
+	for (Move& m : pseudoLegalCaptures) {
+		m.setScore(getMVV_LVA_score(m));
+	}
 
 	auto insertLegalMoves = [&](const Moves& movesContainer) {
 		for (const Move& m : movesContainer) {

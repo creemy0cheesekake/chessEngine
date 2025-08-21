@@ -3,16 +3,21 @@
 #include "util.hpp"
 
 Move::Move()
-	: m_from(NONE_SQUARE), m_to(NONE_SQUARE), m_promoPiece(NONE_PIECE), m_pieceType(NONE_PIECE), m_flags(NORMAL_MOVE) {}
+	: m_from(NONE_SQUARE), m_to(NONE_SQUARE), m_promoPiece(NONE_PIECE), m_pieceType(NONE_PIECE), m_flags(NORMAL_MOVE), m_score(0) {}
 
 Move::Move(Board board, Square from, Square to, Piece piece, Piece promoPiece)
-	: m_from(from), m_to(to), m_promoPiece(promoPiece), m_pieceType(piece) {
+	: m_from(from), m_to(to), m_promoPiece(promoPiece), m_pieceType(piece), m_score(0) {
 	m_flags = genFlags(board);
 }
 
 std::ostream& operator<<(std::ostream& os, Move& m) {
 	os << m.notation();
 	return os;
+}
+
+bool operator==(const Move& a, const Move& b) {
+	return std::tie(a.m_from, a.m_to, a.m_flags, a.m_promoPiece, a.m_pieceType) ==
+		std::tie(b.m_from, b.m_to, b.m_flags, b.m_promoPiece, b.m_pieceType);
 }
 
 MoveFlag Move::genFlags(const Board& board) {
@@ -75,6 +80,14 @@ Piece Move::getPromoPiece() const {
 
 void Move::setPromoPiece(Piece piece) {
 	m_promoPiece = piece;
+}
+
+MoveScore Move::getScore() const {
+	return m_score;
+}
+
+void Move::setScore(MoveScore s) {
+	m_score = s;
 }
 
 Piece Move::getPieceType() const {

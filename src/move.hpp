@@ -35,6 +35,11 @@ private:
 	Piece m_pieceType;
 
 	/**
+	* @brief move score for ordering purposes
+	*/
+	MoveScore m_score;
+
+	/**
 	* @brief infers flags from move and board position
 	* @param Board -- board of the move
 	*/
@@ -65,6 +70,8 @@ public:
 	*/
 	Move(Board, Square, Square, Piece, Piece = NONE_PIECE);
 
+	friend bool operator==(const Move& a, const Move& b);
+
 	/**
 	* @brief returns "from" square as an int
 	*/
@@ -94,6 +101,16 @@ public:
 	* @brief gets promotion piece
 	*/
 	Piece getPromoPiece() const;
+
+	/**
+	* @brief sets ordering score
+	*/
+	void setScore(MoveScore);
+
+	/**
+	* @brief gets ordering score
+	*/
+	MoveScore getScore() const;
 
 	/**
 	* @brief return move notation in long algebraic form
