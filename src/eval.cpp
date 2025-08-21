@@ -32,9 +32,40 @@ Centipawns Eval::evaluate(Board& b) {
 	return countMaterial(b);
 }
 
+Centipawns Eval::quiescence_search(Board& b, Centipawns alpha, Centipawns beta) {
+	Centipawns current_best_score = evaluate(b);
+	if (current_best_score >= beta) {
+		return beta;
+	}
+	if (current_best_score > alpha) {
+		alpha = current_best_score;
+	}
+
+	MoveGen mg = b.moveGenerator;
+
+	// we only want to generate legal captures for quiescence_search, but if the king is in check, all legal moves must be searched
+	Moves moves = mg.inCheck() ? mg.genLegalMoves() : mg.genLegalCaptures();
+	for (Move m : moves) {
+		b.execute(m);
+		Centipawns score = -quiescence_search(b, -beta, -alpha);
+		b.undoMove();
+
+		if (score >= beta) {
+			return score;
+		}
+		if (score > current_best_score) {
+			current_best_score = score;
+		}
+		if (score > alpha) {
+			alpha = score;
+		}
+	}
+	return current_best_score;
+}
+
 Centipawns Eval::search(Moves& topLine, Board& b, int depthLeft, Centipawns alpha, Centipawns beta) {
 	if (depthLeft <= 0 || b.gameOver()) {
-		return evaluate(b);
+		return quiescence_search(b, alpha, beta);
 	}
 
 	Moves moves			 = b.moveGenerator.genLegalMoves();

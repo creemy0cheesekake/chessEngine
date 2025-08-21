@@ -74,27 +74,32 @@ public:
 	Moves genLegalMoves();
 
 	/**
-	* @brief generates legal pawn moves
+	* @brief returns vector of all legal captures
+	*/
+	Moves genLegalCaptures();
+
+	/**
+	* @brief generates pseudo legal pawn moves
 	*/
 	void genPawnMoves(Moves&, Moves&) const;
 
 	/**
-	* @brief generates legal knight moves
+	* @brief generates pseudo legal knight moves
 	*/
 	void genKnightMoves(Moves&, Moves&) const;
 
 	/**
-	* @brief generates legal king moves
+	* @brief generates pseudo legal king moves
 	*/
 	void genKingMoves(Moves&, Moves&) const;
 
 	/**
-	* @brief generates legal castling moves
+	* @brief generates pseudo legal castling moves
 	*/
 	void genCastlingMoves(Moves&) const;
 
 	/**
-	* @brief general function to generate all sliding moves
+	* @brief general function to generate all sliding pseudo legal moves
 	* @param pseudoLegalMoves -- reference for vector to add moves to
 	* @param p -- Piece type of piece
 	* @param pieces -- bitboard of pieces which reperesent the pieces that the moves will be generated for
@@ -102,19 +107,57 @@ public:
 	*/
 	void genSlidingPieces(Moves&, Moves&, Piece p, Bitboard pieces, SlidingPieceDirectionFlags direction) const;
 	/**
-	* @brief generates legal bishop moves
+	* @brief generates pseudo legal bishop moves
 	*/
 	void genBishopMoves(Moves&, Moves&) const;
 
 	/**
-	* @brief generates legal rook moves
+	* @brief generates pseudo legal rook moves
 	*/
 	void genRookMoves(Moves&, Moves&) const;
 
 	/**
-	* @brief generates legal queen moves
+	* @brief generates pseudo legal queen moves
 	*/
 	void genQueenMoves(Moves&, Moves&) const;
+
+	/**
+	* @brief generates pseudo legal pawn captures
+	*/
+	void genPawnCaptures(Moves&) const;
+
+	/**
+	* @brief generates pseudo legal knight captures
+	*/
+	void genKnightCaptures(Moves&) const;
+
+	/**
+	* @brief generates pseudo legal king captures
+	*/
+	void genKingCaptures(Moves&) const;
+
+	/**
+	* @brief general function to generate all sliding pseudo legal captures
+	* @param pseudoLegalMoves -- reference for vector to add moves to
+	* @param p -- Piece type of piece
+	* @param pieces -- bitboard of pieces which reperesent the pieces that the moves will be generated for
+	* @param direction -- specifies the direction(s) that the sliding pieces go in
+	*/
+	void genSlidingPiecesCaptures(Moves&, Piece p, Bitboard pieces, SlidingPieceDirectionFlags direction) const;
+	/**
+	* @brief generates pseudo legal bishop captures
+	*/
+	void genBishopCaptures(Moves&) const;
+
+	/**
+	* @brief generates pseudo legal rook captures
+	*/
+	void genRookCaptures(Moves&) const;
+
+	/**
+	* @brief generates pseudo legal queen captures
+	*/
+	void genQueenCaptures(Moves&) const;
 
 	/**
 	* @brief returns a bitboard with every square that is being attacked by an enemy piece
