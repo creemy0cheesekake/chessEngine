@@ -132,6 +132,10 @@ public:
 		* @brief full move clock. number of full moves, starts at 1, gets incremented every time black moves
 		*/
 		unsigned int fmClock = 1;
+		/**
+		* @brief unique (almost) hash of board state
+		*/
+		ZobristHash hash;
 	};
 
 	/**
@@ -216,5 +220,10 @@ private:
 	* @brief revokes castling rights if king or rook moves
 	*/
 	void updateCastlingRights(const Move&);
+
+	/**
+	* @brief changes the zobrist hash to the new value
+	*/
+	void updateZobristHash(const Move&);
 };
 #endif

@@ -5,6 +5,9 @@
 Move::Move()
 	: m_from(NONE_SQUARE), m_to(NONE_SQUARE), m_promoPiece(NONE_PIECE), m_pieceType(NONE_PIECE), m_flags(NORMAL_MOVE), m_score(0) {}
 
+Move::Move(Square from, Square to, Piece piece, Piece promoPiece, MoveFlag flags)
+	: m_from(from), m_to(to), m_promoPiece(promoPiece), m_pieceType(piece), m_flags(flags), m_score(0) {}
+
 Move::Move(Board board, Square from, Square to, Piece piece, Piece promoPiece)
 	: m_from(from), m_to(to), m_promoPiece(promoPiece), m_pieceType(piece), m_score(0) {
 	m_flags = genFlags(board);

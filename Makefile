@@ -11,7 +11,9 @@ SRCS = \
 	src/move.cpp \
 	src/move_gen_attacks.cpp \
 	src/move_gen.cpp \
-	src/util.cpp
+	src/util.cpp \
+	src/transposition_table.cpp \
+	src/zobrist.cpp
 
 TEST_TARGET = $(BUILD_DIR)/run_tests
 TEST_BUILD_DIR = $(BUILD_DIR)/tests
