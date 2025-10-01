@@ -8,10 +8,11 @@
 #include <vector>
 
 class Move;
-using Moves		 = std::vector<Move>;
-using Bitboard	 = uint64_t;
-using Centipawns = int16_t;
-using MoveScore	 = int16_t;
+using Moves		  = std::vector<Move>;
+using Bitboard	  = uint64_t;
+using Centipawns  = int16_t;
+using MoveScore	  = int16_t;
+using ZobristHash = uint64_t;
 
 /**
 * @brief counts the number of trailing zeros in binary
@@ -122,6 +123,14 @@ enum DirectionDiagonal {
 	NORTHWEST,
 	SOUTHEAST,
 	SOUTHWEST,
+};
+
+/**
+* @brief states for search process
+*/
+enum SearchState {
+	SEARCH_ABORTED,
+	SEARCH_COMPLETE,
 };
 
 /**

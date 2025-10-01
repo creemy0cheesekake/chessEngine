@@ -61,12 +61,22 @@ public:
 	*/
 	Move();
 	/**
+	* @brief constructs a move with explicit fields
+	* @param Square -- starting square
+	* @param Square -- destination square
+	* @param Piece -- type of piece that moved
+	* @param Piece -- type of piece to promote to
+	* @param MoveFlag -- move flags
+	*/
+	Move(Square from, Square to, Piece piece, Piece promoPiece, MoveFlag flags);
+
+	/**
 	* @brief move constructor. infers the flags from the move
 	* @param Board -- provides board data for context
 	* @param Square -- starting square in little endian rank file 
 	* @param Square -- ending square in little endian rank file 
-	* @param Piece -- type of piece to promote to
 	* @param Piece -- type of piece that moved
+	* @param Piece -- type of piece to promote to
 	*/
 	Move(Board, Square, Square, Piece, Piece = NONE_PIECE);
 

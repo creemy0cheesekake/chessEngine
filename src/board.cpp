@@ -1,9 +1,11 @@
 #include "board.hpp"
 #include "move_gen.hpp"
 #include "util.hpp"
+#include "zobrist.hpp"
 
 Board::Board() {
 	m_previousBoardStates.reserve(999);
+	boardState.hash = Zobrist::initialHash();
 }
 
 std::string Board::printBoard() const {
@@ -94,6 +96,7 @@ void Board::setToFen(const char* fen) {
 	boardState.hmClock = std::strtol(fen, &endOfClock, 10);
 	fen				   = endOfClock + 1;
 	boardState.fmClock = std::strtol(fen, &endOfClock, 10);
+	boardState.hash	   = Zobrist::hash(boardState);
 }
 
 bool Board::inIllegalCheck() {
@@ -133,6 +136,13 @@ bool Board::gameOver() {
 void Board::execute(const Move& m) {
 	m_previousBoardStates.push_back(boardState);
 	MoveFlag flags = m.getFlags();
+
+	if (boardState.enPassantSquare) {
+		boardState.hash ^= Zobrist::epFileKeys[bitscan(boardState.enPassantSquare) % 8];
+	}
+	boardState.hash ^= Zobrist::castlingKeys[boardState.castlingRights.rights];
+	boardState.hash ^= Zobrist::pieceKeys[(boardState.sideToMove == BLACK ? 6 : 0) + m.getPieceType()][m.getFrom()];
+
 	if (flags & KS_CASTLE) {
 		if (boardState.sideToMove == WHITE) {
 			boardState.pieces[WHITE][KING] ^= 0x50;
@@ -153,10 +163,17 @@ void Board::execute(const Move& m) {
 		if (flags & CAPTURE) {
 			// removes piece from the destination square
 			if (flags & EN_PASSANT) {
-				boardState.pieces[!boardState.sideToMove][PAWN] &= ~(1UL << (m.getTo() + (boardState.sideToMove == WHITE ? -8 : 8)));
+				int capturedPawnSquare = m.getTo() + (boardState.sideToMove == WHITE ? -8 : 8);
+				boardState.hash ^= Zobrist::pieceKeys[(boardState.sideToMove == WHITE ? 6 : 0) + PAWN][capturedPawnSquare];
+				boardState.pieces[!boardState.sideToMove][PAWN] &= ~(1UL << (capturedPawnSquare));
 			} else {
-				for (int i = 0; i < 6; i++) {
-					boardState.pieces[!boardState.sideToMove][i] &= ~(1UL << m.getTo());
+				for (Piece p : {KING, QUEEN, ROOK, BISHOP, KNIGHT, PAWN}) {
+					std::array<Bitboard, 6>& theirPieces = boardState.pieces[!boardState.sideToMove];
+					if (theirPieces[p] & 1UL << m.getTo()) {
+						theirPieces[p] &= ~(1UL << m.getTo());
+						boardState.hash ^= Zobrist::pieceKeys[(boardState.sideToMove == WHITE ? 6 : 0) + p][m.getTo()];
+						break;
+					}
 				}
 			}
 		}
@@ -168,10 +185,13 @@ void Board::execute(const Move& m) {
 		boardState.pieces[boardState.sideToMove][m.getPieceType()] ^= moveMask;
 		if (flags & PROMOTION) {
 			boardState.pieces[boardState.sideToMove][m.getPromoPiece()] |= 1UL << m.getTo();
+			boardState.hash ^= Zobrist::pieceKeys[(boardState.sideToMove == BLACK ? 6 : 0) + PAWN][m.getTo()];
+			boardState.hash ^= Zobrist::pieceKeys[(boardState.sideToMove == BLACK ? 6 : 0) + m.getPromoPiece()][m.getTo()];
 		}
 	}
 
 	updateBoardStateGameData(m);
+	boardState.hash ^= Zobrist::pieceKeys[(boardState.sideToMove == BLACK ? 6 : 0) + m.getPieceType()][m.getTo()];
 }
 
 void Board::undoMove() {
@@ -194,13 +214,16 @@ void Board::updateBoardStateGameData(const Move& m) {
 
 	// updates en passant square if dbl pawn push
 	if (flags & DBL_PAWN) {
-		boardState.enPassantSquare = 1UL << (boardState.sideToMove == WHITE ? m.getTo() - 8 : m.getTo() + 8);
+		int enPassantSquareIndex   = boardState.sideToMove == WHITE ? m.getTo() - 8 : m.getTo() + 8;
+		boardState.enPassantSquare = 1UL << enPassantSquareIndex;
+		boardState.hash ^= Zobrist::epFileKeys[enPassantSquareIndex];
 	}
 
 	updateCastlingRights(m);
 
 	// switching side to move
 	boardState.sideToMove = (Color)!boardState.sideToMove;
+	boardState.hash ^= Zobrist::blackSideKey;
 }
 
 void Board::updateCastlingRights(const Move& m) {
@@ -259,6 +282,8 @@ void Board::updateCastlingRights(const Move& m) {
 			default: break;
 		}
 	}
+
+	boardState.hash ^= Zobrist::castlingKeys[boardState.castlingRights.rights];
 }
 
 Bitboard Board::whitePieces() const {
