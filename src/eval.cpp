@@ -18,17 +18,13 @@ Centipawns Eval::countMaterial(const Board& b) {
 	for (Color color : {WHITE, BLACK}) {
 		for (Piece pieceType : {QUEEN, ROOK, BISHOP, KNIGHT, PAWN}) {
 			Bitboard piece = b.boardState.pieces[color][pieceType];
-			int count	   = 0;
-			while (piece) {
-				piece ^= LS1B(piece);
-				count++;
-			}
+			int count	   = __builtin_popcountll(piece);
 			material +=
 				count * pieceToCentipawns[pieceType] *
 				(color == WHITE ? 1 : -1);
 		}
 	}
-	return material * (b.boardState.sideToMove == WHITE ? 1 : -1);
+	return material;
 }
 
 Centipawns Eval::evaluate(Board& b) {
@@ -38,7 +34,17 @@ Centipawns Eval::evaluate(Board& b) {
 		return b.moveGenerator.inCheck() ? -INF_SCORE + (int)b.boardState.hmClock : 0;
 	}
 
-	return countMaterial(b);
+	Centipawns score = countMaterial(b);
+	for (Color color : {WHITE, BLACK}) {
+		for (Piece pieceType : {KING, QUEEN, ROOK, BISHOP, KNIGHT, PAWN}) {
+			Bitboard piece = b.boardState.pieces[color][pieceType];
+			while (piece) {
+				score += (color == WHITE ? 1 : -1) * positionalValue(pieceType, color, (Square)bitscan(piece));
+				piece ^= LS1B(piece);
+			};
+		}
+	}
+	return score * (b.boardState.sideToMove == WHITE ? 1 : -1);
 }
 
 std::tuple<Centipawns, Move, SearchState> Eval::quiescence_search(Board& b, Centipawns alpha, Centipawns beta) {
@@ -47,11 +53,11 @@ std::tuple<Centipawns, Move, SearchState> Eval::quiescence_search(Board& b, Cent
 
 	if (TTEntryFound) {
 		const bool isExact		= entry.flag == EXACT;
-		const bool isLowerBound = entry.flag == ALPHA && entry.score >= beta;
-		const bool isUpperBound = entry.flag == BETA && entry.score <= alpha;
+		const bool isLowerBound = entry.flag == LOWER_BOUND && entry.score >= beta;
+		const bool isUpperBound = entry.flag == UPPER_BOUND && entry.score <= alpha;
 
 		if (isExact || isLowerBound || isUpperBound) {
-			return {entry.score, Move(entry.bestMove.from, entry.bestMove.to, entry.bestMove.piece, entry.bestMove.promoPiece, entry.bestMove.flags), SearchState::SEARCH_COMPLETE};
+			return {(Centipawns)entry.score, Move(entry.bestMove.from, entry.bestMove.to, entry.bestMove.piece, entry.bestMove.promoPiece, entry.bestMove.flags), SearchState::SEARCH_COMPLETE};
 		}
 	}
 
@@ -78,7 +84,7 @@ std::tuple<Centipawns, Move, SearchState> Eval::quiescence_search(Board& b, Cent
 		b.undoMove();
 
 		if (score >= beta) {
-			TranspositionTable::add(b.boardState.hash, beta, 0, BETA, m);
+			TranspositionTable::add(b.boardState.hash, beta, 0, UPPER_BOUND, m);
 			return {beta, m, SearchState::SEARCH_COMPLETE};
 		}
 		if (score > current_best_score) {
@@ -89,7 +95,7 @@ std::tuple<Centipawns, Move, SearchState> Eval::quiescence_search(Board& b, Cent
 			alpha = score;
 		}
 	}
-	TranspositionTable::add(b.boardState.hash, current_best_score, 0, current_best_score > alpha ? EXACT : ALPHA, bestMove);
+	TranspositionTable::add(b.boardState.hash, current_best_score, 0, current_best_score > alpha ? EXACT : LOWER_BOUND, bestMove);
 	return {current_best_score, bestMove, SearchState::SEARCH_COMPLETE};
 }
 
@@ -104,11 +110,11 @@ std::tuple<Centipawns, Move, SearchState> Eval::search(Moves& topLine, Board& b,
 	bool TTEntryFound = entry.partial_hash == (b.boardState.hash & 0xFFFF) && entry.depth >= depthLeft;
 	if (TTEntryFound) {
 		const bool isExact		= entry.flag == EXACT;
-		const bool isLowerBound = entry.flag == ALPHA && entry.score >= beta;
-		const bool isUpperBound = entry.flag == BETA && entry.score <= alpha;
+		const bool isLowerBound = entry.flag == LOWER_BOUND && entry.score >= beta;
+		const bool isUpperBound = entry.flag == UPPER_BOUND && entry.score <= alpha;
 
 		if (isExact || isLowerBound || isUpperBound) {
-			return {entry.score, TranspositionTable::getMove(entry.bestMove), SearchState::SEARCH_COMPLETE};
+			return {(Centipawns)entry.score, TranspositionTable::getMove(entry.bestMove), SearchState::SEARCH_COMPLETE};
 		}
 	}
 
@@ -116,8 +122,7 @@ std::tuple<Centipawns, Move, SearchState> Eval::search(Moves& topLine, Board& b,
 		return quiescence_search(b, alpha, beta);
 	}
 
-	MoveGen mg			   = b.moveGenerator;
-	Moves moves			   = mg.genLegalMoves();
+	Moves moves			   = b.moveGenerator.genLegalMoves();
 	const Move killerMove1 = killerMoves[plyFromRoot][0];
 	const Move killerMove2 = killerMoves[plyFromRoot][1];
 
@@ -149,40 +154,54 @@ std::tuple<Centipawns, Move, SearchState> Eval::search(Moves& topLine, Board& b,
 
 	Centipawns bestScore = -INF_SCORE;
 	Move bestMove;
-
 	int movesSearched = 0;
 
+	Centipawns originalAlpha = alpha;
 	for (Move m : moves) {
 		if (std::chrono::high_resolution_clock::now() > m_iterative_deepening_cutoff_time) {
-			return {bestScore, Move(), SearchState::SEARCH_ABORTED};
+			return {NONE_SCORE, Move(), SearchState::SEARCH_ABORTED};
 		}
+		movesSearched++;
+		bool isQuietMove = !(m.getFlags() & (CAPTURE | PROMOTION));
+
 		b.execute(m);
 		Moves subline;
-
-		movesSearched++;
-		bool isQuietMove = !(m.getFlags() & (CAPTURE + PROMOTION)) && !mg.inCheck();
 
 		Centipawns eval = alpha;
 		bool didLMR		= false;
 		if (movesSearched > 3 && depthLeft >= 6 && isQuietMove) {
-			didLMR = true;
-			// std::cout << "didLMR" << std::endl;
-			int reductionFactor = calculateReductionFactor(movesSearched, depthLeft);
-			int lmrDepthLeft	= std::max(1, depthLeft - reductionFactor);
-			// std::cout << "LMR: " << lmrDepthLeft << std::endl;
-			auto [e, _, __] = search(subline, b, lmrDepthLeft, -(alpha + 1), -alpha, plyFromRoot + 1);
-			eval			= -e;
+			didLMR					 = true;
+			int reductionFactor		 = calculateReductionFactor(movesSearched, depthLeft);
+			int lmrDepthLeft		 = std::max(1, depthLeft - reductionFactor);
+			auto [e, _, searchState] = search(subline, b, lmrDepthLeft, -(alpha + 1), -alpha, plyFromRoot + 1, m);
+			if (searchState == SearchState::SEARCH_ABORTED) {
+				b.undoMove();
+				return {NONE_SCORE, Move(), SearchState::SEARCH_ABORTED};
+			}
+			eval = -e;
 		}
-		if (eval < beta || !didLMR || movesSearched == 1) {
-			if (movesSearched == 1) {
-				auto [e, _, __] = search(subline, b, depthLeft - 1, -beta, -alpha, plyFromRoot + 1);
-				eval			= -e;
+		if ((eval > alpha && eval < beta) || !didLMR || movesSearched == 1) {
+			if (movesSearched == 1 || isQuietMove) {
+				auto [e, _, searchState] = search(subline, b, depthLeft - 1, -beta, -alpha, plyFromRoot + 1, m);
+				if (searchState == SearchState::SEARCH_ABORTED) {
+					b.undoMove();
+					return {NONE_SCORE, Move(), SearchState::SEARCH_ABORTED};
+				}
+				eval = -e;
 			} else {
-				auto [e, _, __] = search(subline, b, depthLeft - 1, -alpha - 1, -alpha, plyFromRoot + 1);
-				eval			= -e;
+				auto [e, _, searchState] = search(subline, b, depthLeft - 1, -alpha - 1, -alpha, plyFromRoot + 1, m);
+				if (searchState == SearchState::SEARCH_ABORTED) {
+					b.undoMove();
+					return {NONE_SCORE, Move(), SearchState::SEARCH_ABORTED};
+				}
+				eval = -e;
 				if (eval > alpha && beta - alpha > 1) {
-					auto [e, _, __] = search(subline, b, depthLeft - 1, -beta, -alpha, plyFromRoot + 1);
-					eval			= -e;
+					auto [e, _, searchState] = search(subline, b, depthLeft - 1, -beta, -alpha, plyFromRoot + 1, m);
+					if (searchState == SearchState::SEARCH_ABORTED) {
+						b.undoMove();
+						return {NONE_SCORE, Move(), SearchState::SEARCH_ABORTED};
+					}
+					eval = -e;
 				}
 			}
 		}
@@ -207,11 +226,11 @@ std::tuple<Centipawns, Move, SearchState> Eval::search(Moves& topLine, Board& b,
 		}
 	}
 	if (bestScore >= beta) {
-		TranspositionTable::add(b.boardState.hash, bestScore, depthLeft, BETA, bestMove);
-	} else if (bestScore > alpha) {
+		TranspositionTable::add(b.boardState.hash, bestScore, depthLeft, LOWER_BOUND, bestMove);
+	} else if (bestScore > originalAlpha) {
 		TranspositionTable::add(b.boardState.hash, bestScore, depthLeft, EXACT, bestMove);
 	} else {
-		TranspositionTable::add(b.boardState.hash, bestScore, depthLeft, ALPHA, bestMove);
+		TranspositionTable::add(b.boardState.hash, bestScore, depthLeft, UPPER_BOUND, bestMove);
 	}
 
 	return {bestScore, bestMove, SearchState::SEARCH_COMPLETE};
@@ -221,14 +240,17 @@ Centipawns Eval::iterative_deepening_ply(Moves& topLine, Board& b, int maxDepth)
 	Move previousMove;
 	Centipawns finalScore;
 	for (int depth = 1; depth <= maxDepth; depth++) {
-		auto [eval, bestMove, _] = search(topLine, b, depth, -INF_SCORE, INF_SCORE, 0, previousMove);
-		previousMove			 = topLine.back();
-		finalScore				 = eval;
-
+		auto [eval, bestMove, searchState] = search(topLine, b, depth, -INF_SCORE, INF_SCORE, 0, previousMove);
+		previousMove					   = topLine.back();
 		for (Move m : topLine) {
 			std::cout << m.notation() << " ";
 		}
 		std::cout << std::endl;
+		if (searchState != SearchState::SEARCH_ABORTED) {
+			finalScore = eval;
+		} else {
+			break;
+		}
 	}
 	return finalScore;
 }
@@ -245,12 +267,15 @@ Centipawns Eval::iterative_deepening_time(Moves& topLine, Board& b, int maxTimeM
 		}
 		auto [eval, bestMove, searchState] = search(topLine, b, depth++, -INF_SCORE, INF_SCORE, 0, previousMove);
 		previousMove					   = topLine.back();
-		finalScore						   = eval;
-
 		for (Move m : topLine) {
 			std::cout << m.notation() << " ";
 		}
 		std::cout << std::endl;
+		if (searchState != SearchState::SEARCH_ABORTED) {
+			finalScore = eval;
+		} else {
+			break;
+		}
 	}
 	std::cout << "NPS: " << totalNodesSearched / (maxTimeMs / 1000.0) << std::endl;
 	return finalScore;
@@ -260,4 +285,8 @@ int Eval::calculateReductionFactor(int movesSearched, int depthLeft) {
 	int N	   = movesSearched * depthLeft;
 	int log2_N = 31 - __builtin_clz(N);
 	return log2_N / 1;
+}
+
+Centipawns Eval::positionalValue(Piece pieceType, Color color, Square square) {
+	return m_materialWeights[pieceType][color][(int)square];
 }

@@ -12,12 +12,12 @@ class Eval {
 public:
 	static uint64_t totalNodesSearched;
 	/**
-	* @brief sums up material count, and its sign is whether or not the count is favorable to whoevers turn it is. all standard piece values except bishop is worth 3.1
+	* @brief sums up material count from whites POV.
 	*/
 	static Centipawns countMaterial(const Board&);
 
 	/**
-	* @brief spits out evaluation given a position. its sign is whether or not the count is favorable to whoevers turn it is. for now this just counts material.
+	* @brief spits out evaluation given a position. its sign is whether or not the count is favorable to whoevers turn it is.
 	*/
 	static Centipawns evaluate(Board&);
 
@@ -80,5 +80,149 @@ private:
 	* @return Reduction factor to apply to search depth
 	*/
 	static int calculateReductionFactor(int movesSearched, int depthLeft);
+
+	/**
+	* @brief Calculates the weight given to each piece based on its location for evaluation.
+	* This function is used to adjust the material value of pieces depending on their position on the board.
+	* The weight can vary for different pieces and colors, reflecting strategic considerations such as control of the center,
+	* piece activity, and other positional factors.
+	* 
+	* @param pieceType The type of the piece (e.g., QUEEN, ROOK, BISHOP, KNIGHT, PAWN).
+	* @param color The color of the piece (WHITE or BLACK).
+	* @param position The position of the piece on the board.
+	* @return A multiplier that adjusts the material value of the piece based on its position.
+	*/
+	static Centipawns positionalValue(Piece pieceType, Color color, Square position);
+
+	constexpr const static std::array<std::array<std::array<Centipawns, 64>, 2>, 6> m_materialWeights = {{
+		// clang-format off
+		// KING
+		{{
+			// WHITE
+			{   15,   25,   25,  -10,   -1,   -1,   25,   25,
+			    0,   -5,  -15,  -15,  -15,  -15,   -5,    0,
+			  -20,  -25,  -30,  -30,  -30,  -30,  -25,  -20,
+			  -60,  -60,  -60,  -60,  -60,  -60,  -60,  -60,
+			  -80,  -80,  -80,  -80,  -80,  -80,  -80,  -80,
+			 -100, -100, -100, -100, -100, -100, -100, -100,
+			 -120, -120, -120, -120, -120, -120, -120, -120,
+			 -140, -140, -140, -140, -140, -140, -140, -140 },
+			// BLACK
+			{ -140, -140, -140, -140, -140, -140, -140, -140,
+			 -120, -120, -120, -120, -120, -120, -120, -120,
+			 -100, -100, -100, -100, -100, -100, -100, -100,
+			  -80,  -80,  -80,  -80,  -80,  -80,  -80,  -80,
+			  -60,  -60,  -60,  -60,  -60,  -60,  -60,  -60,
+			  -20,  -25,  -30,  -30,  -30,  -30,  -25,  -20,
+			    0,   -5,  -15,  -15,  -15,  -15,   -5,    0,
+			   15,   25,   25,  -10,   -1,   -1,   25,   25 },
+		}},
+		// QUEEN
+		{{
+			// WHITE
+			{0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0},
+			// BLACK
+			{0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0}
+		}},
+		// ROOK
+		{{
+			// WHITE
+			{0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0},
+			// BLACK
+			{0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0}
+		}},
+		// BISHOP
+		{{
+			// WHITE
+			{0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0},
+			// BLACK
+			{0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0,
+			 0, 0, 0, 0, 0, 0, 0, 0}
+		}},
+		// KNIGHT
+		{{
+			// WHITE
+			{-7, -2, -5, -5, -5, -5, -2, -7,
+			 -7,  0,  0,  0,  0,  0,  0, -7,
+			 -5,  0,  5,  5,  5,  5,  0, -5,
+			 -5,  5,  5,  6,  6,  5,  5, -5,
+			 -5,  5,  5,  6,  6,  5,  5, -5,
+			 -5,  0,  5,  5,  5,  5,  0, -5,
+			 -5,  0,  0,  0,  0,  0,  0, -5,
+			 -7, -5, -5, -5, -5, -5, -5, -7},
+			// BLACK
+			{-7, -5, -5, -5, -5, -5, -5, -7,
+			 -5,  0,  0,  0,  0,  0,  0, -5,
+			 -5,  0,  5,  5,  5,  5,  0, -5,
+			 -5,  5,  5,  6,  6,  5,  5, -5,
+			 -5,  5,  5,  6,  6,  5,  5, -5,
+			 -5,  0,  5,  5,  5,  5,  0, -5,
+			 -7,  0,  0,  0,  0,  0,  0, -7,
+			 -7, -2, -5, -5, -5, -5, -2, -7},
+		}},
+		// PAWN
+		{{
+			// WHITE
+			{ 0,  0,  0,  0,  0,  0,  0,  0,
+			  0,  0,  0,  0,  0,  0,  0,  0,
+			  0,  0, -1,  2,  2, -1,  0,  0,
+			  0,  0,  0,  7,  7,  0,  0,  0,
+			  0,  0,  0,  7,  7,  0,  0,  0,
+			 10, 10, 10, 10, 10, 10, 10, 10,
+			 15, 15, 15, 15, 15, 15, 15, 15,
+			  0,  0,  0,  0,  0,  0,  0,  0},
+			// BLACK
+			{ 0,  0,  0,  0,  0,  0,  0,  0,
+			 15, 15, 15, 15, 15, 15, 15, 15,
+			 10, 10, 10, 10, 10, 10, 10, 10,
+			  0,  0,  0,  7,  7,  0,  0,  0,
+			  0,  0,  0,  7,  7,  0,  0,  0,
+			  0,  0, -1,  2,  2, -1,  0,  0,
+			  0,  0,  0,  0,  0,  0,  0,  0,
+			  0,  0,  0,  0,  0,  0,  0,  0}
+		}}
+		// clang-format on
+	}};
 };
 #endif

@@ -8,11 +8,11 @@ constexpr int TT_SIZE_MB = 16 * 1024 * 1024;
 
 enum TTFlag {
 	EXACT,
-	ALPHA,
-	BETA,
+	LOWER_BOUND,
+	UPPER_BOUND,
 };
 
-struct MoveSkeleton {
+struct __attribute__((packed)) MoveSkeleton {
 	/**
     * @brief starting square
     */
@@ -51,11 +51,11 @@ struct MoveSkeleton {
 	}
 };
 
-struct alignas(16) TTEntry {
+struct __attribute__((packed)) alignas(16) TTEntry {
 	/**
     * @brief partial hash for collision detection
     */
-	u_int16_t partial_hash;
+	uint16_t partial_hash;
 
 	/**
     * @brief evaluation score stored in the entry
