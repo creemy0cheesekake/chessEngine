@@ -151,5 +151,12 @@ public:
 	* as a percentage of the total available entries.
 	*/
 	static void printCapacity();
+
+	/**
+	* @brief Resets the transposition table by clearing all entries.
+	* This function sets the number of used entries to zero, effectively
+	* clearing the transposition table.
+	*/
+	static void reset();
 };
 #endif

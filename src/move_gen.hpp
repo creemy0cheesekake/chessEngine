@@ -37,6 +37,22 @@ public:
 	Bitboard genKingAttacks() const;
 
 	/**
+	* @brief generates attack bitboard for sliding pieces in straight directions (NORTH, SOUTH, EAST, WEST)
+	* @param pieceSquare -- square of the piece for which the attacks will be generated
+	* @param occ -- bitboard representing all occupied squares
+	* @return bitboard of all squares attacked by the sliding pieces in straight directions
+	*/
+	static Bitboard genStraightRays(Board& b, Square pieceSquare, Bitboard occ);
+
+	/**
+	* @brief generates attack bitboard for sliding pieces in diagonal directions (NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST)
+	* @param pieceSquare -- square of the piece for which the attacks will be generated
+	* @param occ -- bitboard representing all occupied squares
+	* @return bitboard of all squares attacked by the sliding pieces in diagonal directions
+	*/
+	static Bitboard genDiagonalRays(Board& b, Square pieceSquare, Bitboard occ);
+
+	/**
 	* @brief general function for sliding piece attacks
 	* @param pieces -- bitboard of pieces which reperesent the pieces that the moves will be generated for
 	* @param direction -- specifies the direction(s) that the sliding pieces go in

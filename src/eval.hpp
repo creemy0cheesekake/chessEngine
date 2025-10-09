@@ -51,7 +51,7 @@ public:
 	/**
 	* @brief quiescensce search to avoid horizon effect.
 	*/
-	static std::tuple<Centipawns, Move, SearchState> quiescence_search(Board& b, Centipawns alpha, Centipawns beta);
+	static Centipawns quiescence_search(Board& b, Centipawns alpha, Centipawns beta);
 
 	static constexpr int MAX_SEARCH_DEPTH = 64;
 	static constexpr int NUM_KILLER_MOVES = 2;
@@ -224,5 +224,10 @@ private:
 		}}
 		// clang-format on
 	}};
+
+	constexpr static std::array<int, 28> queenMobilityScore	 = {-60, -50, -40, -30, -20, -10, 0, 3, 5, 7, 10, 12, 15, 17, 20, 22, 25, 27, 30, 32, 35, 37, 40, 42, 45, 50, 55, 60};
+	constexpr static std::array<int, 15> rookMobilityScore	 = {-40, -30, -20, -10, 0, 8, 12, 15, 20, 23, 25, 27, 30, 32, 35};
+	constexpr static std::array<int, 14> bishopMobilityScore = {-40, -30, -20, -10, 0, 8, 12, 15, 20, 23, 25, 27, 30, 32};
+	constexpr static std::array<int, 9> knightMobilityScore	 = {-30, -20, -10, 0, 8, 15, 20, 25, 30};
 };
 #endif

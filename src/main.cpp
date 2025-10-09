@@ -39,6 +39,7 @@ int main() {
 		std::cout << m.notation() << " ";
 	}
 	std::cout << std::endl;
+	std::cout << b.boardState.hash << std::endl;
 
 	Timer::end();
 	std::cout << b << std::endl;

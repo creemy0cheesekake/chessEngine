@@ -30,6 +30,42 @@ Bitboard MoveGen::genKingAttacks() const {
 	return LookupTables::s_kingAttacks[bitscan(king)];
 }
 
+Bitboard MoveGen::genStraightRays(Board& b, Square pieceSquare, Bitboard occ) {
+	Bitboard attacks = 0;
+	for (DirectionStraight direction : {NORTH, SOUTH, EAST, WEST}) {
+		Bitboard directionalRay = LookupTables::s_straightRayTable[pieceSquare][direction];
+		Bitboard blockers		= directionalRay & occ;
+		Bitboard blockedOffMask = 0;
+		if (blockers) {
+			if (direction == NORTH || direction == EAST) {
+				blockedOffMask = LookupTables::s_straightRayTable[bitscan(blockers)][direction];
+			} else {
+				blockedOffMask = LookupTables::s_straightRayTable[reverseBitscan(blockers)][direction];
+			}
+		}
+		attacks |= directionalRay & ~blockedOffMask;
+	}
+	return attacks;
+}
+
+Bitboard MoveGen::genDiagonalRays(Board& b, Square pieceSquare, Bitboard occ) {
+	Bitboard attacks = 0;
+	for (DirectionDiagonal direction : {NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST}) {
+		Bitboard directionalRay = LookupTables::s_diagonalRayTable[pieceSquare][direction];
+		Bitboard blockers		= directionalRay & occ;
+		Bitboard blockedOffMask = 0;
+		if (blockers) {
+			if (direction == NORTHEAST || direction == NORTHWEST) {
+				blockedOffMask = LookupTables::s_diagonalRayTable[bitscan(blockers)][direction];
+			} else {
+				blockedOffMask = LookupTables::s_diagonalRayTable[reverseBitscan(blockers)][direction];
+			}
+		}
+		attacks |= directionalRay & ~blockedOffMask;
+	}
+	return attacks;
+}
+
 Bitboard MoveGen::genSlidingPiecesAttacks(Bitboard pieces, SlidingPieceDirectionFlags direction) const {
 	if (!pieces) {
 		return 0;
@@ -38,41 +74,12 @@ Bitboard MoveGen::genSlidingPiecesAttacks(Bitboard pieces, SlidingPieceDirection
 	Bitboard attacks   = 0;
 
 	do {
-		Bitboard straightRays = 0;
-		Bitboard diagonalRays = 0;
-		Square pieceSquare	  = (Square)bitscan(pieces);
 		if (direction & SlidingPieceDirectionFlags::STRAIGHT) {
-			for (DirectionStraight direction : {NORTH, SOUTH, EAST, WEST}) {
-				Bitboard directionalRay = LookupTables::s_straightRayTable[pieceSquare][direction];
-				Bitboard blockers		= directionalRay & allPieces;
-				Bitboard blockedOffMask = 0;
-				if (blockers) {
-					if (direction == NORTH || direction == EAST) {
-						blockedOffMask = LookupTables::s_straightRayTable[bitscan(blockers)][direction];
-					} else {
-						blockedOffMask = LookupTables::s_straightRayTable[reverseBitscan(blockers)][direction];
-					}
-				}
-				straightRays |= directionalRay & ~blockedOffMask;
-			}
+			attacks |= genStraightRays(m_board, (Square)bitscan(pieces), allPieces);
 		}
 		if (direction & SlidingPieceDirectionFlags::DIAGONAL) {
-			for (DirectionDiagonal direction : {NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST}) {
-				Bitboard directionalRay = LookupTables::s_diagonalRayTable[pieceSquare][direction];
-				Bitboard blockers		= directionalRay & allPieces;
-				Bitboard blockedOffMask = 0;
-				if (blockers) {
-					if (direction == NORTHEAST || direction == NORTHWEST) {
-						blockedOffMask = LookupTables::s_diagonalRayTable[bitscan(blockers)][direction];
-					} else {
-						blockedOffMask = LookupTables::s_diagonalRayTable[reverseBitscan(blockers)][direction];
-					}
-				}
-				diagonalRays |= directionalRay & ~blockedOffMask;
-			}
+			attacks |= genDiagonalRays(m_board, (Square)bitscan(pieces), allPieces);
 		}
-
-		attacks |= (straightRays | diagonalRays);
 	} while (removeLS1B(pieces));
 	return attacks;
 }

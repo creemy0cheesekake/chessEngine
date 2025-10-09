@@ -36,3 +36,10 @@ void TranspositionTable::printCapacity() {
 
 	std::cout << "Transposition Table Capacity: " << m_used << " / " << m_size << " = " << m_used / (float)m_size * 100.0f << " %" << std::endl;
 }
+
+void TranspositionTable::reset() {
+	m_used = 0;
+	for (auto& entry : m_table) {
+		entry = TTEntry();
+	}
+}
