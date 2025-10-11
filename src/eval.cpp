@@ -115,6 +115,9 @@ Centipawns Eval::quiescence_search(Board& b, Centipawns alpha, Centipawns beta) 
 }
 
 std::tuple<Centipawns, SearchState> Eval::search(Moves& topLine, Board& b, int depthLeft, Moves& previousPV, Centipawns alpha, Centipawns beta, int plyFromRoot) {
+	if (b.is50MoveRule() || b.isInsufficientMaterial()) {
+		return {0, SEARCH_COMPLETE};
+	}
 	if (depthLeft <= 0) {
 		return {quiescence_search(b, alpha, beta), SEARCH_COMPLETE};
 	}
@@ -156,7 +159,7 @@ std::tuple<Centipawns, SearchState> Eval::search(Moves& topLine, Board& b, int d
 			m.setScore(KILLER_MOVE_2_SCORE);
 		} else if (m == ttMove) {
 			m.setScore(MAX_MOVE_SCORE);
-		} else if (previousPV.size() && m == previousPV[plyFromRoot]) {
+		} else if (plyFromRoot < previousPV.size() && m == previousPV[plyFromRoot]) {
 			m.setScore(MAX_MOVE_SCORE - 1);
 		}
 	}

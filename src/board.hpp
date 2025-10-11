@@ -201,9 +201,14 @@ public:
 	bool inIllegalCheck();
 
 	/**
-	* @brief checks whether or not the game is over
+	* @brief checks whether or not the game is a draw by 50 moves without capture or pawn move
 	*/
-	bool gameOver();
+	bool is50MoveRule() const;
+
+	/**
+	* @brief checks whether or not the game is a draw by insufficient material
+	*/
+	bool isInsufficientMaterial() const;
 
 private:
 	/**

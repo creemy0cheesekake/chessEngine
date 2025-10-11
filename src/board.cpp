@@ -109,13 +109,11 @@ bool Board::inIllegalCheck() {
 	return inIllegalCheck;
 }
 
-bool Board::gameOver() {
-	if (!moveGenerator.genLegalMoves().size()) {
-		return true;
-	}
-	if (boardState.hmClock == 100) {
-		return true;
-	}
+bool Board::is50MoveRule() const {
+	return boardState.hmClock == 100;
+}
+
+bool Board::isInsufficientMaterial() const {
 	bool sufficientMaterial = false;
 	for (Color color : {WHITE, BLACK}) {
 		for (Piece piece : {QUEEN, ROOK, BISHOP, KNIGHT, PAWN}) {
@@ -129,8 +127,7 @@ bool Board::gameOver() {
 		return true;
 	}
 
-	// TODO: implement threefold repetition
-	return false;
+	return !sufficientMaterial;
 }
 
 void Board::execute(const Move& m) {
@@ -197,7 +194,6 @@ void Board::execute(const Move& m) {
 void Board::undoMove() {
 	BoardState bs = m_previousBoardStates.back();
 	m_previousBoardStates.pop_back();
-
 	boardState = bs;
 }
 
@@ -216,7 +212,7 @@ void Board::updateBoardStateGameData(const Move& m) {
 	if (flags & DBL_PAWN) {
 		int enPassantSquareIndex   = boardState.sideToMove == WHITE ? m.getTo() - 8 : m.getTo() + 8;
 		boardState.enPassantSquare = 1UL << enPassantSquareIndex;
-		boardState.hash ^= Zobrist::epFileKeys[enPassantSquareIndex];
+		boardState.hash ^= Zobrist::epFileKeys[enPassantSquareIndex % 8];
 	}
 
 	updateCastlingRights(m);
