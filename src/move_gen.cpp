@@ -64,7 +64,7 @@ void MoveGen::genKnightMoves(Moves& pseudoLegalMoves, Moves& pseudoLegalCaptures
 }
 
 bool MoveGen::inCheck() const {
-	return m_attacks & m_board.boardState.pieces[m_board.boardState.sideToMove][KING];
+	return genAttacks() & m_board.boardState.pieces[m_board.boardState.sideToMove][KING];
 }
 
 void MoveGen::genKingMoves(Moves& pseudoLegalMoves, Moves& pseudoLegalCaptures) const {

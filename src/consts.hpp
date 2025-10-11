@@ -39,6 +39,7 @@ constexpr Centipawns DRAW_SCORE		 = 0;
 
 constexpr MoveScore KILLER_MOVE_1_SCORE = 99;
 constexpr MoveScore KILLER_MOVE_2_SCORE = 98;
+constexpr MoveScore MAX_MOVE_SCORE		= 999;
 
 constexpr Bitboard firstRank   = 0xff;
 constexpr Bitboard secondRank  = 0xff00;
