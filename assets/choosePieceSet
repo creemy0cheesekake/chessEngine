@@ -1,0 +1,13 @@
+#! /bin/sh
+
+pieceSet="$1"
+
+if [ ! -d "allPieceIcons/$pieceSet" ]; then
+	echo "Error: Piece set $pieceSet doesn't exist." >&2
+	exit 1
+fi
+
+rm -rf pieces
+cp -r "allPieceIcons/$pieceSet" pieces
+cd pieces
+for file in *.svg; do rsvg-convert --output="${file%.svg}.png" "$file"; done
