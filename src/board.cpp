@@ -255,7 +255,7 @@ void Board::updateCastlingRights(const Move& m) {
 	if ((boardState.pieces[BLACK][ROOK] >> to) & 1 && from == h8) {
 		boardState.castlingRights.setBlackKS(false);
 	}
-	if ((boardState.pieces[BLACK][ROOK] >> to) & 1 && from == a1) {
+	if ((boardState.pieces[BLACK][ROOK] >> to) & 1 && from == a8) {
 		boardState.castlingRights.setBlackQS(false);
 	}
 
