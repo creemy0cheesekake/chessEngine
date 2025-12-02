@@ -233,8 +233,11 @@ std::tuple<Centipawns, SearchState> Eval::search(Moves& topLine, Board& b, int d
 				killerMoves[plyFromRoot][1] = killerMoves[plyFromRoot][0];
 				killerMoves[plyFromRoot][0] = m;
 			}
+			topLine.clear();
+			topLine.push_back(m);
+			topLine.insert(topLine.end(), subline.begin(), subline.end());
 			TranspositionTable::add(b.boardState.hash, score, depthLeft, TTFlag::LOWER_BOUND, m);
-			return {beta, SEARCH_COMPLETE};
+			return {score, SEARCH_COMPLETE};
 		}
 		if (score > alpha) {
 			alpha	 = score;
@@ -304,6 +307,9 @@ Centipawns Eval::iterative_deepening_time(Moves& topLine, Board& b, int maxTimeM
 		auto [eval, searchState] = search(topLine, b, ++depth, previousPV, -INF_SCORE, INF_SCORE, 0);
 		if (searchState == SearchState::SEARCH_ABORTED) break;
 
+		finalScore = eval;
+		previousPV = std::move(topLine);
+
 		if (topLine.size() < depth) {
 			// early alpha beta cutoff
 			// fill the rest of the line with tt moves
@@ -324,13 +330,15 @@ Centipawns Eval::iterative_deepening_time(Moves& topLine, Board& b, int maxTimeM
 			std::cout << m.notation() << " ";
 		}
 		std::cout << std::endl;
-
-		finalScore = eval;
-		previousPV = std::move(topLine);
-		if (finalScore >= INF_SCORE - 2000) break;
+		if (abs(finalScore) >= INF_SCORE - 2000) {
+			std::cout << "MATE FOUND" << std::endl;
+			break;
+		}
 	}
 	topLine = std::move(previousPV);
 	std::cout << "NPS: " << totalNodesSearched / std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::high_resolution_clock::now() - searchStartTime).count() << std::endl;
+	std::cout << "Score: " << finalScore << std::endl;
+	totalNodesSearched = 0;
 	return finalScore;
 }
 

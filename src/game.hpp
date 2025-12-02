@@ -1,25 +1,26 @@
-#ifndef GUI_H
-#define GUI_H
+#ifndef GAME_H
+#define GAME_H
 
 #include <GLFW/glfw3.h>
 #include "board.hpp"
-#include "imgui.h"
+#include "gui.hpp"
+
 
 class Game {
 private:
+	Square m_clicked;
+	Square m_startOfMove;
+	Color m_playerColor;
+	Gui m_gui;
 	Board& m_board;
-	Color playerColor;
-	static GLFWwindow* g_Window;
-	std::array<std::array<ImTextureID, 6>, 2> pieceTextures;
 
-	void handleBoardClick(int squareIndex);
+	Move getAIMove();
 
 public:
 	Game(Board&, Color);
-	void init();
+	void setClicked(Square);
+	void gameLogic();
 	void run();
-	void shutdown();
-	void drawUI();
 };
 
 #endif

@@ -40,6 +40,7 @@ ZobristHash Zobrist::hash(Board::BoardState& b) {
 		for (Piece pieceType : {KING, QUEEN, ROOK, BISHOP, KNIGHT, PAWN}) {
 			int pieceIndex = (color == BLACK ? 6 : 0) + pieceType;
 			Bitboard piece = b.pieces[color][pieceType];
+			if (!piece) continue;
 			do {
 				res ^= pieceKeys[pieceIndex][bitscan(piece)];
 			} while (removeLS1B(piece));

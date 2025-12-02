@@ -128,6 +128,11 @@ public:
 	std::string notation() const;
 
 	/**
+	* @brief return move notation in long algebraic form with + or # at the end if needed
+	*/
+	std::string notationWithAnnotations(Board) const;
+
+	/**
 	* @brief return move notation in uci algebraic form
 	*/
 	std::string UCInotation() const;

@@ -1,5 +1,6 @@
 #include "board.hpp"
 #include "move.hpp"
+#include <iostream>
 #include "util.hpp"
 
 Move::Move()
@@ -121,6 +122,16 @@ std::string Move::notation() const {
 		notation += pieceToNotationChar[m_promoPiece];
 	}
 	return notation;
+}
+
+std::string Move::notationWithAnnotations(Board boardCopy) const {
+	std::string currentNotation = notation();
+	boardCopy.execute(*this);
+	if (boardCopy.moveGenerator.inCheck()) {
+		if (boardCopy.moveGenerator.genLegalMoves().size() == 0) currentNotation += "#";
+		else currentNotation += "+";
+	}
+	return currentNotation;
 }
 
 std::string Move::UCInotation() const {

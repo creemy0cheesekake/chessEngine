@@ -8,6 +8,17 @@ Board::Board() {
 	boardState.hash = Zobrist::initialHash();
 }
 
+Board::Board(const Board& other) : boardState(other.boardState), moveGenerator(*this) {}
+
+Board& Board::operator=(const Board& other) {
+	if (this != &other) {
+		boardState	  = other.boardState;
+        moveGenerator.~MoveGen();
+        new (&moveGenerator) MoveGen(*this);
+	}
+	return *this;
+}
+
 std::string Board::printBoard() const {
 	std::string board = "";
 	for (int rank = 7; rank >= 0; rank--) {
@@ -128,6 +139,10 @@ bool Board::isInsufficientMaterial() const {
 	}
 
 	return !sufficientMaterial;
+}
+
+bool Board::isGameOver() {
+	return is50MoveRule() || isInsufficientMaterial() || moveGenerator.genLegalMoves().size() == 0;
 }
 
 void Board::execute(const Move& m) {

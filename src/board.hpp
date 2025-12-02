@@ -144,6 +144,11 @@ public:
 	Board();
 
 	/**
+	* @brief copy constructor
+	*/
+	Board(const Board&);
+
+	/**
 	* @brief current board state
 	*/
 	BoardState boardState;
@@ -162,6 +167,11 @@ public:
 	* @brief overload the << operator to call printBoard
 	*/
 	friend std::ostream& operator<<(std::ostream& os, const Board& b);
+
+	/**
+	* @brief custom copy operator
+	*/
+	Board& operator=(const Board& b);
 
 	/**
 	* @brief set board to specified fen string position
@@ -209,6 +219,11 @@ public:
 	* @brief checks whether or not the game is a draw by insufficient material
 	*/
 	bool isInsufficientMaterial() const;
+
+	/**
+	* @brief checks whether or not the game is over
+	*/
+	bool isGameOver();
 
 private:
 	/**

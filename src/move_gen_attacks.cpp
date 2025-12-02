@@ -1,3 +1,4 @@
+#include <iostream>
 #include "board.hpp"
 #include "move_gen.hpp"
 #include "lookup_tables.hpp"

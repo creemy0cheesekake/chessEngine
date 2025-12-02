@@ -14,6 +14,7 @@ SRCS = \
 	src/util.cpp \
 	src/transposition_table.cpp \
 	src/zobrist.cpp \
+	src/gui.cpp \
 	src/game.cpp
 
 TEST_TARGET = $(BUILD_DIR)/run_tests
@@ -40,7 +41,6 @@ IMGUI_SRCS = \
 	$(IMGUI_DIR)/backends/imgui_impl_glfw.cpp \
 	$(IMGUI_DIR)/backends/imgui_impl_opengl3.cpp
 
-# Map ImGui sources -> build/imgui/... .o files
 IMGUI_OBJS = $(patsubst $(IMGUI_DIR)/%.cpp,$(BUILD_DIR)/imgui/%.o,$(IMGUI_SRCS))
 IMGUI_DEPS = $(IMGUI_OBJS:.o=.d)
 IMGUI_LIB = $(BUILD_DIR)/libimgui.a
@@ -51,16 +51,13 @@ GL_LIBS = -lGL -ldl -lpthread
 
 all: $(TARGET) run
 
-# Link engine with prebuilt ImGui static library
 $(TARGET): $(OBJS) $(IMGUI_LIB) | $(BUILD_DIR)
 	$(CXX) $(CXXFLAGS) $(OBJS) $(IMGUI_LIB) $(GLFW_FLAGS) $(GL_LIBS) -o $@
 
-# Compile project source files; ensure parent dir exists
 $(BUILD_DIR)/%.o: src/%.cpp | $(BUILD_DIR)
 	mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(IMGUI_INCLUDES) -c $< -o $@
 
-# Build test binary
 $(TEST_TARGET): $(TEST_OBJS) $(filter-out $(BUILD_DIR)/main.o, $(OBJS)) | $(TEST_BUILD_DIR)
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
@@ -68,18 +65,14 @@ $(TEST_BUILD_DIR)/%.o: tests/%.cpp | $(TEST_BUILD_DIR)
 	mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# --- ImGui build rules ---
-# Compile each imgui source into build/imgui/... .o (create nested dirs as needed)
 $(BUILD_DIR)/imgui/%.o: $(IMGUI_DIR)/%.cpp
 	mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(IMGUI_INCLUDES) -c $< -o $@
 
-# Archive the object files into a static library
 $(IMGUI_LIB): $(IMGUI_OBJS)
 	mkdir -p $(dir $@)
 	ar rcs $@ $^
 
-# create main build dirs (kept for convenience)
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 $(TEST_BUILD_DIR):
@@ -97,5 +90,4 @@ clean:
 	rm -rf $(BUILD_DIR)
 	rm -f $(DEPS)
 
-# include dependency files (project, tests, imgui)
 -include $(DEPS) $(TEST_DEPS) $(IMGUI_DEPS)
