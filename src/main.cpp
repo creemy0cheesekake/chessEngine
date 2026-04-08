@@ -19,5 +19,6 @@ int main() {
 
 	Game g = Game(b, WHITE);
 	g.run();
+
 	TranspositionTable::printCapacity();
 }

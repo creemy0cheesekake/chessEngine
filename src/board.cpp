@@ -12,9 +12,9 @@ Board::Board(const Board& other) : boardState(other.boardState), moveGenerator(*
 
 Board& Board::operator=(const Board& other) {
 	if (this != &other) {
-		boardState	  = other.boardState;
-        moveGenerator.~MoveGen();
-        new (&moveGenerator) MoveGen(*this);
+		boardState = other.boardState;
+		moveGenerator.~MoveGen();
+		new (&moveGenerator) MoveGen(*this);
 	}
 	return *this;
 }
@@ -125,20 +125,38 @@ bool Board::is50MoveRule() const {
 }
 
 bool Board::isInsufficientMaterial() const {
-	bool sufficientMaterial = false;
-	for (Color color : {WHITE, BLACK}) {
-		for (Piece piece : {QUEEN, ROOK, BISHOP, KNIGHT, PAWN}) {
-			if (boardState.pieces[color][piece] != 0) {
-				sufficientMaterial = true;
-				break;
-			}
-		}
-	}
-	if (!sufficientMaterial) {
-		return true;
+	// FIDE rules, not USCF
+
+	// if there are any pawns, rooks, or queens, material is sufficient.
+	if (boardState.pieces[WHITE][PAWN] | boardState.pieces[WHITE][ROOK] | boardState.pieces[WHITE][QUEEN] | boardState.pieces[BLACK][PAWN] | boardState.pieces[BLACK][ROOK] | boardState.pieces[BLACK][QUEEN]) {
+		return false;
 	}
 
-	return !sufficientMaterial;
+	// count minor pieces
+	int whiteKnights = __builtin_popcountll(boardState.pieces[WHITE][KNIGHT]);
+	int blackKnights = __builtin_popcountll(boardState.pieces[BLACK][KNIGHT]);
+	int whiteBishops = __builtin_popcountll(boardState.pieces[WHITE][BISHOP]);
+	int blackBishops = __builtin_popcountll(boardState.pieces[BLACK][BISHOP]);
+
+	int whiteMinors = whiteKnights + whiteBishops;
+	int blackMinors = blackKnights + blackBishops;
+	int totalMinors = whiteMinors + blackMinors;
+
+	// king vs king or king + minor vs king
+	if (totalMinors <= 1) return true;
+
+	// if there are any knights there is sufficient material
+	if (whiteKnights != 0 || blackKnights != 0) return false;
+
+	// at this point there are only bishops on the board
+	constexpr Bitboard LIGHT_SQUARES = 0x55AA55AA55AA55AAULL;
+	constexpr Bitboard DARK_SQUARES	 = 0xAA55AA55AA55AA55ULL;
+
+	Bitboard bishops = boardState.pieces[WHITE][BISHOP] | boardState.pieces[BLACK][BISHOP];
+	bool bishopsOnLightSquares = bishops & LIGHT_SQUARES;
+	bool bishopsOnDarkSquares = bishops & DARK_SQUARES;
+
+	return bishopsOnLightSquares != bishopsOnDarkSquares;
 }
 
 bool Board::isGameOver() {

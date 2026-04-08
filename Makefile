@@ -58,7 +58,7 @@ $(BUILD_DIR)/%.o: src/%.cpp | $(BUILD_DIR)
 	mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(IMGUI_INCLUDES) -c $< -o $@
 
-$(TEST_TARGET): $(TEST_OBJS) $(filter-out $(BUILD_DIR)/main.o, $(OBJS)) | $(TEST_BUILD_DIR)
+$(TEST_TARGET): $(TEST_OBJS) $(filter-out $(BUILD_DIR)/main.o $(BUILD_DIR)/gui.o $(BUILD_DIR)/game.o, $(OBJS)) | $(TEST_BUILD_DIR)
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
 $(TEST_BUILD_DIR)/%.o: tests/%.cpp | $(TEST_BUILD_DIR)

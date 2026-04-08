@@ -2,10 +2,12 @@
 
 #include "../include/doctest.h"
 #include "../src/lookup_tables.hpp"
+#include "../src/zobrist.hpp"
 
 struct CustomTestFixture {
 	CustomTestFixture() {
 		LookupTables::init();
+		Zobrist::init();
 	}
 };
 
