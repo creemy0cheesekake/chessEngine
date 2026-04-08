@@ -8,6 +8,20 @@
 #include "util.hpp"
 #include "zobrist.hpp"
 
+int perft(Board& b, int depth) {
+	if (depth <= 0) {
+		return 1;
+	}
+
+	int n = 0;
+	for (Move m : b.moveGenerator.genLegalMoves()) {
+		b.execute(m);
+		n += perft(b, depth - 1);
+		b.undoMove();
+	}
+	return n;
+}
+
 int main() {
 	LookupTables::init();
 	Zobrist::init();

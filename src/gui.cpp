@@ -73,7 +73,7 @@ void Gui::drawUI() {
 	ImGui::TextWrapped("%s", outputMoveHistory().c_str());
 	if (m_resigned || m_board.isGameOver()) {
 		Centipawns score = Eval::evaluate(m_board);
-		ImGui::Text("Game over. %s", score > 0 || m_resigned ? "Player loses." : score < 0 ? "Player wins." : "Draw.");
+		ImGui::Text("Game over. %s", score < 0 && (m_board.boardState.sideToMove == m_playerColor) || m_resigned ? "Player loses." : score < 0 ? "Player wins." : "Draw.");
 		setSelected(NONE_SQUARE);
 	}
 	ImGui::EndChild();
@@ -81,9 +81,11 @@ void Gui::drawUI() {
 	ImGui::Text("Press to undo last move. Undos move regardless of who played it.");
 	if (ImGui::Button("UNDO MOVE", ImVec2(200, 100))) {
 		m_board.undoMove();
-		m_board.undoMove();
 		gameHistory.pop_back();
-		gameHistory.pop_back();
+		if (gameHistory.size() > 0) {
+			m_board.undoMove();
+			gameHistory.pop_back();
+		}
 	}
 	ImGui::End();
 	ImGui::Begin("Resign");

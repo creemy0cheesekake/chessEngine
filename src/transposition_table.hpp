@@ -12,6 +12,7 @@ enum TTFlag {
 	UPPER_BOUND,
 };
 
+// ignore bitfield size warning, we dont need the last bit of Square so 6 bits is enough
 struct __attribute__((packed)) MoveSkeleton {
 	/**
     * @brief starting square
@@ -130,13 +131,6 @@ public:
 	* @return Move -- best move found, or null move if not found
 	*/
 	static TTEntry getEntry(ZobristHash h);
-
-	/**
-	* @brief retrieves the best move for a given hash from the transposition table
-	* @param ZobristHash -- hash of the position to look up
-	* @return Move -- best move found, or null move if not found
-	*/
-	static Move get(ZobristHash h);
 
 	/**
 	* @brief retrieves the best move for a given move skeleton from the transposition table

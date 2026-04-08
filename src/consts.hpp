@@ -18,14 +18,14 @@ using ZobristHash = uint64_t;
 * @brief counts the number of trailing zeros in binary
 */
 constexpr inline int bitscan(Bitboard x) {
-	return std::__countr_zero(x);
+	return std::countr_zero(x);
 }
 
 /**
 * @brief bitscan from the other side
 */
 constexpr inline int reverseBitscan(Bitboard x) {
-	return x ? 63 - __builtin_clzll(x) : 0;
+	return x ? std::bit_width(x) - 1 : 0;
 }
 
 /**

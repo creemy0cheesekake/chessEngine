@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -g -MMD -MP --std=c++20 -O2
+CXXFLAGS = -g -MMD -MP --std=c++20 -O3
 BUILD_DIR = build
 TARGET = $(BUILD_DIR)/engine
 
@@ -49,7 +49,7 @@ IMGUI_INCLUDES = -I$(IMGUI_DIR) -I$(IMGUI_DIR)/backends
 GLFW_FLAGS = $(shell pkgconf --cflags --libs glfw3)
 GL_LIBS = -lGL -ldl -lpthread
 
-all: $(TARGET) run
+all: $(TARGET)
 
 $(TARGET): $(OBJS) $(IMGUI_LIB) | $(BUILD_DIR)
 	$(CXX) $(CXXFLAGS) $(OBJS) $(IMGUI_LIB) $(GLFW_FLAGS) $(GL_LIBS) -o $@

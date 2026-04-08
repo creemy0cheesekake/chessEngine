@@ -12,6 +12,7 @@ Game::Game(Board& b, Color pC) : m_board(b), m_playerColor(pC), m_gui(b, pC, [th
 }
 
 void Game::gameLogic() {
+	if (m_board.isGameOver()) return;
 	if (m_board.boardState.sideToMove != m_playerColor) {
 		Move aiMove = getAIMove();
 		m_gui.setSelected(aiMove.getTo());

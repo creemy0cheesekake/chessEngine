@@ -19,7 +19,7 @@ Centipawns Eval::countMaterial(const Board& b) {
 	for (Color color : {WHITE, BLACK}) {
 		for (Piece pieceType : {QUEEN, ROOK, BISHOP, KNIGHT, PAWN}) {
 			Bitboard piece = b.boardState.pieces[color][pieceType];
-			int count	   = __builtin_popcountll(piece);
+			int count	   = std::popcount(piece);
 			material +=
 				count * pieceToCentipawns[pieceType] *
 				(color == WHITE ? 1 : -1);
@@ -50,25 +50,25 @@ Centipawns Eval::evaluate(Board& b) {
 					case QUEEN: {
 						Bitboard attacks = b.moveGenerator.genStraightRays(b, pieceSquare, allPieces) | b.moveGenerator.genDiagonalRays(b, pieceSquare, allPieces);
 						attacks &= ~friendly;
-						score += stmMultiplier * queenMobilityScore[__builtin_popcountll(attacks)];
+						score += stmMultiplier * queenMobilityScore[std::popcount(attacks)];
 						break;
 					}
 					case ROOK: {
 						Bitboard attacks = b.moveGenerator.genStraightRays(b, pieceSquare, allPieces);
 						attacks &= ~friendly;
-						score += stmMultiplier * rookMobilityScore[__builtin_popcountll(attacks)];
+						score += stmMultiplier * rookMobilityScore[std::popcount(attacks)];
 						break;
 					}
 					case BISHOP: {
 						Bitboard attacks = b.moveGenerator.genDiagonalRays(b, pieceSquare, allPieces);
 						attacks &= ~friendly;
-						score += stmMultiplier * bishopMobilityScore[__builtin_popcountll(attacks)];
+						score += stmMultiplier * bishopMobilityScore[std::popcount(attacks)];
 						break;
 					}
 					case KNIGHT: {
 						Bitboard attacks = LookupTables::s_knightAttacks[pieceSquare];
 						attacks &= ~friendly;
-						score += stmMultiplier * knightMobilityScore[__builtin_popcountll(attacks)];
+						score += stmMultiplier * knightMobilityScore[std::popcount(attacks)];
 						break;
 					}
 					default: {
@@ -343,8 +343,9 @@ Centipawns Eval::iterative_deepening_time(Moves& topLine, Board& b, int maxTimeM
 }
 
 int Eval::calculateReductionFactor(int movesSearched, int depthLeft) {
-	int N	   = movesSearched * depthLeft;
-	int log2_N = 31 - __builtin_clz(N);
+	unsigned int N = movesSearched * depthLeft;
+	if (N == 0) return 0;
+	int log2_N = std::bit_width(N) - 1;
 	return log2_N / 2;
 }
 

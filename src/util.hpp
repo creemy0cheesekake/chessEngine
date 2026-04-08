@@ -22,10 +22,9 @@ inline auto bin(long num) {
 
 /**
 * @brief returns the most significant 1 bit from the input. essentially the bit closest to h8 in little endian rook file.
-* __builtin_clzll is a gcc builtin function that counts the number of leading zeros
 */
 inline Bitboard MS1B(Bitboard x) {
-	return (1UL << h8) >> __builtin_clzll(x);
+	return x ? std::bit_floor(x) : 0;
 }
 
 /**

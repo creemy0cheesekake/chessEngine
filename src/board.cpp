@@ -133,10 +133,10 @@ bool Board::isInsufficientMaterial() const {
 	}
 
 	// count minor pieces
-	int whiteKnights = __builtin_popcountll(boardState.pieces[WHITE][KNIGHT]);
-	int blackKnights = __builtin_popcountll(boardState.pieces[BLACK][KNIGHT]);
-	int whiteBishops = __builtin_popcountll(boardState.pieces[WHITE][BISHOP]);
-	int blackBishops = __builtin_popcountll(boardState.pieces[BLACK][BISHOP]);
+	int whiteKnights = std::popcount(boardState.pieces[WHITE][KNIGHT]);
+	int blackKnights = std::popcount(boardState.pieces[BLACK][KNIGHT]);
+	int whiteBishops = std::popcount(boardState.pieces[WHITE][BISHOP]);
+	int blackBishops = std::popcount(boardState.pieces[BLACK][BISHOP]);
 
 	int whiteMinors = whiteKnights + whiteBishops;
 	int blackMinors = blackKnights + blackBishops;
