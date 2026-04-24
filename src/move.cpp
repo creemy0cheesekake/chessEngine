@@ -4,14 +4,17 @@
 #include "util.hpp"
 
 Move::Move()
-	: m_from(NONE_SQUARE), m_to(NONE_SQUARE), m_promoPiece(NONE_PIECE), m_pieceType(NONE_PIECE), m_flags(NORMAL_MOVE), m_score(0) {}
+	: m_from(NONE_SQUARE), m_to(NONE_SQUARE), m_promoPiece(NONE_PIECE), m_pieceType(NONE_PIECE), m_flags(NORMAL_MOVE), m_score(0), m_signature(0) {}
 
 Move::Move(Square from, Square to, Piece piece, Piece promoPiece, MoveFlag flags)
-	: m_from(from), m_to(to), m_promoPiece(promoPiece), m_pieceType(piece), m_flags(flags), m_score(0) {}
+	: m_from(from), m_to(to), m_promoPiece(promoPiece), m_pieceType(piece), m_flags(flags), m_score(0) {
+	m_signature = (uint32_t)m_from | ((uint32_t)m_to << 6) | ((uint32_t)m_promoPiece << 12);
+}
 
-Move::Move(Board board, Square from, Square to, Piece piece, Piece promoPiece)
+Move::Move(const Board& board, Square from, Square to, Piece piece, Piece promoPiece)
 	: m_from(from), m_to(to), m_promoPiece(promoPiece), m_pieceType(piece), m_score(0) {
-	m_flags = genFlags(board);
+	m_flags		= genFlags(board);
+	m_signature = (uint32_t)m_from | ((uint32_t)m_to << 6) | ((uint32_t)m_promoPiece << 12);
 }
 
 std::ostream& operator<<(std::ostream& os, Move& m) {
@@ -20,8 +23,7 @@ std::ostream& operator<<(std::ostream& os, Move& m) {
 }
 
 bool operator==(const Move& a, const Move& b) {
-	return std::tie(a.m_from, a.m_to, a.m_flags, a.m_promoPiece, a.m_pieceType) ==
-		std::tie(b.m_from, b.m_to, b.m_flags, b.m_promoPiece, b.m_pieceType);
+	return a.getSignature() == b.getSignature();
 }
 
 MoveFlag Move::genFlags(const Board& board) {
@@ -128,7 +130,7 @@ std::string Move::notationWithAnnotations(Board boardCopy) const {
 	std::string currentNotation = notation();
 	boardCopy.execute(*this);
 	if (boardCopy.moveGenerator.inCheck()) {
-		if (boardCopy.moveGenerator.genLegalMoves().size() == 0) currentNotation += "#";
+		if (!boardCopy.moveGenerator.hasLegalMoves()) currentNotation += "#";
 		else currentNotation += "+";
 	}
 	return currentNotation;
@@ -144,4 +146,8 @@ std::string Move::UCInotation() const {
 		notation += promotionPieceToUCINotationChar[m_promoPiece];
 	}
 	return notation;
+}
+
+uint32_t Move::getSignature() const {
+	return m_signature;
 }

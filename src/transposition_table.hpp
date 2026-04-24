@@ -4,9 +4,9 @@
 #include "consts.hpp"
 #include "move.hpp"
 
-constexpr int TT_SIZE_MB = 16 * 1024 * 1024;
+constexpr int TT_SIZE_MB = 8 * 1024 * 1024;
 
-enum TTFlag {
+enum TTFlag : uint8_t {
 	EXACT,
 	LOWER_BOUND,
 	UPPER_BOUND,
@@ -43,7 +43,7 @@ struct __attribute__((packed)) MoveSkeleton {
     * @brief constructs a MoveSkeleton from a Move
     * @param Move -- move to extract skeleton from
     */
-	MoveSkeleton(Move m) {
+	MoveSkeleton(const Move& m) {
 		from	   = m.getFrom();
 		to		   = m.getTo();
 		piece	   = m.getPieceType();
@@ -52,7 +52,7 @@ struct __attribute__((packed)) MoveSkeleton {
 	}
 };
 
-struct __attribute__((packed)) alignas(16) TTEntry {
+struct TTEntry {
 	/**
     * @brief partial hash for collision detection
     */
@@ -130,7 +130,7 @@ public:
 	* @param ZobristHash -- hash of the position to look up
 	* @return Move -- best move found, or null move if not found
 	*/
-	static TTEntry getEntry(ZobristHash h);
+	static const TTEntry& getEntry(ZobristHash h);
 
 	/**
 	* @brief retrieves the best move for a given move skeleton from the transposition table

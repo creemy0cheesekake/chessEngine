@@ -116,8 +116,8 @@ void Gui::drawUI() {
 	ImVec2 p	   = ImGui::GetCursorScreenPos();
 	ImDrawList* dl = ImGui::GetWindowDrawList();
 
-	for (int r = 0; r < 8; r++) {
-		for (int c = 0; c < 8; c++) {
+	for (size_t r = 0; r < 8; r++) {
+		for (size_t c = 0; c < 8; c++) {
 			int squareIndex = m_playerColor == WHITE ? (7 - r) * 8 + c : r * 8 + (7 - c);
 			ImVec2 min		= ImVec2(p.x + c * squareSize, p.y + r * squareSize);
 			ImVec2 max		= ImVec2(min.x + squareSize, min.y + squareSize);
@@ -158,7 +158,7 @@ void Gui::drawUI() {
 std::string Gui::outputMoveHistory() {
 	std::ostringstream res;
 	for (const MoveHistory& mh : gameHistory) {
-		if (mh.colorOfPlayer == WHITE) res << std::endl << mh.moveNum << ". ";
+		if (mh.colorOfPlayer == WHITE) res << "\n" << mh.moveNum << ". ";
 		res << mh.notation << " ";
 	}
 	return res.str();

@@ -72,10 +72,13 @@ Average of 10 results:
 Results generated using:
 
 ```cpp
+Timer::start();
 long long total_moves = 0;
-for (int i = 0; i < 100000; ++i) {
+for (size_t i = 0; i < 1000000; ++i) {
     total_moves += b.moveGenerator.genLegalMoves().size();
 }
+float duration = Timer::end();
+std::cout << (long long)(total_moves / duration) << std::endl;
 ```
 
 ## Project Structure

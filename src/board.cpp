@@ -21,8 +21,8 @@ Board& Board::operator=(const Board& other) {
 
 std::string Board::printBoard() const {
 	std::string board = "";
-	for (int rank = 7; rank >= 0; rank--) {
-		for (int file = 0; file < 8; file++) {
+	for (ptrdiff_t rank = 7; rank >= 0; rank--) {
+		for (size_t file = 0; file < 8; file++) {
 			int squareIndex			= 8 * rank + file;
 			std::string pieceString = ". ";
 			for (Color color : {WHITE, BLACK}) {
@@ -160,7 +160,7 @@ bool Board::isInsufficientMaterial() const {
 }
 
 bool Board::isGameOver() {
-	return is50MoveRule() || isInsufficientMaterial() || moveGenerator.genLegalMoves().size() == 0;
+	return is50MoveRule() || isInsufficientMaterial() || !moveGenerator.hasLegalMoves();
 }
 
 void Board::execute(const Move& m) {

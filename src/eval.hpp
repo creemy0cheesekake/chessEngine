@@ -8,8 +8,14 @@
 #include "consts.hpp"
 #include "move.hpp"
 
+struct SearchResult {
+	Centipawns score;
+	SearchState state;
+};
+
 class Eval {
 public:
+
 	/**
 	* @brief Tracks the total number of nodes searched during the current search session.
 	* This counter is used for performance monitoring and calculating nodes per second (NPS).
@@ -29,7 +35,7 @@ public:
 	/**
 	* @brief negamax search with alpha beta pruning. its sign is whether or not the count is favorable to whoevers turn it is. stores the top engine line in topLine.
 	*/
-	static std::tuple<Centipawns, SearchState> search(Moves& topLine, Board&, int, Moves& previousPV, Centipawns alpha = -INF_SCORE, Centipawns beta = INF_SCORE, int plyFromRoot = 0);
+	static SearchResult search(Moves& topLine, Board&, int, Moves& previousPV, Centipawns alpha = -INF_SCORE, Centipawns beta = INF_SCORE, int plyFromRoot = 0);
 
 	/**
 	* @brief Performs iterative deepening search to improve move ordering and find the best move.

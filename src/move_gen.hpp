@@ -4,8 +4,7 @@
 #include "consts.hpp"
 #include "move.hpp"
 
-class MoveGen {
-public:
+struct MoveGen {
 	/**
 	* @brief board to gen moves
 	*/
@@ -42,7 +41,7 @@ public:
 	* @param occ -- bitboard representing all occupied squares
 	* @return bitboard of all squares attacked by the sliding pieces in straight directions
 	*/
-	static Bitboard genStraightRays(Board& b, Square pieceSquare, Bitboard occ);
+	static Bitboard genStraightRays(Square pieceSquare, Bitboard occ);
 
 	/**
 	* @brief generates attack bitboard for sliding pieces in diagonal directions (NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST)
@@ -50,14 +49,15 @@ public:
 	* @param occ -- bitboard representing all occupied squares
 	* @return bitboard of all squares attacked by the sliding pieces in diagonal directions
 	*/
-	static Bitboard genDiagonalRays(Board& b, Square pieceSquare, Bitboard occ);
+	static Bitboard genDiagonalRays(Square pieceSquare, Bitboard occ);
 
 	/**
 	* @brief general function for sliding piece attacks
 	* @param pieces -- bitboard of pieces which reperesent the pieces that the moves will be generated for
-	* @param direction -- specifies the direction(s) that the sliding pieces go in
+	* @template Direction -- specifies the direction(s) that the sliding pieces go in
 	*/
-	Bitboard genSlidingPiecesAttacks(Bitboard pieces, SlidingPieceDirectionFlags direction) const;
+	template <SlidingPieceDirectionFlags Direction>
+	Bitboard genSlidingPiecesAttacks(Bitboard pieces) const;
 	/**
 	* @brief returns a bitboard of all squares attacked by bishops
 	*/
@@ -73,7 +73,6 @@ public:
 	*/
 	Bitboard genQueenAttacks() const;
 
-public:
 	/**
 	* @brief returns true if the king is in check
 	*/
@@ -184,5 +183,10 @@ public:
 	* @brief returns attacks bitboard
 	*/
 	Bitboard getAttacks() const;
+
+	/**
+	* @brief returns false if there are zero legal moves available
+	*/
+	bool hasLegalMoves();
 };
 #endif

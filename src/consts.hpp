@@ -69,7 +69,7 @@ enum Color {
 /**
 * @brief all the chess pieces and a none piece
 */
-enum Piece {
+enum Piece : uint8_t {
 	KING,
 	QUEEN,
 	ROOK,
@@ -83,7 +83,7 @@ enum Piece {
 * @brief chess squares in algebraic notation
 */
 // clang-format off
-enum Square {
+enum Square : uint8_t {
 	a1, b1, c1, d1, e1, f1, g1, h1,
 	a2, b2, c2, d2, e2, f2, g2, h2,
 	a3, b3, c3, d3, e3, f3, g3, h3,
@@ -99,7 +99,7 @@ enum Square {
 /**
 * @brief move bitflags
 */
-enum MoveFlag {
+enum MoveFlag : uint8_t {
 	NORMAL_MOVE = 0b0000000,  // 0
 	CAPTURE		= 0b0000001,  // 1
 	KS_CASTLE	= 0b0000010,  // 2

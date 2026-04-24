@@ -40,12 +40,13 @@ void format(float d) {
 		d *= 1000.0f;
 		unit = "μs";
 	}
-	std::cout << d << " " << unit << std::endl;
+	std::cout << d << " " << unit << "\n";
 }
 
-void end() {
+float end() {
 	endTime	 = std::chrono::high_resolution_clock::now();
 	duration = endTime - startTime;
 	format(duration.count());
+	return duration.count();
 }
 }

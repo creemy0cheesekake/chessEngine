@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -g -MMD -MP --std=c++20 -O3
+CXXFLAGS = -g -MMD -MP -march=native --std=c++20 -O3 -fno-omit-frame-pointer
 BUILD_DIR = build
 TARGET = $(BUILD_DIR)/engine
 

@@ -27,18 +27,17 @@ void MoveGen::genPawnMoves(Moves& pseudoLegalMoves, Moves& pseudoLegalCaptures) 
 			dblPushMoveTargets = (m_board.boardState.sideToMove == WHITE ? pushMoveTargets << 8 : pushMoveTargets >> 8) & ~(allPieces ^ pawn);
 		}
 		Bitboard pawnMoveTargets = captureMoveTargets | pushMoveTargets | dblPushMoveTargets;
-		if (pawnMoveTargets != 0) {
-			do {
-				Bitboard moveTarget	  = LS1B(pawnMoveTargets);
-				Moves& movesContainer = moveTarget & captureMoveTargets ? pseudoLegalCaptures : pseudoLegalMoves;
-				if (moveTarget & (firstRank | eighthRank)) {
-					for (Piece promoPiece : {QUEEN, ROOK, BISHOP, KNIGHT}) {
-						movesContainer.emplace_back(m_board, (Square)bitscan(pawn), (Square)bitscan(moveTarget), PAWN, promoPiece);
-					}
-				} else {
-					movesContainer.emplace_back(m_board, (Square)bitscan(pawn), (Square)bitscan(moveTarget), PAWN);
+		while (pawnMoveTargets) {
+			Bitboard moveTarget	  = LS1B(pawnMoveTargets);
+			Moves& movesContainer = moveTarget & captureMoveTargets ? pseudoLegalCaptures : pseudoLegalMoves;
+			if (moveTarget & (firstRank | eighthRank)) {
+				for (Piece promoPiece : {QUEEN, ROOK, BISHOP, KNIGHT}) {
+					movesContainer.emplace_back(m_board, (Square)bitscan(pawn), (Square)bitscan(moveTarget), PAWN, promoPiece);
 				}
-			} while (removeLS1B(pawnMoveTargets));
+			} else {
+				movesContainer.emplace_back(m_board, (Square)bitscan(pawn), (Square)bitscan(moveTarget), PAWN);
+			}
+			removeLS1B(pawnMoveTargets);
 		}
 	} while (removeLS1B(pawns));
 }
@@ -53,12 +52,11 @@ void MoveGen::genKnightMoves(Moves& pseudoLegalMoves, Moves& pseudoLegalCaptures
 	do {
 		Bitboard knight			   = LS1B(knights);
 		Bitboard knightMoveTargets = LookupTables::s_knightAttacks[bitscan(knight)] & ~yourPieces;
-		if (knightMoveTargets) {
-			do {
-				Bitboard moveTarget	  = LS1B(knightMoveTargets);
-				Moves& movesContainer = moveTarget & theirPieces ? pseudoLegalCaptures : pseudoLegalMoves;
-				movesContainer.emplace_back(m_board, (Square)bitscan(knight), (Square)bitscan(moveTarget), KNIGHT);
-			} while (removeLS1B(knightMoveTargets));
+		while (knightMoveTargets) {
+			Bitboard moveTarget	  = LS1B(knightMoveTargets);
+			Moves& movesContainer = moveTarget & theirPieces ? pseudoLegalCaptures : pseudoLegalMoves;
+			movesContainer.emplace_back(m_board, (Square)bitscan(knight), (Square)bitscan(moveTarget), KNIGHT);
+			removeLS1B(knightMoveTargets);
 		}
 	} while (removeLS1B(knights));
 }
@@ -72,12 +70,11 @@ void MoveGen::genKingMoves(Moves& pseudoLegalMoves, Moves& pseudoLegalCaptures) 
 	Bitboard theirPieces	 = m_board.boardState.sideToMove == WHITE ? m_board.blackPieces() : m_board.whitePieces();
 	Bitboard king			 = m_board.boardState.pieces[m_board.boardState.sideToMove][KING];
 	Bitboard kingMoveTargets = LookupTables::s_kingAttacks[bitscan(king)] & ~yourPieces;
-	if (kingMoveTargets) {
-		do {
-			Bitboard moveTarget	  = LS1B(kingMoveTargets);
-			Moves& movesContainer = moveTarget & theirPieces ? pseudoLegalCaptures : pseudoLegalMoves;
-			movesContainer.emplace_back(m_board, (Square)bitscan(king), (Square)bitscan(moveTarget), KING);
-		} while (removeLS1B(kingMoveTargets));
+	while (kingMoveTargets) {
+		Bitboard moveTarget	  = LS1B(kingMoveTargets);
+		Moves& movesContainer = moveTarget & theirPieces ? pseudoLegalCaptures : pseudoLegalMoves;
+		movesContainer.emplace_back(m_board, (Square)bitscan(king), (Square)bitscan(moveTarget), KING);
+		removeLS1B(kingMoveTargets);
 	}
 }
 
@@ -121,73 +118,47 @@ void MoveGen::genSlidingPieces(Moves& pseudoLegalMoves, Moves& pseudoLegalCaptur
 
 	do {
 		Bitboard piece		  = LS1B(pieces);
+		int sq				  = bitscan(piece);
 		Bitboard straightRays = 0;
 		Bitboard diagonalRays = 0;
 		if (direction & STRAIGHT) {
-			Bitboard Nrays = piece, Erays = piece, Wrays = piece, Srays = piece;
-			while (!(Nrays & eighthRank)) {
-				Nrays |= Nrays << 8;
-				if (allPieces & MS1B(Nrays)) {
-					break;
-				}
-			}
-			while (!(Erays & hFile)) {
-				Erays |= Erays << 1;
-				if (allPieces & MS1B(Erays)) {
-					break;
-				}
-			}
-			while (!(Wrays & aFile)) {
-				Wrays |= Wrays >> 1;
-				if (allPieces & LS1B(Wrays)) {
-					break;
-				}
-			}
-			while (!(Srays & firstRank)) {
-				Srays |= Srays >> 8;
-				if (allPieces & LS1B(Srays)) {
-					break;
-				}
-			}
+			Bitboard Nrays	   = LookupTables::s_straightRayTable[sq][NORTH],
+					 Erays	   = LookupTables::s_straightRayTable[sq][EAST],
+					 Wrays	   = LookupTables::s_straightRayTable[sq][WEST],
+					 Srays	   = LookupTables::s_straightRayTable[sq][SOUTH];
+			Bitboard Nblockers = Nrays & allPieces;
+			if (Nblockers != 0) Nrays ^= (LookupTables::s_straightRayTable[bitscan(Nblockers)][NORTH]);
+			Bitboard Eblockers = Erays & allPieces;
+			if (Eblockers != 0) Erays ^= (LookupTables::s_straightRayTable[bitscan(Eblockers)][EAST]);
+			Bitboard Sblockers = Srays & allPieces;
+			if (Sblockers != 0) Srays ^= (LookupTables::s_straightRayTable[reverseBitscan(Sblockers)][SOUTH]);
+			Bitboard Wblockers = Wrays & allPieces;
+			if (Wblockers != 0) Wrays ^= (LookupTables::s_straightRayTable[reverseBitscan(Wblockers)][WEST]);
 			straightRays = Nrays | Erays | Wrays | Srays;
 		}
 		if (direction & DIAGONAL) {
-			Bitboard NErays = piece, NWrays = piece, SWrays = piece, SErays = piece;
-			while (!(NErays & (eighthRank | hFile))) {
-				NErays |= NErays << 9;
-				if (allPieces & MS1B(NErays)) {
-					break;
-				}
-			}
-			while (!(NWrays & (eighthRank | aFile))) {
-				NWrays |= NWrays << 7;
-				if (allPieces & MS1B(NWrays)) {
-					break;
-				}
-			}
-			while (!(SWrays & (firstRank | aFile))) {
-				SWrays |= SWrays >> 9;
-				if (allPieces & LS1B(SWrays)) {
-					break;
-				}
-			}
-			while (!(SErays & (firstRank | hFile))) {
-				SErays |= SErays >> 7;
-				if (allPieces & LS1B(SErays)) {
-					break;
-				}
-			}
+			Bitboard NErays		= LookupTables::s_diagonalRayTable[sq][NORTHEAST],
+					 NWrays		= LookupTables::s_diagonalRayTable[sq][NORTHWEST],
+					 SWrays		= LookupTables::s_diagonalRayTable[sq][SOUTHWEST],
+					 SErays		= LookupTables::s_diagonalRayTable[sq][SOUTHEAST];
+			Bitboard NEblockers = NErays & allPieces;
+			if (NEblockers != 0) NErays ^= (LookupTables::s_diagonalRayTable[bitscan(NEblockers)][NORTHEAST]);
+			Bitboard NWblockers = NWrays & allPieces;
+			if (NWblockers != 0) NWrays ^= (LookupTables::s_diagonalRayTable[bitscan(NWblockers)][NORTHWEST]);
+			Bitboard SWblockers = SWrays & allPieces;
+			if (SWblockers != 0) SWrays ^= (LookupTables::s_diagonalRayTable[reverseBitscan(SWblockers)][SOUTHWEST]);
+			Bitboard SEblockers = SErays & allPieces;
+			if (SEblockers != 0) SErays ^= (LookupTables::s_diagonalRayTable[reverseBitscan(SEblockers)][SOUTHEAST]);
 			diagonalRays = NErays | NWrays | SWrays | SErays;
 		}
 
 		Bitboard rays = ((straightRays | diagonalRays) ^ piece) & ~yourPieces;
 
-		if (rays) {
-			do {
-				Bitboard moveTarget	  = LS1B(rays);
-				Moves& movesContainer = moveTarget & theirPieces ? pseudoLegalCaptures : pseudoLegalMoves;
-				movesContainer.emplace_back(m_board, (Square)bitscan(piece), (Square)bitscan(moveTarget), p);
-			} while (removeLS1B(rays));
+		while (rays) {
+			Bitboard moveTarget	  = LS1B(rays);
+			Moves& movesContainer = moveTarget & theirPieces ? pseudoLegalCaptures : pseudoLegalMoves;
+			movesContainer.emplace_back(m_board, (Square)sq, (Square)bitscan(moveTarget), p);
+			removeLS1B(rays);
 		}
 	} while (removeLS1B(pieces));
 }
@@ -231,7 +202,7 @@ Moves MoveGen::genLegalMoves() {
 		}
 		Bitboard toSquare = 1UL << m.getTo();
 		Piece victimPiece = NONE_PIECE;
-		for (int i = QUEEN; i < NONE_PIECE; i++) {
+		for (size_t i = QUEEN; i < NONE_PIECE; i++) {
 			Bitboard pieceBoard = m_board.boardState.pieces[victimColor][i];
 			if (pieceBoard & toSquare) {
 				victimPiece = (Piece)i;
@@ -274,17 +245,16 @@ void MoveGen::genPawnCaptures(Moves& pseudoLegalCaptures) const {
 			captureMoveTargets >>= 16;
 		}
 		captureMoveTargets &= theirPieces | m_board.boardState.enPassantSquare;
-		if (captureMoveTargets != 0) {
-			do {
-				Bitboard moveTarget = LS1B(captureMoveTargets);
-				if (moveTarget & (firstRank | eighthRank)) {
-					for (Piece promoPiece : {QUEEN, ROOK, BISHOP, KNIGHT}) {
-						pseudoLegalCaptures.emplace_back(m_board, (Square)bitscan(pawn), (Square)bitscan(moveTarget), PAWN, promoPiece);
-					}
-				} else {
-					pseudoLegalCaptures.emplace_back(m_board, (Square)bitscan(pawn), (Square)bitscan(moveTarget), PAWN);
+		while (captureMoveTargets) {
+			Bitboard moveTarget = LS1B(captureMoveTargets);
+			if (moveTarget & (firstRank | eighthRank)) {
+				for (Piece promoPiece : {QUEEN, ROOK, BISHOP, KNIGHT}) {
+					pseudoLegalCaptures.emplace_back(m_board, (Square)bitscan(pawn), (Square)bitscan(moveTarget), PAWN, promoPiece);
 				}
-			} while (removeLS1B(captureMoveTargets));
+			} else {
+				pseudoLegalCaptures.emplace_back(m_board, (Square)bitscan(pawn), (Square)bitscan(moveTarget), PAWN);
+			}
+			removeLS1B(captureMoveTargets);
 		}
 	} while (removeLS1B(pawns));
 }
@@ -298,11 +268,10 @@ void MoveGen::genKnightCaptures(Moves& pseudoLegalCaptures) const {
 	do {
 		Bitboard knight				= LS1B(knights);
 		Bitboard captureMoveTargets = LookupTables::s_knightAttacks[bitscan(knight)] & theirPieces;
-		if (captureMoveTargets) {
-			do {
-				Bitboard moveTarget = LS1B(captureMoveTargets);
-				pseudoLegalCaptures.emplace_back(m_board, (Square)bitscan(knight), (Square)bitscan(moveTarget), KNIGHT);
-			} while (removeLS1B(captureMoveTargets));
+		while (captureMoveTargets) {
+			Bitboard moveTarget = LS1B(captureMoveTargets);
+			pseudoLegalCaptures.emplace_back(m_board, (Square)bitscan(knight), (Square)bitscan(moveTarget), KNIGHT);
+			removeLS1B(captureMoveTargets);
 		}
 	} while (removeLS1B(knights));
 }
@@ -311,11 +280,10 @@ void MoveGen::genKingCaptures(Moves& pseudoLegalCaptures) const {
 	Bitboard theirPieces		= m_board.boardState.sideToMove == WHITE ? m_board.blackPieces() : m_board.whitePieces();
 	Bitboard king				= m_board.boardState.pieces[m_board.boardState.sideToMove][KING];
 	Bitboard captureMoveTargets = LookupTables::s_kingAttacks[bitscan(king)] & theirPieces;
-	if (captureMoveTargets) {
-		do {
-			Bitboard moveTarget = LS1B(captureMoveTargets);
-			pseudoLegalCaptures.emplace_back(m_board, (Square)bitscan(king), (Square)bitscan(moveTarget), KING);
-		} while (removeLS1B(captureMoveTargets));
+	while (captureMoveTargets) {
+		Bitboard moveTarget = LS1B(captureMoveTargets);
+		pseudoLegalCaptures.emplace_back(m_board, (Square)bitscan(king), (Square)bitscan(moveTarget), KING);
+		removeLS1B(captureMoveTargets);
 	}
 }
 
@@ -328,72 +296,46 @@ void MoveGen::genSlidingPiecesCaptures(Moves& pseudoLegalCaptures, Piece p, Bitb
 
 	do {
 		Bitboard piece		  = LS1B(pieces);
+		int sq				  = bitscan(piece);
 		Bitboard straightRays = 0;
 		Bitboard diagonalRays = 0;
 		if (direction & STRAIGHT) {
-			Bitboard Nrays = piece, Erays = piece, Wrays = piece, Srays = piece;
-			while (!(Nrays & eighthRank)) {
-				Nrays |= Nrays << 8;
-				if (allPieces & MS1B(Nrays)) {
-					break;
-				}
-			}
-			while (!(Erays & hFile)) {
-				Erays |= Erays << 1;
-				if (allPieces & MS1B(Erays)) {
-					break;
-				}
-			}
-			while (!(Wrays & aFile)) {
-				Wrays |= Wrays >> 1;
-				if (allPieces & LS1B(Wrays)) {
-					break;
-				}
-			}
-			while (!(Srays & firstRank)) {
-				Srays |= Srays >> 8;
-				if (allPieces & LS1B(Srays)) {
-					break;
-				}
-			}
+			Bitboard Nrays	   = LookupTables::s_straightRayTable[sq][NORTH],
+					 Erays	   = LookupTables::s_straightRayTable[sq][EAST],
+					 Wrays	   = LookupTables::s_straightRayTable[sq][WEST],
+					 Srays	   = LookupTables::s_straightRayTable[sq][SOUTH];
+			Bitboard Nblockers = Nrays & allPieces;
+			if (Nblockers != 0) Nrays ^= (LookupTables::s_straightRayTable[bitscan(Nblockers)][NORTH]);
+			Bitboard Eblockers = Erays & allPieces;
+			if (Eblockers != 0) Erays ^= (LookupTables::s_straightRayTable[bitscan(Eblockers)][EAST]);
+			Bitboard Sblockers = Srays & allPieces;
+			if (Sblockers != 0) Srays ^= (LookupTables::s_straightRayTable[reverseBitscan(Sblockers)][SOUTH]);
+			Bitboard Wblockers = Wrays & allPieces;
+			if (Wblockers != 0) Wrays ^= (LookupTables::s_straightRayTable[reverseBitscan(Wblockers)][WEST]);
 			straightRays = Nrays | Erays | Wrays | Srays;
 		}
 		if (direction & DIAGONAL) {
-			Bitboard NErays = piece, NWrays = piece, SWrays = piece, SErays = piece;
-			while (!(NErays & (eighthRank | hFile))) {
-				NErays |= NErays << 9;
-				if (allPieces & MS1B(NErays)) {
-					break;
-				}
-			}
-			while (!(NWrays & (eighthRank | aFile))) {
-				NWrays |= NWrays << 7;
-				if (allPieces & MS1B(NWrays)) {
-					break;
-				}
-			}
-			while (!(SWrays & (firstRank | aFile))) {
-				SWrays |= SWrays >> 9;
-				if (allPieces & LS1B(SWrays)) {
-					break;
-				}
-			}
-			while (!(SErays & (firstRank | hFile))) {
-				SErays |= SErays >> 7;
-				if (allPieces & LS1B(SErays)) {
-					break;
-				}
-			}
+			Bitboard NErays		= LookupTables::s_diagonalRayTable[sq][NORTHEAST],
+					 NWrays		= LookupTables::s_diagonalRayTable[sq][NORTHWEST],
+					 SWrays		= LookupTables::s_diagonalRayTable[sq][SOUTHWEST],
+					 SErays		= LookupTables::s_diagonalRayTable[sq][SOUTHEAST];
+			Bitboard NEblockers = NErays & allPieces;
+			if (NEblockers != 0) NErays ^= (LookupTables::s_diagonalRayTable[bitscan(NEblockers)][NORTHEAST]);
+			Bitboard NWblockers = NWrays & allPieces;
+			if (NWblockers != 0) NWrays ^= (LookupTables::s_diagonalRayTable[bitscan(NWblockers)][NORTHWEST]);
+			Bitboard SWblockers = SWrays & allPieces;
+			if (SWblockers != 0) SWrays ^= (LookupTables::s_diagonalRayTable[reverseBitscan(SWblockers)][SOUTHWEST]);
+			Bitboard SEblockers = SErays & allPieces;
+			if (SEblockers != 0) SErays ^= (LookupTables::s_diagonalRayTable[reverseBitscan(SEblockers)][SOUTHEAST]);
 			diagonalRays = NErays | NWrays | SWrays | SErays;
 		}
 
 		Bitboard rays = ((straightRays | diagonalRays) ^ piece) & theirPieces;
 
-		if (rays) {
-			do {
-				Bitboard moveTarget = LS1B(rays);
-				pseudoLegalCaptures.emplace_back(m_board, (Square)bitscan(piece), (Square)bitscan(moveTarget), p);
-			} while (removeLS1B(rays));
+		while (rays) {
+			Bitboard moveTarget = LS1B(rays);
+			pseudoLegalCaptures.emplace_back(m_board, (Square)sq, (Square)bitscan(moveTarget), p);
+			removeLS1B(rays);
 		}
 	} while (removeLS1B(pieces));
 }
@@ -434,7 +376,7 @@ Moves MoveGen::genLegalCaptures() {
 		}
 		Bitboard toSquare = 1UL << m.getTo();
 		Piece victimPiece = NONE_PIECE;
-		for (int i = QUEEN; i < NONE_PIECE; i++) {
+		for (size_t i = QUEEN; i < NONE_PIECE; i++) {
 			Bitboard pieceBoard = m_board.boardState.pieces[victimColor][i];
 			if (pieceBoard & toSquare) {
 				victimPiece = (Piece)i;
@@ -457,4 +399,80 @@ Moves MoveGen::genLegalCaptures() {
 	}
 
 	return moves;
+}
+
+bool MoveGen::hasLegalMoves() {
+	m_attacks	 = genAttacks();
+	auto isLegal = [&](Square from, Square to, Piece p, MoveFlag flags = NORMAL_MOVE) {
+		Move m(from, to, p, NONE_PIECE, flags);
+		m_board.execute(m);
+		bool illegal = m_board.inIllegalCheck();
+		m_board.undoMove();
+		return !illegal;
+	};
+	Bitboard allPieces	 = m_board.whitePieces() | m_board.blackPieces();
+	Bitboard yourPieces	 = m_board.boardState.sideToMove == WHITE ? m_board.whitePieces() : m_board.blackPieces();
+	Bitboard theirPieces = m_board.boardState.sideToMove == WHITE ? m_board.blackPieces() : m_board.whitePieces();
+
+	Bitboard pawns = m_board.boardState.pieces[m_board.boardState.sideToMove][PAWN];
+	do {
+		Bitboard pawn				= LS1B(pawns);
+		Bitboard captureMoveTargets = (pawn & ~aFile ? pawn << 7 : 0) | (pawn & ~hFile ? pawn << 9 : 0);
+		if (m_board.boardState.sideToMove == BLACK) {
+			captureMoveTargets >>= 16;
+		}
+		captureMoveTargets &= theirPieces | m_board.boardState.enPassantSquare;
+		Bitboard pushMoveTargets	= (m_board.boardState.sideToMove == WHITE ? pawn << 8 : pawn >> 8) & ~allPieces;
+		Bitboard dblPushMoveTargets = 0;
+		if (pawn & (secondRank | seventhRank)) {
+			dblPushMoveTargets = (m_board.boardState.sideToMove == WHITE ? pushMoveTargets << 8 : pushMoveTargets >> 8) & ~(allPieces ^ pawn);
+		}
+		while (captureMoveTargets) {
+			if (isLegal((Square)bitscan(pawn), (Square)bitscan(LS1B(captureMoveTargets)), PAWN, CAPTURE)) return true;
+			removeLS1B(captureMoveTargets);
+		}
+		Bitboard targets = pushMoveTargets | dblPushMoveTargets;
+		while (targets) {
+			if (isLegal((Square)bitscan(pawn), (Square)bitscan(LS1B(targets)), PAWN)) return true;
+			removeLS1B(targets);
+		}
+	} while (removeLS1B(pawns));
+
+	Bitboard knights = m_board.boardState.pieces[m_board.boardState.sideToMove][KNIGHT];
+	do {
+		Bitboard knight	 = LS1B(knights);
+		Bitboard targets = LookupTables::s_knightAttacks[bitscan(knight)] & ~yourPieces;
+		while (targets) {
+			if (isLegal((Square)bitscan(knight), (Square)bitscan(LS1B(targets)), KNIGHT, LS1B(targets) & theirPieces ? CAPTURE : NORMAL_MOVE)) return true;
+			removeLS1B(targets);
+		}
+	} while (removeLS1B(knights));
+
+	// sliding moves
+	for (Piece p : {BISHOP, ROOK, QUEEN}) {
+		Bitboard pieces = m_board.boardState.pieces[m_board.boardState.sideToMove][p];
+		while (pieces) {
+			Square from		 = (Square)bitscan(LS1B(pieces));
+			Bitboard targets = 0;
+			if (p != ROOK) targets |= genDiagonalRays(from, allPieces);
+			if (p != BISHOP) targets |= genStraightRays(from, allPieces);
+			targets &= ~yourPieces;
+
+			while (targets) {
+				if (isLegal(from, (Square)bitscan(LS1B(targets)), p, LS1B(targets) & theirPieces ? CAPTURE : NORMAL_MOVE)) return true;
+				removeLS1B(targets);
+			}
+			removeLS1B(pieces);
+		}
+	}
+
+	Bitboard king	 = m_board.boardState.pieces[m_board.boardState.sideToMove][KING];
+	Bitboard targets = LookupTables::s_kingAttacks[bitscan(king)] & ~yourPieces;
+	while (targets) {
+		if (isLegal((Square)bitscan(king), (Square)bitscan(LS1B(targets)), KING, LS1B(targets) & theirPieces ? CAPTURE : NORMAL_MOVE)) return true;
+		removeLS1B(targets);
+	}
+
+	// then checkmate or stalemate
+	return false;
 }

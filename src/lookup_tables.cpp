@@ -13,7 +13,7 @@ void LookupTables::init() {
 };
 
 void LookupTables::genKnightLookupTable() {
-	for (int i = Square::a1; i <= Square::h8; i++) {
+	for (size_t i = Square::a1; i <= Square::h8; i++) {
 		Bitboard knight = 1UL << i;
 		s_knightAttacks[i] =
 			((knight << 15 & ~(hFile | firstRank | secondRank)) |
@@ -28,7 +28,7 @@ void LookupTables::genKnightLookupTable() {
 }
 
 void LookupTables::genKingLookupTable() {
-	for (int i = Square::a1; i <= Square::h8; i++) {
+	for (uint8_t i = Square::a1; i <= Square::h8; i++) {
 		Bitboard king = 1UL << i;
 		s_kingAttacks[i] =
 			((king << 8) |
@@ -43,7 +43,7 @@ void LookupTables::genKingLookupTable() {
 }
 
 void LookupTables::genStraightRayTable() {
-	for (int square = Square::a1; square <= Square::h8; square++) {
+	for (uint8_t square = Square::a1; square <= Square::h8; square++) {
 		std::array<Bitboard, 4>& squareRays = s_straightRayTable[square];
 
 		Bitboard& Nrays = squareRays[NORTH];
@@ -74,7 +74,7 @@ void LookupTables::genStraightRayTable() {
 }
 
 void LookupTables::genDiagonalRayTable() {
-	for (int square = Square::a1; square <= Square::h8; square++) {
+	for (size_t square = Square::a1; square <= Square::h8; square++) {
 		std::array<Bitboard, 4>& squareRays = s_diagonalRayTable[square];
 
 		Bitboard& NErays = squareRays[NORTHEAST];

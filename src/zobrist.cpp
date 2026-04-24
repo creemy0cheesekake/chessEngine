@@ -9,19 +9,19 @@ std::array<ZobristHash, 16> Zobrist::castlingKeys{};
 std::array<ZobristHash, 8> Zobrist::epFileKeys{};
 
 void Zobrist::init() {
-	for (int i = 0; i < pieceKeys.size(); i++) {
-		for (int j = 0; j < pieceKeys[0].size(); j++) {
+	for (size_t i = 0; i < pieceKeys.size(); i++) {
+		for (size_t j = 0; j < pieceKeys[0].size(); j++) {
 			pieceKeys[i][j] = rng();
 		}
 	}
 
 	blackSideKey = rng();
 
-	for (int i = 0; i < castlingKeys.size(); i++) {
+	for (size_t i = 0; i < castlingKeys.size(); i++) {
 		castlingKeys[i] = rng();
 	}
 
-	for (int i = 0; i < epFileKeys.size(); i++) {
+	for (size_t i = 0; i < epFileKeys.size(); i++) {
 		epFileKeys[i] = rng();
 	}
 }

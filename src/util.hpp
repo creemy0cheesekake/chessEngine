@@ -64,9 +64,9 @@ extern std::chrono::duration<float> duration;
 void start();
 
 /**
-* @brief ends the timer, sets endTime
+* @brief ends the timer, sets endTime. returns duration.
 */
-void end();
+float end();
 
 /**
 * @brief formats the time with human readable units, using seconds, milliseconds and microseconds

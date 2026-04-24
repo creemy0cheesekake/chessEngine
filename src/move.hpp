@@ -40,6 +40,11 @@ private:
 	MoveScore m_score;
 
 	/**
+	* @brief move signature, a 32 bit number containing all the information needed to uniquely id a move
+	*/
+	uint32_t m_signature;
+
+	/**
 	* @brief infers flags from move and board position
 	* @param Board -- board of the move
 	*/
@@ -78,7 +83,7 @@ public:
 	* @param Piece -- type of piece that moved
 	* @param Piece -- type of piece to promote to
 	*/
-	Move(Board, Square, Square, Piece, Piece = NONE_PIECE);
+	Move(const Board&, Square, Square, Piece, Piece = NONE_PIECE);
 
 	friend bool operator==(const Move& a, const Move& b);
 
@@ -136,5 +141,10 @@ public:
 	* @brief return move notation in uci algebraic form
 	*/
 	std::string UCInotation() const;
+
+	/**
+	* @brief returns the move signature
+	*/
+	uint32_t getSignature() const;
 };
 #endif

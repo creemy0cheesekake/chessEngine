@@ -29,8 +29,7 @@ Centipawns Eval::countMaterial(const Board& b) {
 }
 
 Centipawns Eval::evaluate(Board& b) {
-	Moves moves = b.moveGenerator.genLegalMoves();
-	if (!moves.size()) {
+	if (!b.moveGenerator.hasLegalMoves()) {
 		// add hmClock to prioritize quicker checkmates
 		return b.moveGenerator.inCheck() ? -INF_SCORE + (int)b.boardState.hmClock : 0;
 	}
@@ -48,19 +47,19 @@ Centipawns Eval::evaluate(Board& b) {
 				Square pieceSquare = (Square)bitscan(piece);
 				switch (pieceType) {
 					case QUEEN: {
-						Bitboard attacks = b.moveGenerator.genStraightRays(b, pieceSquare, allPieces) | b.moveGenerator.genDiagonalRays(b, pieceSquare, allPieces);
+						Bitboard attacks = b.moveGenerator.genStraightRays(pieceSquare, allPieces) | b.moveGenerator.genDiagonalRays(pieceSquare, allPieces);
 						attacks &= ~friendly;
 						score += stmMultiplier * queenMobilityScore[std::popcount(attacks)];
 						break;
 					}
 					case ROOK: {
-						Bitboard attacks = b.moveGenerator.genStraightRays(b, pieceSquare, allPieces);
+						Bitboard attacks = b.moveGenerator.genStraightRays(pieceSquare, allPieces);
 						attacks &= ~friendly;
 						score += stmMultiplier * rookMobilityScore[std::popcount(attacks)];
 						break;
 					}
 					case BISHOP: {
-						Bitboard attacks = b.moveGenerator.genDiagonalRays(b, pieceSquare, allPieces);
+						Bitboard attacks = b.moveGenerator.genDiagonalRays(pieceSquare, allPieces);
 						attacks &= ~friendly;
 						score += stmMultiplier * bishopMobilityScore[std::popcount(attacks)];
 						break;
@@ -114,7 +113,7 @@ Centipawns Eval::quiescence_search(Board& b, Centipawns alpha, Centipawns beta) 
 	return bestScore;
 }
 
-std::tuple<Centipawns, SearchState> Eval::search(Moves& topLine, Board& b, int depthLeft, Moves& previousPV, Centipawns alpha, Centipawns beta, int plyFromRoot) {
+SearchResult Eval::search(Moves& topLine, Board& b, int depthLeft, Moves& previousPV, Centipawns alpha, Centipawns beta, int plyFromRoot) {
 	if (b.is50MoveRule() || b.isInsufficientMaterial()) {
 		return {0, SEARCH_COMPLETE};
 	}
@@ -124,13 +123,13 @@ std::tuple<Centipawns, SearchState> Eval::search(Moves& topLine, Board& b, int d
 
 	Centipawns originalAlpha = alpha;
 
-	MoveGen mg	= b.moveGenerator;
+	MoveGen& mg = b.moveGenerator;
 	Moves moves = mg.genLegalMoves();
 
 	const Move killerMove1 = killerMoves[plyFromRoot][0];
 	const Move killerMove2 = killerMoves[plyFromRoot][1];
 
-	TTEntry entry = TranspositionTable::getEntry(b.boardState.hash);
+	const TTEntry& entry = TranspositionTable::getEntry(b.boardState.hash);
 	Move ttMove;
 	if (entry.partial_hash == (b.boardState.hash & 0xFFFF) && entry.bestMove.piece != NONE_PIECE) {
 		ttMove = TranspositionTable::getMove(entry.bestMove);
@@ -152,26 +151,41 @@ std::tuple<Centipawns, SearchState> Eval::search(Moves& topLine, Board& b, int d
 		}
 	}
 
+	const uint32_t k1Key = killerMove1.getSignature();
+	const uint32_t k2Key = killerMove2.getSignature();
+	const uint32_t ttKey = ttMove.getSignature();
+	const uint32_t pvKey = (plyFromRoot < previousPV.size()) ? previousPV[plyFromRoot].getSignature() : 0;
+
 	for (Move& m : moves) {
-		if (m == killerMove1) {
-			m.setScore(KILLER_MOVE_1_SCORE);
-		} else if (m == killerMove2) {
-			m.setScore(KILLER_MOVE_2_SCORE);
-		} else if (m == ttMove) {
-			m.setScore(MAX_MOVE_SCORE);
-		} else if (plyFromRoot < previousPV.size() && m == previousPV[plyFromRoot]) {
-			m.setScore(MAX_MOVE_SCORE - 1);
-		}
+		uint32_t mKey = m.getSignature(); 
+
+		if (mKey == ttKey) m.setScore(MAX_MOVE_SCORE);
+		else if (mKey == pvKey) m.setScore(MAX_MOVE_SCORE - 1);
+		else if (mKey == k1Key) m.setScore(KILLER_MOVE_1_SCORE);
+		else if (mKey == k2Key) m.setScore(KILLER_MOVE_2_SCORE);
 	}
 
-	std::sort(moves.begin(), moves.end(), [&](const Move& a, const Move& b) {
-		return a.getScore() > b.getScore();
-	});
+	/*
+	 * we've commented out sorting entire list because its too expensive, and it leads to a very high number of cache misses.
+	 * in the main loop, we just swap the best move to the front, and this is more performant because it avoids all the cache misses
+	 */
+	// std::sort(moves.begin(), moves.end(), [&](const Move& a, const Move& b) {
+	// 	return a.getScore() > b.getScore();
+	// });
 
 	Moves subline;
 	int movesSearched = 0;
 	Move bestMove;
-	for (const Move& m : moves) {
+	for (size_t i = 0; i < moves.size(); i++) {
+		int bestIdx = i;
+		for (size_t j = i + 1; j < moves.size(); j++) {
+			if (moves[j].getScore() > moves[bestIdx].getScore()) {
+				bestIdx = j;
+			}
+		}
+		std::swap(moves[i], moves[bestIdx]);
+
+		const Move& m = moves[i];
 		if (std::chrono::high_resolution_clock::now() > m_iterative_deepening_cutoff_time) {
 			return {NONE_SCORE, SEARCH_ABORTED};
 		}
@@ -262,7 +276,7 @@ Centipawns Eval::iterative_deepening_ply(Moves& topLine, Board& b, int maxDepth)
 	Moves previousPV;
 
 	auto searchStartTime = std::chrono::high_resolution_clock::now();
-	for (int depth = 1; depth <= maxDepth; depth++) {
+	for (size_t depth = 1; depth <= maxDepth; depth++) {
 		auto [eval, searchState] = search(topLine, b, depth, previousPV, -INF_SCORE, INF_SCORE, 0);
 
 		if (topLine.size() < depth) {
@@ -271,8 +285,8 @@ Centipawns Eval::iterative_deepening_ply(Moves& topLine, Board& b, int maxDepth)
 			Board copy = b;
 			for (Move m : topLine) copy.execute(m);
 			int topLineSize = topLine.size();
-			for (int i = 0; i < depth - topLineSize; i++) {
-				TTEntry entry = TranspositionTable::getEntry(copy.boardState.hash);
+			for (size_t i = 0; i < depth - topLineSize; i++) {
+				const TTEntry& entry = TranspositionTable::getEntry(copy.boardState.hash);
 				if (entry.partial_hash == (copy.boardState.hash & 0xFFFF) && entry.bestMove.piece != NONE_PIECE) {
 					Move m = TranspositionTable::getMove(entry.bestMove);
 					topLine.push_back(m);
@@ -284,14 +298,14 @@ Centipawns Eval::iterative_deepening_ply(Moves& topLine, Board& b, int maxDepth)
 		for (Move m : topLine) {
 			std::cout << m.notation() << " ";
 		}
-		std::cout << std::endl;
+		std::cout << " (depth " << depth << ")\n";
 
 		finalScore = eval;
 		previousPV = std::move(topLine);
 		if (abs(finalScore) >= INF_SCORE - 2000) break;
 	}
 	topLine = std::move(previousPV);
-	std::cout << "NPS: " << totalNodesSearched / std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::high_resolution_clock::now() - searchStartTime).count() << std::endl;
+	std::cout << "NPS: " << totalNodesSearched / std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::high_resolution_clock::now() - searchStartTime).count() << "\n";
 	return finalScore;
 }
 
@@ -316,8 +330,8 @@ Centipawns Eval::iterative_deepening_time(Moves& topLine, Board& b, int maxTimeM
 			Board copy = b;
 			for (Move m : topLine) copy.execute(m);
 			int topLineSize = topLine.size();
-			for (int i = 0; i < depth - topLineSize; i++) {
-				TTEntry entry = TranspositionTable::getEntry(copy.boardState.hash);
+			for (size_t i = 0; i < depth - topLineSize; i++) {
+				const TTEntry& entry = TranspositionTable::getEntry(copy.boardState.hash);
 				if (entry.partial_hash == (copy.boardState.hash & 0xFFFF) && entry.bestMove.piece != NONE_PIECE) {
 					Move m = TranspositionTable::getMove(entry.bestMove);
 					topLine.push_back(m);
@@ -329,15 +343,15 @@ Centipawns Eval::iterative_deepening_time(Moves& topLine, Board& b, int maxTimeM
 		for (Move m : topLine) {
 			std::cout << m.notation() << " ";
 		}
-		std::cout << std::endl;
+		std::cout << " (depth " << depth << ")\n";
 		if (abs(finalScore) >= INF_SCORE - 2000) {
-			std::cout << "MATE FOUND" << std::endl;
+			std::cout << "MATE FOUND\n";
 			break;
 		}
 	}
 	topLine = std::move(previousPV);
-	std::cout << "NPS: " << totalNodesSearched / std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::high_resolution_clock::now() - searchStartTime).count() << std::endl;
-	std::cout << "Score: " << finalScore << std::endl;
+	std::cout << "NPS: " << totalNodesSearched / std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::high_resolution_clock::now() - searchStartTime).count() << "\n";
+	std::cout << "Score: " << finalScore << "\n";
 	totalNodesSearched = 0;
 	return finalScore;
 }

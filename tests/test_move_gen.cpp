@@ -55,3 +55,29 @@ CUSTOM_TEST_CASE("Test Move Gen") {
 		CHECK(perft(b, 3) == 89890);
 	}
 }
+
+CUSTOM_TEST_CASE("Test hasLegalMoves") {
+	Board b;
+	SUBCASE("Test r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1") {
+		b.setToFen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
+		CHECK(b.moveGenerator.hasLegalMoves() == true);
+	}
+	SUBCASE("Test 8/8/8/8/8/1q6/3k4/K7 w - - 0 1") {
+		b.setToFen("8/8/8/8/8/1q6/3k4/K7 w - - 0 1");
+		CHECK(b.moveGenerator.hasLegalMoves() == false);
+	}
+	SUBCASE("Test Perft 8/8/8/8/8/8/1qk5/K7 w - - 0 1") {
+		b.setToFen("8/8/8/8/8/8/1qk5/K7 w - - 0 1");
+		CHECK(b.moveGenerator.hasLegalMoves() == false);
+	}
+	SUBCASE("Test 8/8/Q7/2pR1bk1/2Pp2Pp/3N3P/3K4/8 b - - 1 1") {
+		b.setToFen("8/8/Q7/2pR1bk1/2Pp2Pp/3N3P/3K4/8 b - - 1 1");
+		CHECK(b.moveGenerator.hasLegalMoves() == false);
+	}
+	SUBCASE("Test 8/8/Q7/2pR1bk1/2Pp2Pp/3NB2P/3K4/8 b - - 1 1") {
+		b.setToFen("8/8/Q7/2pR1bk1/2Pp2Pp/3NB2P/3K4/8 b - - 1 1");
+		CHECK(b.moveGenerator.hasLegalMoves() == true);
+	}
+
+}
+

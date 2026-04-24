@@ -31,7 +31,7 @@ Bitboard MoveGen::genKingAttacks() const {
 	return LookupTables::s_kingAttacks[bitscan(king)];
 }
 
-Bitboard MoveGen::genStraightRays(Board& b, Square pieceSquare, Bitboard occ) {
+Bitboard MoveGen::genStraightRays(Square pieceSquare, Bitboard occ) {
 	Bitboard attacks = 0;
 	for (DirectionStraight direction : {NORTH, SOUTH, EAST, WEST}) {
 		Bitboard directionalRay = LookupTables::s_straightRayTable[pieceSquare][direction];
@@ -49,7 +49,7 @@ Bitboard MoveGen::genStraightRays(Board& b, Square pieceSquare, Bitboard occ) {
 	return attacks;
 }
 
-Bitboard MoveGen::genDiagonalRays(Board& b, Square pieceSquare, Bitboard occ) {
+Bitboard MoveGen::genDiagonalRays(Square pieceSquare, Bitboard occ) {
 	Bitboard attacks = 0;
 	for (DirectionDiagonal direction : {NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST}) {
 		Bitboard directionalRay = LookupTables::s_diagonalRayTable[pieceSquare][direction];
@@ -67,7 +67,8 @@ Bitboard MoveGen::genDiagonalRays(Board& b, Square pieceSquare, Bitboard occ) {
 	return attacks;
 }
 
-Bitboard MoveGen::genSlidingPiecesAttacks(Bitboard pieces, SlidingPieceDirectionFlags direction) const {
+template <SlidingPieceDirectionFlags Direction>
+Bitboard MoveGen::genSlidingPiecesAttacks(Bitboard pieces) const {
 	if (!pieces) {
 		return 0;
 	}
@@ -75,11 +76,36 @@ Bitboard MoveGen::genSlidingPiecesAttacks(Bitboard pieces, SlidingPieceDirection
 	Bitboard attacks   = 0;
 
 	do {
-		if (direction & SlidingPieceDirectionFlags::STRAIGHT) {
-			attacks |= genStraightRays(m_board, (Square)bitscan(pieces), allPieces);
+		int sq = bitscan(pieces);
+		if constexpr (Direction & SlidingPieceDirectionFlags::STRAIGHT) {
+			Bitboard Nrays	   = LookupTables::s_straightRayTable[sq][NORTH],
+					 Erays	   = LookupTables::s_straightRayTable[sq][EAST],
+					 Wrays	   = LookupTables::s_straightRayTable[sq][WEST],
+					 Srays	   = LookupTables::s_straightRayTable[sq][SOUTH];
+			Bitboard Nblockers = Nrays & allPieces;
+			if (Nblockers != 0) Nrays ^= (LookupTables::s_straightRayTable[bitscan(Nblockers)][NORTH]);
+			Bitboard Eblockers = Erays & allPieces;
+			if (Eblockers != 0) Erays ^= (LookupTables::s_straightRayTable[bitscan(Eblockers)][EAST]);
+			Bitboard Sblockers = Srays & allPieces;
+			if (Sblockers != 0) Srays ^= (LookupTables::s_straightRayTable[reverseBitscan(Sblockers)][SOUTH]);
+			Bitboard Wblockers = Wrays & allPieces;
+			if (Wblockers != 0) Wrays ^= (LookupTables::s_straightRayTable[reverseBitscan(Wblockers)][WEST]);
+			attacks |= Nrays | Erays | Wrays | Srays;
 		}
-		if (direction & SlidingPieceDirectionFlags::DIAGONAL) {
-			attacks |= genDiagonalRays(m_board, (Square)bitscan(pieces), allPieces);
+		if constexpr (Direction & SlidingPieceDirectionFlags::DIAGONAL) {
+			Bitboard NErays		= LookupTables::s_diagonalRayTable[sq][NORTHEAST],
+					 NWrays		= LookupTables::s_diagonalRayTable[sq][NORTHWEST],
+					 SWrays		= LookupTables::s_diagonalRayTable[sq][SOUTHWEST],
+					 SErays		= LookupTables::s_diagonalRayTable[sq][SOUTHEAST];
+			Bitboard NEblockers = NErays & allPieces;
+			if (NEblockers != 0) NErays ^= (LookupTables::s_diagonalRayTable[bitscan(NEblockers)][NORTHEAST]);
+			Bitboard NWblockers = NWrays & allPieces;
+			if (NWblockers != 0) NWrays ^= (LookupTables::s_diagonalRayTable[bitscan(NWblockers)][NORTHWEST]);
+			Bitboard SWblockers = SWrays & allPieces;
+			if (SWblockers != 0) SWrays ^= (LookupTables::s_diagonalRayTable[reverseBitscan(SWblockers)][SOUTHWEST]);
+			Bitboard SEblockers = SErays & allPieces;
+			if (SEblockers != 0) SErays ^= (LookupTables::s_diagonalRayTable[reverseBitscan(SEblockers)][SOUTHEAST]);
+			attacks |= NErays | NWrays | SWrays | SErays;
 		}
 	} while (removeLS1B(pieces));
 	return attacks;
@@ -87,15 +113,15 @@ Bitboard MoveGen::genSlidingPiecesAttacks(Bitboard pieces, SlidingPieceDirection
 
 Bitboard MoveGen::genBishopAttacks() const {
 	Bitboard bishops = m_board.boardState.pieces[!m_board.boardState.sideToMove][BISHOP];
-	return genSlidingPiecesAttacks(bishops, SlidingPieceDirectionFlags::DIAGONAL);
+	return genSlidingPiecesAttacks<SlidingPieceDirectionFlags::DIAGONAL>(bishops);
 }
 Bitboard MoveGen::genRookAttacks() const {
 	Bitboard rooks = m_board.boardState.pieces[!m_board.boardState.sideToMove][ROOK];
-	return genSlidingPiecesAttacks(rooks, SlidingPieceDirectionFlags::STRAIGHT);
+	return genSlidingPiecesAttacks<SlidingPieceDirectionFlags::STRAIGHT>(rooks);
 }
 Bitboard MoveGen::genQueenAttacks() const {
 	Bitboard queens = m_board.boardState.pieces[!m_board.boardState.sideToMove][QUEEN];
-	return genSlidingPiecesAttacks(queens, SlidingPieceDirectionFlags(DIAGONAL | STRAIGHT));
+	return genSlidingPiecesAttacks<SlidingPieceDirectionFlags(DIAGONAL | STRAIGHT)>(queens);
 }
 
 Bitboard MoveGen::genAttacks() const {
