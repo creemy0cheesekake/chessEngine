@@ -35,7 +35,7 @@ MoveFlag Move::genFlags(const Board& board) {
 		if (m_pieceType == PAWN) {
 			flags += PAWN_MOVE;
 		}
-		if ((board.blackPieces() >> m_to) & 1) {
+		if ((board.boardState.allColorPieces[BLACK] >> m_to) & 1) {
 			flags += CAPTURE;
 		} else if (m_pieceType == KING && m_from == e1 && m_to == g1) {
 			flags += KS_CASTLE;
@@ -53,7 +53,7 @@ MoveFlag Move::genFlags(const Board& board) {
 		if (m_pieceType == PAWN) {
 			flags += PAWN_MOVE;
 		}
-		if ((board.whitePieces() >> m_to) & 1) {
+		if ((board.boardState.allColorPieces[WHITE] >> m_to) & 1) {
 			flags += CAPTURE;
 		} else if (m_pieceType == KING && m_from == e8 && m_to == g8) {
 			flags += KS_CASTLE;
@@ -68,36 +68,12 @@ MoveFlag Move::genFlags(const Board& board) {
 	return (MoveFlag)flags;
 }
 
-Square Move::getFrom() const {
-	return m_from;
-}
-
-Square Move::getTo() const {
-	return m_to;
-}
-
-MoveFlag Move::getFlags() const {
-	return m_flags;
-}
-
-Piece Move::getPromoPiece() const {
-	return m_promoPiece;
-}
-
 void Move::setPromoPiece(Piece piece) {
 	m_promoPiece = piece;
 }
 
-MoveScore Move::getScore() const {
-	return m_score;
-}
-
 void Move::setScore(MoveScore s) {
 	m_score = s;
-}
-
-Piece Move::getPieceType() const {
-	return m_pieceType;
 }
 
 std::string Move::notation() const {
@@ -146,8 +122,4 @@ std::string Move::UCInotation() const {
 		notation += promotionPieceToUCINotationChar[m_promoPiece];
 	}
 	return notation;
-}
-
-uint32_t Move::getSignature() const {
-	return m_signature;
 }

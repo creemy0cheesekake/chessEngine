@@ -145,53 +145,68 @@ enum SlidingPieceDirectionFlags {
 /**
 * @brief centipawn values for each piece type
 */
-inline std::unordered_map<Piece, Centipawns> pieceToCentipawns = {
-	{QUEEN, 900},
-	{ROOK, 500},
-	{BISHOP, 310},
-	{KNIGHT, 300},
-	{PAWN, 100},
-};
+inline constexpr std::array<Centipawns, NONE_PIECE> pieceToCentipawns = []() {
+	std::array<Centipawns, NONE_PIECE> values{};
+	values[PAWN]   = 100;
+	values[KNIGHT] = 300;
+	values[BISHOP] = 310;
+	values[ROOK]   = 500;
+	values[QUEEN]  = 900;
+	return values;
+}();
 
 /**
 * @brief convert piece to notation for algebraic notation
 */
-inline std::unordered_map<Piece, char> pieceToNotationChar = {
-	{KING, 'K'},
-	{QUEEN, 'Q'},
-	{ROOK, 'R'},
-	{BISHOP, 'B'},
-	{KNIGHT, 'N'},
-};
+inline constexpr std::array<char, NONE_PIECE> pieceToNotationChar = []() {
+	std::array<char, NONE_PIECE> values{};
+	values[KING]   = 'K';
+	values[QUEEN]  = 'Q';
+	values[ROOK]   = 'R';
+	values[BISHOP] = 'B';
+	values[KNIGHT] = 'N';
+	return values;
+}();
 
 /**
 * @brief convert piece to notation for uci notation notation
 */
-inline std::unordered_map<Piece, char> promotionPieceToUCINotationChar = {
-	{QUEEN, 'q'},
-	{ROOK, 'r'},
-	{BISHOP, 'b'},
-	{KNIGHT, 'n'},
-};
+inline constexpr std::array<char, NONE_PIECE> promotionPieceToUCINotationChar = []() {
+	std::array<char, NONE_PIECE> values{};
+	values[QUEEN]  = 'q';
+	values[ROOK]   = 'r';
+	values[BISHOP] = 'b';
+	values[KNIGHT] = 'n';
+	return values;
+}();
 
 /**
 * @brief convert char from fen string to piece
 */
-inline std::unordered_map<char, Piece> fenPieceChartoPieceType = {
-	{'K', KING},
-	{'Q', QUEEN},
-	{'R', ROOK},
-	{'B', BISHOP},
-	{'N', KNIGHT},
-	{'P', PAWN},
-};
+inline constexpr Piece fenPieceChartoPieceType(char c) {
+	switch (c) {
+		case 'P':
+		case 'p': return PAWN;
+		case 'N':
+		case 'n': return KNIGHT;
+		case 'B':
+		case 'b': return BISHOP;
+		case 'R':
+		case 'r': return ROOK;
+		case 'Q':
+		case 'q': return QUEEN;
+		case 'K':
+		case 'k': return KING;
+		default: return NONE_PIECE;
+	}
+}
 
 /**
 * @brief index to ascii piece for ascii board representation
 */
-constexpr std::array<const char*, 12> indexToPiece = {"♚ ", "♛ ", "♜ ", "♝ ", "♞ ", "♟︎ ", "♔ ", "♕ ", "♖ ", "♗ ", "♘ ", "♙ "};
+inline constexpr std::array<const char*, 12> indexToPiece = {"♚ ", "♛ ", "♜ ", "♝ ", "♞ ", "♟︎ ", "♔ ", "♕ ", "♖ ", "♗ ", "♘ ", "♙ "};
 
-constexpr std::array<std::array<MoveScore, 6>, 6> MVV_LVA_table = {{
+inline constexpr std::array<std::array<MoveScore, 6>, 6> MVV_LVA_table = {{
 	/* victims
 	 K	  Q	   R	B	 N	  P		 // aggressors */
 	{999, 500, 400, 300, 200, 100},	 // KING

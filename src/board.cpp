@@ -5,7 +5,9 @@
 
 Board::Board() {
 	m_previousBoardStates.reserve(999);
-	boardState.hash = Zobrist::initialHash();
+	boardState.hash		  = Zobrist::initialHash();
+	boardState.allColorPieces[WHITE] = firstRank | secondRank;
+	boardState.allColorPieces[BLACK] = seventhRank | eighthRank;
 }
 
 Board::Board(const Board& other) : boardState(other.boardState), moveGenerator(*this) {}
@@ -68,11 +70,12 @@ void Board::setToFen(const char* fen) {
 			squareToWriteTo += *fen - '0';
 		} else {
 			Color colorOfPiece = islower(*fen) ? BLACK : WHITE;
-			Piece typeOfPiece  = fenPieceChartoPieceType[toupper(*fen)];
+			Piece typeOfPiece  = fenPieceChartoPieceType(*fen);
 
 			boardState.pieces[colorOfPiece][typeOfPiece] |= (1UL << squareToWriteTo);
 
 			squareToWriteTo++;
+			boardState.material += (colorOfPiece == WHITE ? 1 : -1) * pieceToCentipawns[typeOfPiece];
 		}
 	} while (*fen++);
 
@@ -104,10 +107,12 @@ void Board::setToFen(const char* fen) {
 	}
 	fen += 2;
 	char* endOfClock;
-	boardState.hmClock = std::strtol(fen, &endOfClock, 10);
-	fen				   = endOfClock + 1;
-	boardState.fmClock = std::strtol(fen, &endOfClock, 10);
-	boardState.hash	   = Zobrist::hash(boardState);
+	boardState.hmClock	  = std::strtol(fen, &endOfClock, 10);
+	fen					  = endOfClock + 1;
+	boardState.fmClock	  = std::strtol(fen, &endOfClock, 10);
+	boardState.hash		  = Zobrist::hash(boardState);
+	boardState.allColorPieces[WHITE] = boardState.pieces[WHITE][PAWN] | boardState.pieces[WHITE][KNIGHT] | boardState.pieces[WHITE][BISHOP] | boardState.pieces[WHITE][ROOK] | boardState.pieces[WHITE][QUEEN] | boardState.pieces[WHITE][KING];
+	boardState.allColorPieces[BLACK] = boardState.pieces[BLACK][PAWN] | boardState.pieces[BLACK][KNIGHT] | boardState.pieces[BLACK][BISHOP] | boardState.pieces[BLACK][ROOK] | boardState.pieces[BLACK][QUEEN] | boardState.pieces[BLACK][KING];
 }
 
 bool Board::inIllegalCheck() {
@@ -152,9 +157,9 @@ bool Board::isInsufficientMaterial() const {
 	constexpr Bitboard LIGHT_SQUARES = 0x55AA55AA55AA55AAULL;
 	constexpr Bitboard DARK_SQUARES	 = 0xAA55AA55AA55AA55ULL;
 
-	Bitboard bishops = boardState.pieces[WHITE][BISHOP] | boardState.pieces[BLACK][BISHOP];
+	Bitboard bishops		   = boardState.pieces[WHITE][BISHOP] | boardState.pieces[BLACK][BISHOP];
 	bool bishopsOnLightSquares = bishops & LIGHT_SQUARES;
-	bool bishopsOnDarkSquares = bishops & DARK_SQUARES;
+	bool bishopsOnDarkSquares  = bishops & DARK_SQUARES;
 
 	return bishopsOnLightSquares != bishopsOnDarkSquares;
 }
@@ -177,17 +182,25 @@ void Board::execute(const Move& m) {
 		if (boardState.sideToMove == WHITE) {
 			boardState.pieces[WHITE][KING] ^= 0x50;
 			boardState.pieces[WHITE][ROOK] ^= 0xa0;
+			boardState.allColorPieces[WHITE] ^= 0x50;
+			boardState.allColorPieces[WHITE] ^= 0xa0;
 		} else {
 			boardState.pieces[BLACK][KING] ^= 0x5000000000000000;
 			boardState.pieces[BLACK][ROOK] ^= 0xa000000000000000;
+			boardState.allColorPieces[BLACK] ^= 0x5000000000000000;
+			boardState.allColorPieces[BLACK] ^= 0xa000000000000000;
 		}
 	} else if (flags & QS_CASTLE) {
 		if (boardState.sideToMove == WHITE) {
 			boardState.pieces[WHITE][KING] ^= 0x14;
 			boardState.pieces[WHITE][ROOK] ^= 0x9;
+			boardState.allColorPieces[WHITE] ^= 0x14;
+			boardState.allColorPieces[WHITE] ^= 0x9;
 		} else {
 			boardState.pieces[BLACK][KING] ^= 0x1400000000000000;
 			boardState.pieces[BLACK][ROOK] ^= 0x900000000000000;
+			boardState.allColorPieces[BLACK] ^= 0x1400000000000000;
+			boardState.allColorPieces[BLACK] ^= 0x900000000000000;
 		}
 	} else {
 		if (flags & CAPTURE) {
@@ -196,12 +209,16 @@ void Board::execute(const Move& m) {
 				int capturedPawnSquare = m.getTo() + (boardState.sideToMove == WHITE ? -8 : 8);
 				boardState.hash ^= Zobrist::pieceKeys[(boardState.sideToMove == WHITE ? 6 : 0) + PAWN][capturedPawnSquare];
 				boardState.pieces[!boardState.sideToMove][PAWN] &= ~(1UL << (capturedPawnSquare));
+				boardState.allColorPieces[!boardState.sideToMove] &= ~(1UL << (capturedPawnSquare));
+				boardState.material += boardState.sideToMove == WHITE ? 100 : -100;
 			} else {
 				for (Piece p : {KING, QUEEN, ROOK, BISHOP, KNIGHT, PAWN}) {
-					std::array<Bitboard, 6>& theirPieces = boardState.pieces[!boardState.sideToMove];
+					auto& theirPieces = boardState.pieces[!boardState.sideToMove];
 					if (theirPieces[p] & 1UL << m.getTo()) {
 						theirPieces[p] &= ~(1UL << m.getTo());
+						boardState.allColorPieces[!boardState.sideToMove] &= ~(1UL << m.getTo());
 						boardState.hash ^= Zobrist::pieceKeys[(boardState.sideToMove == WHITE ? 6 : 0) + p][m.getTo()];
+						boardState.material += (boardState.sideToMove == WHITE ? 1 : -1) * pieceToCentipawns[p];
 						break;
 					}
 				}
@@ -213,8 +230,12 @@ void Board::execute(const Move& m) {
 			moveMask += (1UL << m.getTo());
 		}
 		boardState.pieces[boardState.sideToMove][m.getPieceType()] ^= moveMask;
+		boardState.allColorPieces[boardState.sideToMove] ^= moveMask;
 		if (flags & PROMOTION) {
+			static constexpr int PAWN_VAL = pieceToCentipawns[PAWN];
+			boardState.material += (boardState.sideToMove == WHITE ? 1 : -1) * (pieceToCentipawns[m.getPromoPiece()] - PAWN_VAL);
 			boardState.pieces[boardState.sideToMove][m.getPromoPiece()] |= 1UL << m.getTo();
+			boardState.allColorPieces[boardState.sideToMove] |= 1UL << m.getTo();
 			boardState.hash ^= Zobrist::pieceKeys[(boardState.sideToMove == BLACK ? 6 : 0) + PAWN][m.getTo()];
 			boardState.hash ^= Zobrist::pieceKeys[(boardState.sideToMove == BLACK ? 6 : 0) + m.getPromoPiece()][m.getTo()];
 		}
@@ -313,14 +334,6 @@ void Board::updateCastlingRights(const Move& m) {
 	}
 
 	boardState.hash ^= Zobrist::castlingKeys[boardState.castlingRights.rights];
-}
-
-Bitboard Board::whitePieces() const {
-	return boardState.pieces[WHITE][PAWN] | boardState.pieces[WHITE][KNIGHT] | boardState.pieces[WHITE][BISHOP] | boardState.pieces[WHITE][ROOK] | boardState.pieces[WHITE][QUEEN] | boardState.pieces[WHITE][KING];
-}
-
-Bitboard Board::blackPieces() const {
-	return boardState.pieces[BLACK][PAWN] | boardState.pieces[BLACK][KNIGHT] | boardState.pieces[BLACK][BISHOP] | boardState.pieces[BLACK][ROOK] | boardState.pieces[BLACK][QUEEN] | boardState.pieces[BLACK][KING];
 }
 
 void Board::reset() {

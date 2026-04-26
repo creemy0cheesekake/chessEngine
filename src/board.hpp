@@ -127,7 +127,11 @@ public:
 		/**
 		* @brief half move clock. number of half moves since last pawn move or capture
 		*/
-		unsigned int hmClock = 0;
+		uint16_t hmClock = 0;
+		/**
+		* @brief material count with positive number meaning white is up material and negative meaning black is up
+		*/
+		Centipawns material = 0;
 		/**
 		* @brief full move clock. number of full moves, starts at 1, gets incremented every time black moves
 		*/
@@ -136,6 +140,10 @@ public:
 		* @brief unique (almost) hash of board state
 		*/
 		ZobristHash hash;
+		/**
+		* @brief get current bitboard of all white or black pieces
+		*/
+		std::array<Bitboard, 2> allColorPieces;
 	};
 
 	/**
@@ -189,16 +197,6 @@ public:
 	* @brief goes back a move to the previous board state
 	*/
 	void undoMove();
-
-	/**
-	* @brief returns bitboard of all white pieces
-	*/
-	Bitboard whitePieces() const;
-
-	/**
-	* @brief returns bitboard of all black pieces
-	*/
-	Bitboard blackPieces() const;
 
 	/**
 	* @brief resets board to initial position

@@ -12,8 +12,8 @@ void MoveGen::genPawnMoves(Moves& pseudoLegalMoves, Moves& pseudoLegalCaptures) 
 	if (!pawns) {
 		return;
 	}
-	Bitboard allPieces	 = m_board.whitePieces() | m_board.blackPieces();
-	Bitboard theirPieces = m_board.boardState.sideToMove == WHITE ? m_board.blackPieces() : m_board.whitePieces();
+	Bitboard allPieces	 = m_board.boardState.allColorPieces[WHITE] | m_board.boardState.allColorPieces[BLACK];
+	Bitboard theirPieces = m_board.boardState.sideToMove == WHITE ? m_board.boardState.allColorPieces[BLACK] : m_board.boardState.allColorPieces[WHITE];
 	do {
 		Bitboard pawn				= LS1B(pawns);
 		Bitboard captureMoveTargets = (pawn & ~aFile ? pawn << 7 : 0) | (pawn & ~hFile ? pawn << 9 : 0);
@@ -47,8 +47,8 @@ void MoveGen::genKnightMoves(Moves& pseudoLegalMoves, Moves& pseudoLegalCaptures
 	if (!knights) {
 		return;
 	}
-	Bitboard yourPieces	 = m_board.boardState.sideToMove == WHITE ? m_board.whitePieces() : m_board.blackPieces();
-	Bitboard theirPieces = m_board.boardState.sideToMove == WHITE ? m_board.blackPieces() : m_board.whitePieces();
+	Bitboard yourPieces	 = m_board.boardState.sideToMove == WHITE ? m_board.boardState.allColorPieces[WHITE] : m_board.boardState.allColorPieces[BLACK];
+	Bitboard theirPieces = m_board.boardState.sideToMove == WHITE ? m_board.boardState.allColorPieces[BLACK] : m_board.boardState.allColorPieces[WHITE];
 	do {
 		Bitboard knight			   = LS1B(knights);
 		Bitboard knightMoveTargets = LookupTables::s_knightAttacks[bitscan(knight)] & ~yourPieces;
@@ -66,8 +66,8 @@ bool MoveGen::inCheck() const {
 }
 
 void MoveGen::genKingMoves(Moves& pseudoLegalMoves, Moves& pseudoLegalCaptures) const {
-	Bitboard yourPieces		 = m_board.boardState.sideToMove == WHITE ? m_board.whitePieces() : m_board.blackPieces();
-	Bitboard theirPieces	 = m_board.boardState.sideToMove == WHITE ? m_board.blackPieces() : m_board.whitePieces();
+	Bitboard yourPieces		 = m_board.boardState.sideToMove == WHITE ? m_board.boardState.allColorPieces[WHITE] : m_board.boardState.allColorPieces[BLACK];
+	Bitboard theirPieces	 = m_board.boardState.sideToMove == WHITE ? m_board.boardState.allColorPieces[BLACK] : m_board.boardState.allColorPieces[WHITE];
 	Bitboard king			 = m_board.boardState.pieces[m_board.boardState.sideToMove][KING];
 	Bitboard kingMoveTargets = LookupTables::s_kingAttacks[bitscan(king)] & ~yourPieces;
 	while (kingMoveTargets) {
@@ -84,7 +84,7 @@ void MoveGen::genCastlingMoves(Moves& pseudoLegalMoves) const {
 	}
 	Bitboard king				  = m_board.boardState.pieces[m_board.boardState.sideToMove][KING];
 	unsigned short castlingRights = 0;
-	Bitboard allPieces			  = m_board.whitePieces() | m_board.blackPieces();
+	Bitboard allPieces			  = m_board.boardState.allColorPieces[WHITE] | m_board.boardState.allColorPieces[BLACK];
 	if (m_board.boardState.sideToMove == WHITE) {
 		castlingRights = m_board.boardState.castlingRights.getWhiteRights();
 		// kingside castling
@@ -112,9 +112,9 @@ void MoveGen::genSlidingPieces(Moves& pseudoLegalMoves, Moves& pseudoLegalCaptur
 	if (!pieces) {
 		return;
 	}
-	Bitboard yourPieces	 = m_board.boardState.sideToMove == WHITE ? m_board.whitePieces() : m_board.blackPieces();
-	Bitboard theirPieces = m_board.boardState.sideToMove == WHITE ? m_board.blackPieces() : m_board.whitePieces();
-	Bitboard allPieces	 = m_board.whitePieces() | m_board.blackPieces();
+	Bitboard yourPieces	 = m_board.boardState.sideToMove == WHITE ? m_board.boardState.allColorPieces[WHITE] : m_board.boardState.allColorPieces[BLACK];
+	Bitboard theirPieces = m_board.boardState.sideToMove == WHITE ? m_board.boardState.allColorPieces[BLACK] : m_board.boardState.allColorPieces[WHITE];
+	Bitboard allPieces	 = m_board.boardState.allColorPieces[WHITE] | m_board.boardState.allColorPieces[BLACK];
 
 	do {
 		Bitboard piece		  = LS1B(pieces);
@@ -236,8 +236,8 @@ void MoveGen::genPawnCaptures(Moves& pseudoLegalCaptures) const {
 	if (!pawns) {
 		return;
 	}
-	Bitboard allPieces	 = m_board.whitePieces() | m_board.blackPieces();
-	Bitboard theirPieces = m_board.boardState.sideToMove == WHITE ? m_board.blackPieces() : m_board.whitePieces();
+	Bitboard allPieces	 = m_board.boardState.allColorPieces[WHITE] | m_board.boardState.allColorPieces[BLACK];
+	Bitboard theirPieces = m_board.boardState.sideToMove == WHITE ? m_board.boardState.allColorPieces[BLACK] : m_board.boardState.allColorPieces[WHITE];
 	do {
 		Bitboard pawn				= LS1B(pawns);
 		Bitboard captureMoveTargets = (pawn & ~aFile ? pawn << 7 : 0) | (pawn & ~hFile ? pawn << 9 : 0);
@@ -264,7 +264,7 @@ void MoveGen::genKnightCaptures(Moves& pseudoLegalCaptures) const {
 	if (!knights) {
 		return;
 	}
-	Bitboard theirPieces = m_board.boardState.sideToMove == WHITE ? m_board.blackPieces() : m_board.whitePieces();
+	Bitboard theirPieces = m_board.boardState.sideToMove == WHITE ? m_board.boardState.allColorPieces[BLACK] : m_board.boardState.allColorPieces[WHITE];
 	do {
 		Bitboard knight				= LS1B(knights);
 		Bitboard captureMoveTargets = LookupTables::s_knightAttacks[bitscan(knight)] & theirPieces;
@@ -277,7 +277,7 @@ void MoveGen::genKnightCaptures(Moves& pseudoLegalCaptures) const {
 }
 
 void MoveGen::genKingCaptures(Moves& pseudoLegalCaptures) const {
-	Bitboard theirPieces		= m_board.boardState.sideToMove == WHITE ? m_board.blackPieces() : m_board.whitePieces();
+	Bitboard theirPieces		= m_board.boardState.sideToMove == WHITE ? m_board.boardState.allColorPieces[BLACK] : m_board.boardState.allColorPieces[WHITE];
 	Bitboard king				= m_board.boardState.pieces[m_board.boardState.sideToMove][KING];
 	Bitboard captureMoveTargets = LookupTables::s_kingAttacks[bitscan(king)] & theirPieces;
 	while (captureMoveTargets) {
@@ -291,8 +291,8 @@ void MoveGen::genSlidingPiecesCaptures(Moves& pseudoLegalCaptures, Piece p, Bitb
 	if (!pieces) {
 		return;
 	}
-	Bitboard theirPieces = m_board.boardState.sideToMove == WHITE ? m_board.blackPieces() : m_board.whitePieces();
-	Bitboard allPieces	 = m_board.whitePieces() | m_board.blackPieces();
+	Bitboard theirPieces = m_board.boardState.sideToMove == WHITE ? m_board.boardState.allColorPieces[BLACK] : m_board.boardState.allColorPieces[WHITE];
+	Bitboard allPieces	 = m_board.boardState.allColorPieces[WHITE] | m_board.boardState.allColorPieces[BLACK];
 
 	do {
 		Bitboard piece		  = LS1B(pieces);
@@ -410,9 +410,9 @@ bool MoveGen::hasLegalMoves() {
 		m_board.undoMove();
 		return !illegal;
 	};
-	Bitboard allPieces	 = m_board.whitePieces() | m_board.blackPieces();
-	Bitboard yourPieces	 = m_board.boardState.sideToMove == WHITE ? m_board.whitePieces() : m_board.blackPieces();
-	Bitboard theirPieces = m_board.boardState.sideToMove == WHITE ? m_board.blackPieces() : m_board.whitePieces();
+	Bitboard allPieces	 = m_board.boardState.allColorPieces[WHITE] | m_board.boardState.allColorPieces[BLACK];
+	Bitboard yourPieces	 = m_board.boardState.sideToMove == WHITE ? m_board.boardState.allColorPieces[WHITE] : m_board.boardState.allColorPieces[BLACK];
+	Bitboard theirPieces = m_board.boardState.sideToMove == WHITE ? m_board.boardState.allColorPieces[BLACK] : m_board.boardState.allColorPieces[WHITE];
 
 	Bitboard pawns = m_board.boardState.pieces[m_board.boardState.sideToMove][PAWN];
 	do {

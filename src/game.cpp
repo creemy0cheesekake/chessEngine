@@ -38,7 +38,7 @@ void Game::gameLogic() {
 			m_gui.gameHistory.push_back({selectedMove.notationWithAnnotations(m_board), m_playerColor, (int)m_board.boardState.fmClock});
 			m_board.execute(selectedMove);
 		}
-	} else if ((m_board.whitePieces() | m_board.blackPieces()) & (1UL << m_clicked)) {
+	} else if ((m_board.boardState.allColorPieces[WHITE] | m_board.boardState.allColorPieces[BLACK]) & (1UL << m_clicked)) {
 		m_startOfMove = m_clicked;
 		m_gui.setSelected(m_startOfMove);
 	}

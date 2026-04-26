@@ -72,7 +72,7 @@ Bitboard MoveGen::genSlidingPiecesAttacks(Bitboard pieces) const {
 	if (!pieces) {
 		return 0;
 	}
-	Bitboard allPieces = m_board.whitePieces() | m_board.blackPieces();
+	Bitboard allPieces = m_board.boardState.allColorPieces[WHITE] | m_board.boardState.allColorPieces[BLACK];
 	Bitboard attacks   = 0;
 
 	do {
@@ -126,8 +126,4 @@ Bitboard MoveGen::genQueenAttacks() const {
 
 Bitboard MoveGen::genAttacks() const {
 	return genPawnAttacks() | genKnightAttacks() | genKingAttacks() | genBishopAttacks() | genRookAttacks() | genQueenAttacks();
-}
-
-Bitboard MoveGen::getAttacks() const {
-	return m_attacks;
 }

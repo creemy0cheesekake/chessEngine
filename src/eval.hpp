@@ -22,10 +22,10 @@ public:
 	*/
 	static uint64_t totalNodesSearched;
 
-	/**
-	* @brief sums up material count from whites POV.
-	*/
-	static Centipawns countMaterial(const Board&);
+	// /**
+	// * @brief sums up material count from whites POV.
+	// */
+	// static Centipawns countMaterial(const Board&);
 
 	/**
 	* @brief spits out evaluation given a position. its sign is whether or not the count is favorable to whoevers turn it is.

@@ -14,19 +14,19 @@ uint64_t Eval::totalNodesSearched = 0;
 std::array<std::array<Move, Eval::NUM_KILLER_MOVES>, Eval::MAX_SEARCH_DEPTH> Eval::killerMoves{};
 std::chrono::time_point<std::chrono::high_resolution_clock> Eval::m_iterative_deepening_cutoff_time = std::chrono::time_point<std::chrono::high_resolution_clock>::max();
 
-Centipawns Eval::countMaterial(const Board& b) {
-	Centipawns material = 0;
-	for (Color color : {WHITE, BLACK}) {
-		for (Piece pieceType : {QUEEN, ROOK, BISHOP, KNIGHT, PAWN}) {
-			Bitboard piece = b.boardState.pieces[color][pieceType];
-			int count	   = std::popcount(piece);
-			material +=
-				count * pieceToCentipawns[pieceType] *
-				(color == WHITE ? 1 : -1);
-		}
-	}
-	return material;
-}
+// Centipawns Eval::countMaterial(const Board& b) {
+// 	Centipawns material = 0;
+// 	for (Color color : {WHITE, BLACK}) {
+// 		for (Piece pieceType : {QUEEN, ROOK, BISHOP, KNIGHT, PAWN}) {
+// 			Bitboard piece = b.boardState.pieces[color][pieceType];
+// 			int count	   = std::popcount(piece);
+// 			material +=
+// 				count * pieceToCentipawns[pieceType] *
+// 				(color == WHITE ? 1 : -1);
+// 		}
+// 	}
+// 	return material;
+// }
 
 Centipawns Eval::evaluate(Board& b) {
 	if (!b.moveGenerator.hasLegalMoves()) {
@@ -34,7 +34,7 @@ Centipawns Eval::evaluate(Board& b) {
 		return b.moveGenerator.inCheck() ? -INF_SCORE + (int)b.boardState.hmClock : 0;
 	}
 
-	Centipawns score = countMaterial(b);
+	Centipawns score = b.boardState.material;
 	for (Color color : {WHITE, BLACK}) {
 		for (Piece pieceType : {KING, QUEEN, ROOK, BISHOP, KNIGHT, PAWN}) {
 			Bitboard piece = b.boardState.pieces[color][pieceType];
@@ -42,8 +42,8 @@ Centipawns Eval::evaluate(Board& b) {
 				int stmMultiplier = color == WHITE ? 1 : -1;
 
 				score += stmMultiplier * positionalValue(pieceType, color, (Square)bitscan(piece));
-				Bitboard allPieces = b.whitePieces() | b.blackPieces();
-				Bitboard friendly  = color == WHITE ? b.whitePieces() : b.blackPieces();
+				Bitboard allPieces = b.boardState.allColorPieces[WHITE] | b.boardState.allColorPieces[BLACK];
+				Bitboard friendly  = color == WHITE ? b.boardState.allColorPieces[WHITE] : b.boardState.allColorPieces[BLACK];
 				Square pieceSquare = (Square)bitscan(piece);
 				switch (pieceType) {
 					case QUEEN: {
@@ -157,7 +157,7 @@ SearchResult Eval::search(Moves& topLine, Board& b, int depthLeft, Moves& previo
 	const uint32_t pvKey = (plyFromRoot < previousPV.size()) ? previousPV[plyFromRoot].getSignature() : 0;
 
 	for (Move& m : moves) {
-		uint32_t mKey = m.getSignature(); 
+		uint32_t mKey = m.getSignature();
 
 		if (mKey == ttKey) m.setScore(MAX_MOVE_SCORE);
 		else if (mKey == pvKey) m.setScore(MAX_MOVE_SCORE - 1);

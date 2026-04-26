@@ -90,22 +90,22 @@ public:
 	/**
 	* @brief returns "from" square as an int
 	*/
-	Square getFrom() const;
+	constexpr Square getFrom() const { return m_from; };
 
 	/**
 	* @brief returns "to" square as an int
 	*/
-	Square getTo() const;
+	constexpr Square getTo() const { return m_to; };
 
 	/**
 	* @brief returns piece being moved
 	*/
-	Piece getPieceType() const;
+	constexpr Piece getPieceType() const { return m_pieceType; };
 
 	/**
 	* @brief returns flags of move
 	*/
-	MoveFlag getFlags() const;
+	constexpr MoveFlag getFlags() const { return m_flags; };
 
 	/**
 	* @brief sets promotion piece
@@ -115,7 +115,7 @@ public:
 	/**
 	* @brief gets promotion piece
 	*/
-	Piece getPromoPiece() const;
+	constexpr Piece getPromoPiece() const { return m_promoPiece; };
 
 	/**
 	* @brief sets ordering score
@@ -125,7 +125,7 @@ public:
 	/**
 	* @brief gets ordering score
 	*/
-	MoveScore getScore() const;
+	constexpr MoveScore getScore() const { return m_score; };
 
 	/**
 	* @brief return move notation in long algebraic form
@@ -145,6 +145,6 @@ public:
 	/**
 	* @brief returns the move signature
 	*/
-	uint32_t getSignature() const;
+	constexpr uint32_t getSignature() const { return m_signature; };
 };
 #endif

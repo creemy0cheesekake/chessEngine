@@ -63,10 +63,10 @@ CUSTOM_TEST_CASE("Test setToFen") {
 			CHECK(b.boardState.fmClock == 7);
 		}
 		SUBCASE("Test whitePieces") {
-			CHECK(b.whitePieces() == 8869211805UL);
+			CHECK(b.boardState.allColorPieces[WHITE] == 8869211805UL);
 		}
 		SUBCASE("Test blackPieces") {
-			CHECK(b.blackPieces() == 17142123020685410304UL);
+			CHECK(b.boardState.allColorPieces[BLACK] == 17142123020685410304UL);
 		}
 	}
 	SUBCASE("Test fen r3k2r/pp2bppp/2n1p3/q2pPn2/N2P2P1/4BB1P/PP3P2/R2Q1RK1 b kq g3 0 14") {
@@ -84,10 +84,10 @@ CUSTOM_TEST_CASE("Test setToFen") {
 			CHECK(b.boardState.fmClock == 14);
 		}
 		SUBCASE("Test whitePieces") {
-			CHECK(b.whitePieces() == 69955756905UL);
+			CHECK(b.boardState.allColorPieces[WHITE] == 69955756905UL);
 		}
 		SUBCASE("Test blackPieces") {
-			CHECK(b.blackPieces() == 10516771721166454784UL);
+			CHECK(b.boardState.allColorPieces[BLACK] == 10516771721166454784UL);
 		}
 	}
 	SUBCASE("Test fen 2rqrnk1/pp2bpp1/2p1bn1p/3p4/3P3B/2NBPP2/PPQ1N1PP/3R1RK1 w - - 3 14") {
@@ -105,10 +105,10 @@ CUSTOM_TEST_CASE("Test setToFen") {
 			CHECK(b.boardState.fmClock == 14);
 		}
 		SUBCASE("Test whitePieces") {
-			CHECK(b.whitePieces() == 2285688680UL);
+			CHECK(b.boardState.allColorPieces[WHITE] == 2285688680UL);
 		}
 		SUBCASE("Test blackPieces") {
-			CHECK(b.blackPieces() == 8967709229477527552UL);
+			CHECK(b.boardState.allColorPieces[BLACK] == 8967709229477527552UL);
 		}
 	}
 }

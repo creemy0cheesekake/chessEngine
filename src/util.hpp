@@ -2,9 +2,12 @@
 #define UTIL_H
 
 #include <bitset>
+#include <iostream>
 #include <chrono>
 
 #include "consts.hpp"
+#include "board.hpp"
+#include "move.hpp"
 
 /**
 * @brief returns whether or not val is between start and end inclusive
@@ -73,5 +76,36 @@ float end();
 */
 void format(float d);
 }
+
+
+inline int perft(Board& b, int depth) {
+	if (depth <= 0) return 1;
+
+	int n = 0;
+	for (Move m : b.moveGenerator.genLegalMoves()) {
+		b.execute(m);
+		n += perft(b, depth - 1);
+		b.undoMove();
+	}
+	return n;
+}
+
+inline bool test(Board& b, int depth, int ans) {
+	int num = perft(b, depth);
+	return (num == ans);
+}
+
+inline int divide(Board& b, int depth) {
+	int total = 0;
+	for (Move m : b.moveGenerator.genLegalMoves()) {
+		b.execute(m);
+		int num = perft(b, depth - 1);
+		b.undoMove();
+		total += num;
+		std::cout << m.UCInotation() << ": " << num << "\n";
+	}
+	return total;
+}
+
 
 #endif

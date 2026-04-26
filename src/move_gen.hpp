@@ -182,7 +182,7 @@ struct MoveGen {
 	/**
 	* @brief returns attacks bitboard
 	*/
-	Bitboard getAttacks() const;
+	constexpr Bitboard getAttacks() const { return m_attacks; }
 
 	/**
 	* @brief returns false if there are zero legal moves available
