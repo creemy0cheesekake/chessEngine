@@ -61,9 +61,9 @@ constexpr Bitboard hFile	   = 0x8080808080808080;
 /**
 * @brief both chess piece colors
 */
-enum Color {
-	WHITE,
-	BLACK,
+enum Color : uint8_t {
+	WHITE = 0,
+	BLACK = 1,
 };
 
 /**
@@ -217,4 +217,18 @@ inline constexpr std::array<std::array<MoveScore, 6>, 6> MVV_LVA_table = {{
 	{999, 505, 405, 305, 205, 105},	 // PAWN
 }};
 
+// clang-format off
+inline constexpr std::array<uint8_t, 64> castlingMask = []() {
+	std::array<uint8_t, 64> values{};
+	values[a8] = 0b1110; values[b8] = 0b1111; values[c8] = 0b1111; values[d8] = 0b1111; values[e8] = 0b1100; values[f8] = 0b1111; values[g8] = 0b1111; values[h8] = 0b1101;
+	values[a7] = 0b1111; values[b7] = 0b1111; values[c7] = 0b1111; values[d7] = 0b1111; values[e7] = 0b1111; values[f7] = 0b1111; values[g7] = 0b1111; values[h7] = 0b1111;
+	values[a6] = 0b1111; values[b6] = 0b1111; values[c6] = 0b1111; values[d6] = 0b1111; values[e6] = 0b1111; values[f6] = 0b1111; values[g6] = 0b1111; values[h6] = 0b1111;
+	values[a5] = 0b1111; values[b5] = 0b1111; values[c5] = 0b1111; values[d5] = 0b1111; values[e5] = 0b1111; values[f5] = 0b1111; values[g5] = 0b1111; values[h5] = 0b1111;
+	values[a4] = 0b1111; values[b4] = 0b1111; values[c4] = 0b1111; values[d4] = 0b1111; values[e4] = 0b1111; values[f4] = 0b1111; values[g4] = 0b1111; values[h4] = 0b1111;
+	values[a3] = 0b1111; values[b3] = 0b1111; values[c3] = 0b1111; values[d3] = 0b1111; values[e3] = 0b1111; values[f3] = 0b1111; values[g3] = 0b1111; values[h3] = 0b1111;
+	values[a2] = 0b1111; values[b2] = 0b1111; values[c2] = 0b1111; values[d2] = 0b1111; values[e2] = 0b1111; values[f2] = 0b1111; values[g2] = 0b1111; values[h2] = 0b1111;
+	values[a1] = 0b1011; values[b1] = 0b1111; values[c1] = 0b1111; values[d1] = 0b1111; values[e1] = 0b0011; values[f1] = 0b1111; values[g1] = 0b1111; values[h1] = 0b0111;
+	return values;
+}();
+// clang-format on
 #endif

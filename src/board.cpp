@@ -5,7 +5,7 @@
 
 Board::Board() {
 	m_previousBoardStates.reserve(999);
-	boardState.hash		  = Zobrist::initialHash();
+	boardState.hash					 = Zobrist::initialHash();
 	boardState.allColorPieces[WHITE] = firstRank | secondRank;
 	boardState.allColorPieces[BLACK] = seventhRank | eighthRank;
 }
@@ -107,10 +107,10 @@ void Board::setToFen(const char* fen) {
 	}
 	fen += 2;
 	char* endOfClock;
-	boardState.hmClock	  = std::strtol(fen, &endOfClock, 10);
-	fen					  = endOfClock + 1;
-	boardState.fmClock	  = std::strtol(fen, &endOfClock, 10);
-	boardState.hash		  = Zobrist::hash(boardState);
+	boardState.hmClock				 = std::strtol(fen, &endOfClock, 10);
+	fen								 = endOfClock + 1;
+	boardState.fmClock				 = std::strtol(fen, &endOfClock, 10);
+	boardState.hash					 = Zobrist::hash(boardState);
 	boardState.allColorPieces[WHITE] = boardState.pieces[WHITE][PAWN] | boardState.pieces[WHITE][KNIGHT] | boardState.pieces[WHITE][BISHOP] | boardState.pieces[WHITE][ROOK] | boardState.pieces[WHITE][QUEEN] | boardState.pieces[WHITE][KING];
 	boardState.allColorPieces[BLACK] = boardState.pieces[BLACK][PAWN] | boardState.pieces[BLACK][KNIGHT] | boardState.pieces[BLACK][BISHOP] | boardState.pieces[BLACK][ROOK] | boardState.pieces[BLACK][QUEEN] | boardState.pieces[BLACK][KING];
 }
@@ -252,19 +252,20 @@ void Board::undoMove() {
 }
 
 void Board::updateBoardStateGameData(const Move& m) {
-	MoveFlag flags			   = m.getFlags();
-	boardState.enPassantSquare = 0;
-	boardState.hmClock++;
-	if (boardState.sideToMove == BLACK) {
-		boardState.fmClock++;
+	MoveFlag flags = m.getFlags();
+	[[unlikely]]
+	if (boardState.enPassantSquare) {
+		boardState.hash ^= Zobrist::epFileKeys[bitscan(boardState.enPassantSquare) % 8];
 	}
-	if (flags & PAWN_MOVE || flags & CAPTURE) {
-		boardState.hmClock = 0;
-	}
+	// branchlessly increments fmClock if sideToMove == BLACK
+	boardState.fmClock += 1 & -boardState.sideToMove;
+	// branchlessly resets hmClock if flags & PAWN_MOVE | CAPTURE else increments
+	boardState.hmClock = (boardState.hmClock + 1) & -!(flags & (PAWN_MOVE | CAPTURE));
 
 	// updates en passant square if dbl pawn push
+	boardState.enPassantSquare = 0;
 	if (flags & DBL_PAWN) {
-		int enPassantSquareIndex   = boardState.sideToMove == WHITE ? m.getTo() - 8 : m.getTo() + 8;
+		int enPassantSquareIndex   = m.getTo() + (boardState.sideToMove == WHITE ? -8 : 8);
 		boardState.enPassantSquare = 1UL << enPassantSquareIndex;
 		boardState.hash ^= Zobrist::epFileKeys[enPassantSquareIndex % 8];
 	}
@@ -277,62 +278,8 @@ void Board::updateBoardStateGameData(const Move& m) {
 }
 
 void Board::updateCastlingRights(const Move& m) {
-	Square from = m.getFrom(), to = m.getTo();
-	// if either side castles remove all their castling rights
-	if (m.getFlags() & KS_CASTLE || m.getFlags() & QS_CASTLE) {
-		if (boardState.sideToMove == WHITE) {
-			boardState.castlingRights.setWhiteKS(false);
-			boardState.castlingRights.setWhiteQS(false);
-		} else {
-			boardState.castlingRights.setBlackKS(false);
-			boardState.castlingRights.setBlackQS(false);
-		}
-	}
-
-	// if the kings move remove all their castling rights
-	if ((boardState.pieces[WHITE][KING] >> to) & 1) {
-		boardState.castlingRights.setWhiteKS(false);
-		boardState.castlingRights.setWhiteQS(false);
-	}
-	if ((boardState.pieces[BLACK][KING] >> to) & 1) {
-		boardState.castlingRights.setBlackKS(false);
-		boardState.castlingRights.setBlackQS(false);
-	}
-
-	// if the rooks move remove castling rights for that side
-	if ((boardState.pieces[WHITE][ROOK] >> to) & 1 && from == h1) {
-		boardState.castlingRights.setWhiteKS(false);
-	}
-	if ((boardState.pieces[WHITE][ROOK] >> to) & 1 && from == a1) {
-		boardState.castlingRights.setWhiteQS(false);
-	}
-	if ((boardState.pieces[BLACK][ROOK] >> to) & 1 && from == h8) {
-		boardState.castlingRights.setBlackKS(false);
-	}
-	if ((boardState.pieces[BLACK][ROOK] >> to) & 1 && from == a8) {
-		boardState.castlingRights.setBlackQS(false);
-	}
-
-	// if the rooks are captured remove castling rights for that side. dont need to check what the piece
-	// being captured is, bc if its not a rook that means it has moved so remove castling rights anyway
-	if (m.getFlags() & CAPTURE) {
-		switch (to) {
-			case h1:
-				boardState.castlingRights.setWhiteKS(false);
-				break;
-			case a1:
-				boardState.castlingRights.setWhiteQS(false);
-				break;
-			case h8:
-				boardState.castlingRights.setBlackKS(false);
-				break;
-			case a8:
-				boardState.castlingRights.setBlackQS(false);
-				break;
-			default: break;
-		}
-	}
-
+	boardState.castlingRights.rights &= castlingMask[m.getFrom()];
+	boardState.castlingRights.rights &= castlingMask[m.getTo()];
 	boardState.hash ^= Zobrist::castlingKeys[boardState.castlingRights.rights];
 }
 
